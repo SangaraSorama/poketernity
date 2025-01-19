@@ -88,7 +88,6 @@ import {
   TempCritBoosterModifier,
   StatBoosterModifier,
   CritBoosterModifier,
-  TerastallizeModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
   PokemonIncrementingStatModifier,
@@ -1757,15 +1756,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    */
   public getTeraType(): Type {
     // I don't think this should be possible anymore, please report if you encounter this. --NightKev
-    if (globalScene === undefined) {
-      console.warn("Pokemon.getTeraType(): Global scene is not defined!");
-      return Type.UNKNOWN;
-    }
-    const teraModifier = globalScene.findModifier(
-      (m) => m instanceof TerastallizeModifier && m.pokemonId === this.id && m.getBattlesLeft() > 0,
-      this.isPlayer(),
-    ) as TerastallizeModifier;
-    return teraModifier?.teraType ?? Type.UNKNOWN;
+    return Type.UNKNOWN;
   }
 
   public isTerastallized(): boolean {

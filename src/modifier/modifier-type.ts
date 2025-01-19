@@ -79,8 +79,6 @@ import {
   TempCritBoosterModifier,
   TempExtraModifierModifier,
   TempStatStageBoosterModifier,
-  TerastallizeAccessModifier,
-  TerastallizeModifier,
   TmModifier,
   TurnHealModifier,
   TurnHeldItemTransferModifier,
@@ -103,7 +101,6 @@ import {
   NumberHolder,
   padInt,
   randSeedInt,
-  randSeedItem,
 } from "#app/utils";
 import { Abilities } from "#enums/abilities";
 import { BattlerTagType } from "#enums/battler-tag-type";
@@ -1611,37 +1608,6 @@ class FormChangeItemModifierTypeGenerator extends ModifierTypeGenerator {
   }
 }
 
-export class TerastallizeModifierType extends PokemonHeldItemModifierType implements GeneratedPersistentModifierType {
-  private teraType: Type;
-
-  constructor(teraType: Type) {
-    super(
-      "",
-      `${Type[teraType].toLowerCase()}_tera_shard`,
-      (type, args) => new TerastallizeModifier(type as TerastallizeModifierType, (args[0] as Pokemon).id, teraType),
-      "tera_shard",
-    );
-
-    this.teraType = teraType;
-  }
-
-  override get name(): string {
-    return i18next.t("modifierType:ModifierType.TerastallizeModifierType.name", {
-      teraType: i18next.t(`pokemonInfo:Type.${Type[this.teraType]}`),
-    });
-  }
-
-  override getDescription(): string {
-    return i18next.t("modifierType:ModifierType.TerastallizeModifierType.description", {
-      teraType: i18next.t(`pokemonInfo:Type.${Type[this.teraType]}`),
-    });
-  }
-
-  getPregenArgs(): any[] {
-    return [this.teraType];
-  }
-}
-
 export class ContactHeldItemTransferChanceModifierType extends PokemonHeldItemModifierType {
   private chancePercent: number;
 
@@ -1771,8 +1737,8 @@ export type GeneratorModifierOverride = {
       name: keyof Pick<typeof modifierTypes, "MINT">;
       type?: Nature;
     }
-  | {
-      name: keyof Pick<typeof modifierTypes, "ATTACK_TYPE_BOOSTER" | "TERA_SHARD">;
+  |  {
+      name: keyof Pick<typeof modifierTypes, "ATTACK_TYPE_BOOSTER">;
       type?: Type;
     }
   | {
@@ -1830,12 +1796,6 @@ export const modifierTypes = {
       "modifierType:ModifierType.DYNAMAX_BAND",
       "dynamax_band",
       (type, _args) => new GigantamaxAccessModifier(type),
-    ),
-  TERA_ORB: () =>
-    new ModifierType(
-      "modifierType:ModifierType.TERA_ORB",
-      "tera_orb",
-      (type, _args) => new TerastallizeAccessModifier(type),
     ),
 
   MAP: () => new ModifierType("modifierType:ModifierType.MAP", "map", (type, _args) => new MapModifier(type)),
@@ -1910,24 +1870,6 @@ export const modifierTypes = {
         return new PokemonNatureChangeModifierType(pregenArgs[0] as Nature);
       }
       return new PokemonNatureChangeModifierType(randSeedInt(getEnumValues(Nature).length) as Nature);
-    }),
-
-  TERA_SHARD: () =>
-    new ModifierTypeGenerator((party: Pokemon[], pregenArgs?: any[]) => {
-      if (pregenArgs && pregenArgs.length === 1 && pregenArgs[0] in Type) {
-        return new TerastallizeModifierType(pregenArgs[0] as Type);
-      }
-      if (!globalScene.getModifiers(TerastallizeAccessModifier).length) {
-        return null;
-      }
-      let type: Type;
-      if (!randSeedInt(3)) {
-        const partyMemberTypes = party.map((p) => p.getTypes(false, false, true)).flat();
-        type = randSeedItem(partyMemberTypes);
-      } else {
-        type = randSeedInt(64) ? (randSeedInt(18) as Type) : Type.STELLAR;
-      }
-      return new TerastallizeModifierType(type);
     }),
 
   BERRY: () =>
@@ -2482,7 +2424,6 @@ const modifierPool: ModifierPool = {
       4,
     ),
     new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 3),
-    new WeightedModifierType(modifierTypes.TERA_SHARD, 1),
     new WeightedModifierType(modifierTypes.DNA_SPLICERS, (party: Pokemon[]) =>
       globalScene.gameMode.isSplicedOnly && party.filter((p) => !p.fusionSpecies).length > 1 ? 4 : 0,
     ),
@@ -2667,11 +2608,6 @@ const modifierPool: ModifierPool = {
     new WeightedModifierType(modifierTypes.EXP_CHARM, skipInLastClassicWaveOrDefault(8)),
     new WeightedModifierType(modifierTypes.EXP_SHARE, skipInLastClassicWaveOrDefault(10)),
     new WeightedModifierType(modifierTypes.EXP_BALANCE, skipInLastClassicWaveOrDefault(3)),
-    new WeightedModifierType(
-      modifierTypes.TERA_ORB,
-      () => Math.min(Math.max(Math.floor(globalScene.currentBattle.waveIndex / 50) * 2, 1), 4),
-      4,
-    ),
     new WeightedModifierType(modifierTypes.QUICK_CLAW, 3),
     new WeightedModifierType(modifierTypes.WIDE_LENS, 4),
   ].map((m) => {

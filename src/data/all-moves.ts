@@ -3379,6 +3379,7 @@ export function initMoves() {
       .attr(TeraMoveCategoryAttr)
       .attr(TeraBlastTypeAttr)
       .attr(TeraBlastPowerAttr)
+      .partial()
       .attr(StatStageChangeAttr, [Stat.ATK, Stat.SPATK], -1, true, {
         condition: (user, _target, _move) => user.isTerastallized() && user.isOfType(Type.STELLAR),
       })
