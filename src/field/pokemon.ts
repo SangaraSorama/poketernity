@@ -87,7 +87,6 @@ import {
   TempCritBoosterModifier,
   StatBoosterModifier,
   CritBoosterModifier,
-  TerastallizeModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
   PokemonIncrementingStatModifier,
@@ -263,6 +262,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   public pokerus: boolean;
   public switchOutStatus: boolean;
   public evoCounter: number;
+  public teraType: Type;
+  public terastallized: boolean = false;
 
   public fusionSpecies: PokemonSpecies | null;
   public fusionFormIndex: number;
@@ -319,6 +320,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     this.species = species;
+    this.teraType = species.type1;
     this.pokeball = dataSource?.pokeball || PokeballType.POKEBALL;
     this.level = level;
     this.switchOutStatus = false;
@@ -480,7 +482,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       ret.setPipeline(globalScene.spritePipeline, {
         tone: [0.0, 0.0, 0.0, 0.0],
         hasShadow: !!hasShadow,
-        teraColor: getTypeRgb(this.getTeraType()),
+        teraColor: getTypeRgb(this.teraType),
       });
       return ret;
     };
@@ -854,7 +856,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   updateSpritePipelineData(): void {
     [this.getSprite(), this.getTintSprite()]
       .filter((s) => !!s)
-      .map((s) => (s.pipelineData["teraColor"] = getTypeRgb(this.getTeraType())));
+      .map((s) => (s.pipelineData["teraColor"] = getTypeRgb(this.teraType)));
     this.updateInfo(true);
   }
 
@@ -1423,12 +1425,10 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const types: Type[] = [];
 
     if (includeTeraType) {
-      const teraType = this.getTeraType();
-      if (teraType !== Type.UNKNOWN) {
-        types.push(teraType);
-        if (forDefend) {
-          return types;
-        }
+      const teraType = this.teraType;
+      types.push(teraType);
+      if (forDefend) {
+        return types;
       }
     }
 
@@ -1754,26 +1754,6 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     return Math.max(minWeight, weight.value);
   }
 
-  /**
-   * @returns the pokemon's current tera {@linkcode Type}, or `Type.UNKNOWN` if the pokemon is not terastallized
-   */
-  public getTeraType(): Type {
-    // I don't think this should be possible anymore, please report if you encounter this. --NightKev
-    if (globalScene === undefined) {
-      console.warn("Pokemon.getTeraType(): Global scene is not defined!");
-      return Type.UNKNOWN;
-    }
-    const teraModifier = globalScene.findModifier(
-      (m) => m instanceof TerastallizeModifier && m.pokemonId === this.id && m.getBattlesLeft() > 0,
-      this.isPlayer(),
-    ) as TerastallizeModifier;
-    return teraModifier?.teraType ?? Type.UNKNOWN;
-  }
-
-  public isTerastallized(): boolean {
-    return this.getTeraType() !== Type.UNKNOWN;
-  }
-
   public isGrounded(): boolean {
     // Note: This code is also copied in `GroundedTag.onAdd()`, to check whether or not the Pokemon
     // was grounded before receiving the `GroundedTag`.
@@ -1962,7 +1942,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     move?: Move,
   ): TypeDamageMultiplier {
     if (moveType === Type.STELLAR) {
-      return this.isTerastallized() ? 2 : 1;
+      return this.terastallized ? 2 : 1;
     }
     const types = this.getTypes(true, true);
     const arena = globalScene.arena;
@@ -3208,7 +3188,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const randomMultiplier = simulated ? 1 : this.randSeedIntRange(85, 100) / 100;
 
     const sourceTypes = source.getTypes();
-    const sourceTeraType = source.getTeraType();
+    const sourceTeraType = source.teraType;
     const matchesSourceType = sourceTypes.includes(moveType);
     /** A damage multiplier for when the attack is of the attacker's type and/or Tera type. */
     const stabMultiplier = new NumberHolder(1);

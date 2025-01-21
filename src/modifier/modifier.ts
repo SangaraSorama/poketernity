@@ -3,11 +3,7 @@ import { getBerryEffectFunc, getBerryPredicate } from "#app/data/berry";
 import { getLevelTotalExp } from "#app/data/exp";
 import { allMoves } from "#app/data/all-moves";
 import { MAX_PER_TYPE_POKEBALLS } from "#app/data/pokeball";
-import {
-  SpeciesFormChangeItemTrigger,
-  SpeciesFormChangeLapseTeraTrigger,
-  SpeciesFormChangeTeraTrigger,
-} from "#app/data/pokemon-forms";
+import { SpeciesFormChangeItemTrigger } from "#app/data/pokemon-forms";
 import { type FormChangeItem } from "#enums/form-change-item";
 import { Pokemon, type PlayerPokemon } from "#app/field/pokemon";
 import { getPokemonNameWithAffix } from "#app/messages";
@@ -17,7 +13,6 @@ import { LearnMovePhase } from "#app/phases/learn-move-phase";
 import { LearnMoveType } from "#enums/learn-move-type";
 import { LevelUpPhase } from "#app/phases/level-up-phase";
 import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
-import { achvs } from "#app/system/achv";
 import type { VoucherType } from "#enums/voucher-type";
 import { BattleCommand } from "#enums/battle-command";
 import { addTextObject } from "#app/ui/text";
@@ -30,7 +25,7 @@ import type { PokeballType } from "#enums/pokeball";
 import { Species } from "#enums/species";
 import { type PermanentStat, type TempBattleStat, BATTLE_STATS, Stat, TEMP_BATTLE_STATS } from "#enums/stat";
 import { StatusEffect } from "#enums/status-effect";
-import { Type } from "#enums/type";
+import type { Type } from "#enums/type";
 import i18next from "i18next";
 import {
   type DoubleBattleChanceBoosterModifierType,
@@ -43,7 +38,6 @@ import {
   type PokemonFriendshipBoosterModifierType,
   type PokemonMoveAccuracyBoosterModifierType,
   type PokemonMultiHitModifierType,
-  type TerastallizeModifierType,
   type TmModifierType,
   getModifierType,
   ModifierTypeGenerator,
@@ -831,78 +825,6 @@ export abstract class LapsingPokemonHeldItemModifier extends PokemonHeldItemModi
   }
 
   override getMaxStackCount(_forThreshold?: boolean): number {
-    return 1;
-  }
-}
-
-export class TerastallizeModifier extends LapsingPokemonHeldItemModifier {
-  public override type: TerastallizeModifierType;
-  public teraType: Type;
-  public override isTransferable: boolean = false;
-
-  constructor(
-    type: TerastallizeModifierType,
-    pokemonId: number,
-    teraType: Type,
-    battlesLeft?: number,
-    stackCount?: number,
-  ) {
-    super(type, pokemonId, battlesLeft || 10, stackCount);
-
-    this.teraType = teraType;
-  }
-
-  matchType(modifier: Modifier): boolean {
-    if (modifier instanceof TerastallizeModifier && modifier.teraType === this.teraType) {
-      return true;
-    }
-    return false;
-  }
-
-  clone(): TerastallizeModifier {
-    return new TerastallizeModifier(this.type, this.pokemonId, this.teraType, this.battlesLeft, this.stackCount);
-  }
-
-  override getArgs(): any[] {
-    return [this.pokemonId, this.teraType, this.battlesLeft];
-  }
-
-  /**
-   * Applies the {@linkcode TerastallizeModifier} to the specified {@linkcode Pokemon}.
-   * @param pokemon the {@linkcode Pokemon} to be terastallized
-   * @returns always `true`
-   */
-  override apply(pokemon: Pokemon): boolean {
-    if (pokemon.isPlayer()) {
-      globalScene.triggerPokemonFormChange(pokemon, SpeciesFormChangeTeraTrigger);
-      globalScene.validateAchv(achvs.TERASTALLIZE);
-      if (this.teraType === Type.STELLAR) {
-        globalScene.validateAchv(achvs.STELLAR_TERASTALLIZE);
-      }
-    }
-    pokemon.updateSpritePipelineData();
-    return true;
-  }
-
-  /**
-   * Triggers {@linkcode LapsingPokemonHeldItemModifier.lapse} and if it returns `0` a form change is triggered.
-   * @param pokemon THe {@linkcode Pokemon} to be terastallized
-   * @returns the result of {@linkcode LapsingPokemonHeldItemModifier.lapse}
-   */
-  public override lapse(pokemon: Pokemon): boolean {
-    const ret = super.lapse(pokemon);
-    if (!ret) {
-      globalScene.triggerPokemonFormChange(pokemon, SpeciesFormChangeLapseTeraTrigger);
-      pokemon.updateSpritePipelineData();
-    }
-    return ret;
-  }
-
-  override getScoreMultiplier(): number {
-    return 1.25;
-  }
-
-  getMaxHeldItemCount(_pokemon: Pokemon): number {
     return 1;
   }
 }
