@@ -1,5 +1,5 @@
-import { PokemonFormChangeItemModifier, TerastallizeModifier } from "../modifier/modifier";
-import type { Pokemon } from "../field/pokemon";
+import { PokemonFormChangeItemModifier } from "#app/modifier/modifier";
+import type { Pokemon } from "#app/field/pokemon";
 import { StatusEffect } from "#enums/status-effect";
 import { allMoves } from "#app/data/all-moves";
 import { MoveCategory } from "#enums/move-category";
@@ -283,7 +283,7 @@ export class SpeciesDefaultFormMatchTrigger extends SpeciesFormChangeTrigger {
  */
 export class SpeciesFormChangeTeraTrigger extends SpeciesFormChangeTrigger {
   /** The Tera type that triggers the form change */
-  private teraType: Type;
+  private readonly teraType: Type;
 
   constructor(teraType: Type) {
     super();
@@ -296,9 +296,7 @@ export class SpeciesFormChangeTeraTrigger extends SpeciesFormChangeTrigger {
    * @returns `true` if the Pokémon can change forms, `false` otherwise
    */
   override canChange(pokemon: Pokemon): boolean {
-    return !!globalScene.findModifier(
-      (m) => m instanceof TerastallizeModifier && m.pokemonId === pokemon.id && m.teraType === this.teraType,
-    );
+    return pokemon.terastallized && pokemon.teraType === this.teraType;
   }
 }
 
@@ -309,7 +307,7 @@ export class SpeciesFormChangeTeraTrigger extends SpeciesFormChangeTrigger {
  */
 export class SpeciesFormChangeLapseTeraTrigger extends SpeciesFormChangeTrigger {
   override canChange(pokemon: Pokemon): boolean {
-    return !!globalScene.findModifier((m) => m instanceof TerastallizeModifier && m.pokemonId === pokemon.id);
+    return !pokemon.terastallized; // TODO: is this correct?
   }
 }
 
@@ -1830,7 +1828,7 @@ export const pokemonFormChanges: PokemonFormChanges = {
       "teal-mask",
       new SpeciesFormChangeLapseTeraTrigger(),
       true,
-      new SpeciesFormChangeCondition((p) => p.getTeraType() !== Type.GRASS),
+      new SpeciesFormChangeCondition((p) => p.teraType !== Type.GRASS),
     ),
     new SpeciesFormChange(
       Species.OGERPON,
@@ -1844,7 +1842,7 @@ export const pokemonFormChanges: PokemonFormChanges = {
       "wellspring-mask",
       new SpeciesFormChangeLapseTeraTrigger(),
       true,
-      new SpeciesFormChangeCondition((p) => p.getTeraType() !== Type.WATER),
+      new SpeciesFormChangeCondition((p) => p.teraType !== Type.WATER),
     ),
     new SpeciesFormChange(
       Species.OGERPON,
@@ -1858,7 +1856,7 @@ export const pokemonFormChanges: PokemonFormChanges = {
       "hearthflame-mask",
       new SpeciesFormChangeLapseTeraTrigger(),
       true,
-      new SpeciesFormChangeCondition((p) => p.getTeraType() !== Type.FIRE),
+      new SpeciesFormChangeCondition((p) => p.teraType !== Type.FIRE),
     ),
     new SpeciesFormChange(
       Species.OGERPON,
@@ -1872,7 +1870,7 @@ export const pokemonFormChanges: PokemonFormChanges = {
       "cornerstone-mask",
       new SpeciesFormChangeLapseTeraTrigger(),
       true,
-      new SpeciesFormChangeCondition((p) => p.getTeraType() !== Type.ROCK),
+      new SpeciesFormChangeCondition((p) => p.teraType !== Type.ROCK),
     ),
   ],
   [Species.TERAPAGOS]: [
@@ -1884,7 +1882,7 @@ export const pokemonFormChanges: PokemonFormChanges = {
       "terastal",
       new SpeciesFormChangeLapseTeraTrigger(),
       true,
-      new SpeciesFormChangeCondition((p) => p.getTeraType() !== Type.STELLAR),
+      new SpeciesFormChangeCondition((p) => p.teraType !== Type.STELLAR),
     ),
   ],
   [Species.GALAR_DARMANITAN]: [

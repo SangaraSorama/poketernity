@@ -3380,7 +3380,7 @@ export function initMoves() {
       .attr(TeraBlastTypeAttr)
       .attr(TeraBlastPowerAttr)
       .attr(StatStageChangeAttr, [Stat.ATK, Stat.SPATK], -1, true, {
-        condition: (user, _target, _move) => user.isTerastallized() && user.isOfType(Type.STELLAR),
+        condition: (user, _target, _move) => user.terastallized && user.isOfType(Type.STELLAR),
       })
       .partial(), // Does not ignore abilities that affect stats, relevant in determining the move's category {@see TeraMoveCategoryAttr}
     new SelfStatusMove(Moves.SILK_TRAP, Type.BUG, -1, 10, -1, 4, 9)
@@ -3637,8 +3637,7 @@ export function initMoves() {
       .attr(TeraMoveCategoryAttr)
       .attr(TeraStarstormTypeAttr)
       .attr(VariableTargetAttr, (user, _target, _move) =>
-        (user.hasFusionSpecies(Species.TERAPAGOS) || user.species.speciesId === Species.TERAPAGOS)
-        && user.isTerastallized()
+        (user.hasFusionSpecies(Species.TERAPAGOS) || user.species.speciesId === Species.TERAPAGOS) && user.terastallized
           ? MoveTarget.ALL_NEAR_ENEMIES
           : MoveTarget.NEAR_OTHER,
       )

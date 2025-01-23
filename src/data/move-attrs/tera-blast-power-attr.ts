@@ -10,7 +10,7 @@ import { VariablePowerAttr } from "#app/data/move-attrs/variable-power-attr";
  */
 export class TeraBlastPowerAttr extends VariablePowerAttr {
   override apply(user: Pokemon, _target: Pokemon, _move: Move, power: NumberHolder): boolean {
-    if (user.isTerastallized() && user.getTeraType() === Type.STELLAR) {
+    if (user.terastallized && user.teraType === Type.STELLAR) {
       power.value = 100;
       return true;
     }

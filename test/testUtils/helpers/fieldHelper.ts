@@ -1,9 +1,12 @@
-import type { EnemyPokemon, PlayerPokemon } from "#app/field/pokemon";
-import { GameManagerHelper } from "#test/testUtils/helpers/gameManagerHelper";
-import { expect } from "vitest";
-// tsdoc imports
+// -- start tsdoc imports --
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { type globalScene } from "#app/global-scene";
+// -- end tsdoc imports --
+
+import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#app/field/pokemon";
+import type { Type } from "#enums/type";
+import { GameManagerHelper } from "#test/testUtils/helpers/gameManagerHelper";
+import { expect, vi } from "vitest";
 
 /** Helper to manage pokemon */
 export class FieldHelper extends GameManagerHelper {
@@ -35,5 +38,15 @@ export class FieldHelper extends GameManagerHelper {
     const pokemon = this.game.scene.getEnemyPokemon(includeSwitching);
     expect(pokemon).toBeDefined();
     return pokemon!;
+  }
+
+  /**
+   * Forces a pokemon to be terastallized as the specified {@linkcode Type}.
+   * @param pokemon - The pokemon to terastallize
+   * @param teraType - The type to terastallize it as
+   */
+  public forceTera(pokemon: Pokemon, teraType: Type): void {
+    vi.spyOn(pokemon, "terastallized", "get").mockReturnValue(true);
+    vi.spyOn(pokemon, "teraType", "get").mockReturnValue(teraType);
   }
 }

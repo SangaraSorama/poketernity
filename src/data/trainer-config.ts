@@ -1,6 +1,5 @@
 import { globalScene } from "#app/global-scene";
 import type { ModifierTypeFunc } from "#app/modifier/modifier-type";
-import { modifierTypes } from "#app/modifier/modifier-type";
 import type { EnemyPokemon } from "#app/field/pokemon";
 import { toReadableString, randSeedItem } from "#app/utils";
 import type { PokemonSpeciesFilter } from "#app/data/pokemon-species";
@@ -1211,14 +1210,14 @@ export class TrainerConfig {
     this.setHasVoucher(true);
     this.setBattleBgm("battle_unova_gym");
     this.setVictoryBgm("victory_gym");
-    this.setGenModifiersFunc((party) => {
-      const waveIndex = globalScene.currentBattle.waveIndex;
-      return getRandomTeraModifiers(
-        party,
-        waveIndex >= 100 ? 1 : 0,
-        specialtyTypes.length ? specialtyTypes : undefined,
-      );
-    });
+    // this.setGenModifiersFunc((party) => {
+    //   const waveIndex = globalScene.currentBattle.waveIndex;
+    //   return getRandomTeraModifiers(
+    //     party,
+    //     waveIndex >= 100 ? 1 : 0,
+    //     specialtyTypes.length ? specialtyTypes : undefined,
+    //   );
+    // });
 
     return this;
   }
@@ -1278,9 +1277,9 @@ export class TrainerConfig {
     this.setHasVoucher(true);
     this.setBattleBgm("battle_unova_elite");
     this.setVictoryBgm("victory_gym");
-    this.setGenModifiersFunc((party) =>
-      getRandomTeraModifiers(party, 2, specialtyTypes.length ? specialtyTypes : undefined),
-    );
+    // this.setGenModifiersFunc((party) =>
+    //   getRandomTeraModifiers(party, 1, specialtyTypes.length ? specialtyTypes : undefined),
+    // );
 
     return this;
   }
@@ -1319,7 +1318,6 @@ export class TrainerConfig {
     this.setStaticParty();
     this.setHasVoucher(true);
     this.setVictoryBgm("victory_champion");
-    this.setGenModifiersFunc((party) => getRandomTeraModifiers(party, 3));
 
     return this;
   }
@@ -1604,19 +1602,19 @@ export function getSpeciesFilterRandomPartyMemberFunc(
   };
 }
 
-function getRandomTeraModifiers(party: EnemyPokemon[], count: number, types?: Type[]): PersistentModifier[] {
-  const ret: PersistentModifier[] = [];
-  const partyMemberIndexes = new Array(party.length).fill(null).map((_, i) => i);
-  for (let t = 0; t < Math.min(count, party.length); t++) {
-    const randomIndex = randSeedItem(partyMemberIndexes);
-    partyMemberIndexes.splice(partyMemberIndexes.indexOf(randomIndex), 1);
-    ret.push(
-      modifierTypes
-        .TERA_SHARD()
-        .generateType([], [randSeedItem(types ? types : party[randomIndex].getTypes())])!
-        .withIdFromFunc(modifierTypes.TERA_SHARD)
-        .newModifier(party[randomIndex]) as PersistentModifier,
-    ); // TODO: is the bang correct?
-  }
-  return ret;
-}
+// function getRandomTeraModifiers(party: EnemyPokemon[], count: number, types?: Type[]): PersistentModifier[] {
+//   const ret: PersistentModifier[] = [];
+//   const partyMemberIndexes = new Array(party.length).fill(null).map((_, i) => i);
+//   for (let t = 0; t < Math.min(count, party.length); t++) {
+//     const randomIndex = randSeedItem(partyMemberIndexes);
+//     partyMemberIndexes.splice(partyMemberIndexes.indexOf(randomIndex), 1);
+//     ret.push(
+//       modifierTypes
+//         .TERA_SHARD()
+//         .generateType([], [randSeedItem(types ? types : party[randomIndex].getTypes())])!
+//         .withIdFromFunc(modifierTypes.TERA_SHARD)
+//         .newModifier(party[randomIndex]) as PersistentModifier,
+//     ); // TODO: is the bang correct?
+//   }
+//   return ret;
+// }

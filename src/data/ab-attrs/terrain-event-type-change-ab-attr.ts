@@ -13,7 +13,7 @@ import { PostSummonAbAttr } from "./post-summon-ab-attr";
  */
 export class TerrainEventTypeChangeAbAttr extends PostSummonAbAttr {
   override apply(pokemon: Pokemon, _simulated: boolean, onSummon: boolean = true): boolean {
-    if (pokemon.isTerastallized()) {
+    if (pokemon.terastallized) {
       return false;
     }
 

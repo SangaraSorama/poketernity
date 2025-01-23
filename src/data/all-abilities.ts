@@ -1396,7 +1396,7 @@ export function initAbilities() {
       .attr(UnswappableAbilityAbAttr)
       .attr(NoTransformAbilityAbAttr)
       .attr(NoFusionAbilityAbAttr)
-      .condition((pokemon) => !pokemon.isTerastallized()),
+      .condition((pokemon) => !pokemon.terastallized),
     new Ability(Abilities.QUICK_DRAW, 8).attr(BypassSpeedChanceAbAttr, 30),
     new Ability(Abilities.UNSEEN_FIST, 8).attr(IgnoreProtectOnContactAbAttr),
     new Ability(Abilities.CURIOUS_MEDICINE, 8).attr(PostSummonClearAllyStatStagesAbAttr),

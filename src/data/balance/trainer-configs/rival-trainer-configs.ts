@@ -8,7 +8,6 @@ import {
   type TrainerConfigs,
 } from "#app/data/trainer-config";
 import { TrainerSlot } from "#enums/trainer-slot";
-import type { PersistentModifier } from "#app/modifier/modifier";
 import { modifierTypes } from "#app/modifier/modifier-type";
 import { PokeballType } from "#enums/pokeball";
 import { Species } from "#enums/species";
@@ -318,17 +317,17 @@ export const rivalTrainerConfigs: TrainerConfigs = {
           && species.baseTotal >= 450,
       ),
     )
-    .setSpeciesFilter((species) => species.baseTotal >= 540)
-    .setGenModifiersFunc((party) => {
-      const starter = party[0];
-      return [
-        modifierTypes
-          .TERA_SHARD()
-          .generateType([], [starter.species.type1])!
-          .withIdFromFunc(modifierTypes.TERA_SHARD)
-          .newModifier(starter) as PersistentModifier,
-      ]; // TODO: is the bang correct?
-    }),
+    .setSpeciesFilter((species) => species.baseTotal >= 540),
+  // .setGenModifiersFunc((party) => {
+  //   const starter = party[0];
+  //   return [
+  //     modifierTypes
+  //       .TERA_SHARD()
+  //       .generateType([], [starter.species.type1])!
+  //       .withIdFromFunc(modifierTypes.TERA_SHARD)
+  //       .newModifier(starter) as PersistentModifier,
+  //   ]; // TODO: is the bang correct?
+  // }),
   [TrainerType.RIVAL_5]: new TrainerConfig(++t)
     .setName("Finn")
     .setHasGenders("Ivy")
@@ -417,17 +416,17 @@ export const rivalTrainerConfigs: TrainerConfigs = {
         p.shiny = true;
         p.variant = 1;
       }),
-    )
-    .setGenModifiersFunc((party) => {
-      const starter = party[0];
-      return [
-        modifierTypes
-          .TERA_SHARD()
-          .generateType([], [starter.species.type1])!
-          .withIdFromFunc(modifierTypes.TERA_SHARD)
-          .newModifier(starter) as PersistentModifier,
-      ]; //TODO: is the bang correct?
-    }),
+    ),
+  // .setGenModifiersFunc((party) => {
+  //   const starter = party[0];
+  //   return [
+  //     modifierTypes
+  //       .TERA_SHARD()
+  //       .generateType([], [starter.species.type1])!
+  //       .withIdFromFunc(modifierTypes.TERA_SHARD)
+  //       .newModifier(starter) as PersistentModifier,
+  //   ]; //TODO: is the bang correct?
+  // }),
   [TrainerType.RIVAL_6]: new TrainerConfig(++t)
     .setName("Finn")
     .setHasGenders("Ivy")
@@ -524,15 +523,15 @@ export const rivalTrainerConfigs: TrainerConfigs = {
         p.formIndex = 1; // Mega Rayquaza
         p.generateName();
       }),
-    )
-    .setGenModifiersFunc((party) => {
-      const starter = party[0];
-      return [
-        modifierTypes
-          .TERA_SHARD()
-          .generateType([], [starter.species.type1])!
-          .withIdFromFunc(modifierTypes.TERA_SHARD)
-          .newModifier(starter) as PersistentModifier,
-      ]; // TODO: is the bang correct?
-    }),
+    ),
+  // .setGenModifiersFunc((party) => {
+  //   const starter = party[0];
+  //   return [
+  //     modifierTypes
+  //       .TERA_SHARD()
+  //       .generateType([], [starter.species.type1])!
+  //       .withIdFromFunc(modifierTypes.TERA_SHARD)
+  //       .newModifier(starter) as PersistentModifier,
+  //   ]; // TODO: is the bang correct?
+  // }),
 };

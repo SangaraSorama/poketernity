@@ -1,6 +1,5 @@
 import type { EnemyPartyConfig } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import {
-  generateModifierType,
   handleMysteryEncounterBattleFailed,
   initBattleWithEnemyConfig,
   setEncounterRewards,
@@ -27,9 +26,7 @@ import { EggSourceType } from "#enums/egg-source-types";
 import { EggTier } from "#enums/egg-type";
 import { MysteryEncounterOptionBuilder } from "#app/data/mystery-encounters/mystery-encounter-option";
 import { MysteryEncounterOptionMode } from "#enums/mystery-encounter-option-mode";
-import type { PokemonHeldItemModifierType } from "#app/modifier/modifier-type";
 import { modifierTypes } from "#app/modifier/modifier-type";
-import { Type } from "#enums/type";
 import { getPokeballTintColor } from "#app/data/pokeball";
 import type { PokemonHeldItemModifier } from "#app/modifier/modifier";
 import { allTrainerConfigs } from "#app/data/balance/trainer-configs/all-trainer-configs";
@@ -455,9 +452,9 @@ function getPartyConfig(): EnemyPartyConfig {
         moveSet: [Moves.METEOR_MASH, Moves.FIRE_PUNCH, Moves.ICE_PUNCH, Moves.THUNDER_PUNCH],
         ivs: [31, 31, 31, 31, 31, 31],
         modifierConfigs: [
-          {
-            modifier: generateModifierType(modifierTypes.TERA_SHARD, [Type.STEEL]) as PokemonHeldItemModifierType,
-          },
+          // {
+          //   modifier: generateModifierType(modifierTypes.TERA_SHARD, [Type.STEEL]) as PokemonHeldItemModifierType,
+          // },
         ],
       },
     ],

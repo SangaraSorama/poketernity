@@ -29,8 +29,7 @@ describe("Moves - Tera Starstorm", () => {
       .enemyAbility(Abilities.BALL_FETCH)
       .enemyMoveset(Moves.SPLASH)
       .enemyLevel(30)
-      .enemySpecies(Species.MAGIKARP)
-      .startingHeldItems([{ name: "TERA_SHARD", type: Type.FIRE }]);
+      .enemySpecies(Species.MAGIKARP);
   });
 
   it("changes type to Stellar when used by Terapagos in its Stellar Form", async () => {
@@ -40,16 +39,21 @@ describe("Moves - Tera Starstorm", () => {
     const terapagos = game.scene.getPlayerPokemon()!;
 
     vi.spyOn(terapagos, "getMoveType");
+    game.field.forceTera(terapagos, Type.FIRE);
 
     game.move.select(Moves.TERA_STARSTORM);
     await game.phaseInterceptor.to("TurnEndPhase");
 
-    expect(terapagos.isTerastallized()).toBe(true);
+    expect(terapagos.terastallized).toBe(true);
     expect(terapagos.getMoveType).toHaveReturnedWith(Type.STELLAR);
   });
 
   it("targets both opponents in a double battle when used by Terapagos in its Stellar Form", async () => {
     await game.classicMode.startBattle([Species.MAGIKARP, Species.TERAPAGOS]);
+
+    const [magikarp, terapagos] = game.scene.getPlayerField();
+    game.field.forceTera(magikarp, Type.FIRE);
+    game.field.forceTera(terapagos, Type.STELLAR);
 
     game.move.select(Moves.TERA_STARSTORM, 0, BattlerIndex.ENEMY);
     game.move.select(Moves.TERA_STARSTORM, 1);
@@ -83,6 +87,7 @@ describe("Moves - Tera Starstorm", () => {
     fusionedMon.fusionLuck = magikarp.luck;
 
     vi.spyOn(fusionedMon, "getMoveType");
+    game.field.forceTera(fusionedMon, Type.STELLAR);
 
     game.move.select(Moves.TERA_STARSTORM, 0);
     game.move.select(Moves.SPLASH, 1);
@@ -90,7 +95,7 @@ describe("Moves - Tera Starstorm", () => {
 
     // Fusion and terastallized
     expect(fusionedMon.isFusion()).toBe(true);
-    expect(fusionedMon.isTerastallized()).toBe(true);
+    expect(fusionedMon.terastallized).toBe(true);
     // Move effects should be applied
     expect(fusionedMon.getMoveType).toHaveReturnedWith(Type.STELLAR);
     expect(game.scene.getEnemyField().every((pokemon) => pokemon.isFullHp())).toBe(false);

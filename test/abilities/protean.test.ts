@@ -225,7 +225,7 @@ describe("Abilities - Protean", () => {
     const leadPokemon = game.scene.getPlayerPokemon()!;
     expect(leadPokemon).not.toBe(undefined);
 
-    vi.spyOn(leadPokemon, "isTerastallized").mockReturnValue(true);
+    vi.spyOn(leadPokemon, "terastallized", "get").mockReturnValue(true);
 
     game.move.select(Moves.SPLASH);
     await game.phaseInterceptor.to(TurnEndPhase);

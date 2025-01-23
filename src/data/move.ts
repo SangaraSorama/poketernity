@@ -742,10 +742,9 @@ export abstract class Move implements Localizable {
 
     applyAbAttrs(MoveTypeChangeAbAttr, source, true, this, target, undefined, typeChangeMovePowerMultiplier);
 
-    const sourceTeraType = source.getTeraType();
+    const sourceTeraType = source.teraType;
     if (
-      sourceTeraType !== Type.UNKNOWN
-      && sourceTeraType === this.type
+      sourceTeraType === this.type
       && power.value < 60
       && this.priority <= 0
       && !this.hasAttr(MultiHitAttr)
