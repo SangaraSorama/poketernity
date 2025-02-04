@@ -12,6 +12,7 @@ import { SelectGenderPhase } from "./select-gender-phase";
 import { UnavailablePhase } from "./unavailable-phase";
 import { settings } from "#app/system/settings/settings-manager";
 import type { PhaseManager } from "#app/phase-manager";
+import { PlayerGender } from "#enums/player-gender";
 
 export class LoginPhase extends Phase {
   private readonly showText: boolean;
@@ -118,7 +119,7 @@ export class LoginPhase extends Phase {
   public override end(): void {
     globalScene.ui.setMode(UiMode.MESSAGE);
 
-    if (!settings.display.playerGender) {
+    if (settings.display.playerGender === PlayerGender.UNSET) {
       this.manager.unshiftPhase(SelectGenderPhase);
     }
 
