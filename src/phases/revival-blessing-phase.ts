@@ -9,6 +9,7 @@ import { UiMode } from "#enums/ui-mode";
 import { toDmgValue } from "#app/utils";
 import { SwitchType } from "#enums/switch-type";
 import i18next from "i18next";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Sets the Party UI and handles the effect of Revival Blessing
@@ -17,8 +18,11 @@ import i18next from "i18next";
  * @extends BattlePhase
  */
 export class RevivalBlessingPhase extends BattlePhase {
-  constructor(protected readonly user: PlayerPokemon) {
-    super();
+  protected readonly user: PlayerPokemon;
+
+  constructor(manager: PhaseManager, user: PlayerPokemon) {
+    super(manager);
+    this.user = user;
   }
 
   public override start(): void {
@@ -42,16 +46,26 @@ export class RevivalBlessingPhase extends BattlePhase {
             const allyPokemon = this.user.getAlly();
             if (slotIndex <= 1) {
               // Revived ally pokemon
-              globalScene.unshiftPhase(
-                new SwitchSummonPhase(SwitchType.SWITCH, pokemon.getFieldIndex(), slotIndex, false, true),
+              this.manager.unshiftPhase(
+                SwitchSummonPhase,
+                SwitchType.SWITCH,
+                pokemon.getFieldIndex(),
+                slotIndex,
+                false,
+                true,
               );
-              globalScene.unshiftPhase(new ToggleDoublePositionPhase(true));
+              this.manager.unshiftPhase(ToggleDoublePositionPhase, true);
             } else if (allyPokemon.isFainted()) {
               // Revived party pokemon, and ally pokemon is fainted
-              globalScene.unshiftPhase(
-                new SwitchSummonPhase(SwitchType.SWITCH, allyPokemon.getFieldIndex(), slotIndex, false, true),
+              this.manager.unshiftPhase(
+                SwitchSummonPhase,
+                SwitchType.SWITCH,
+                allyPokemon.getFieldIndex(),
+                slotIndex,
+                false,
+                true,
               );
-              globalScene.unshiftPhase(new ToggleDoublePositionPhase(true));
+              this.manager.unshiftPhase(ToggleDoublePositionPhase, true);
             }
           }
         }

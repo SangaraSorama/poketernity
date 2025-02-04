@@ -5,6 +5,7 @@ import { PokemonTransformPhase } from "#app/phases/pokemon-transform-phase";
 import { randSeedItem } from "#app/utils";
 import i18next from "i18next";
 import { PostSummonAbAttr } from "./post-summon-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Used by Imposter
@@ -41,7 +42,7 @@ export class PostSummonTransformAbAttr extends PostSummonAbAttr {
       return false;
     }
 
-    globalScene.unshiftPhase(new PokemonTransformPhase(pokemon.getBattlerIndex(), target.getBattlerIndex(), true));
+    globalPhaseManager.unshiftPhase(PokemonTransformPhase, pokemon.getBattlerIndex(), target.getBattlerIndex(), true);
 
     globalScene.queueMessage(
       i18next.t("abilityTriggers:postSummonTransform", {

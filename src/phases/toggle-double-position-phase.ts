@@ -1,12 +1,13 @@
 import { FieldPosition } from "#enums/field-position";
 import { globalScene } from "#app/global-scene";
 import { BattlePhase } from "./abstract-battle-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class ToggleDoublePositionPhase extends BattlePhase {
   private readonly double: boolean;
 
-  constructor(double: boolean) {
-    super();
+  constructor(manager: PhaseManager, double: boolean) {
+    super(manager);
 
     this.double = double;
   }

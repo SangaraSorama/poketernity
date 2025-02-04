@@ -3,8 +3,15 @@ import type { EvolutionPhase } from "#app/phases/evolution-phase";
 import type { MovePhase } from "#app/phases/move-phase";
 import type { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import type { SwitchPhase } from "#app/phases/switch-phase";
+import type { PhaseManager } from "./phase-manager";
 
 export class Phase {
+  protected manager: PhaseManager;
+
+  constructor(manager: PhaseManager) {
+    this.manager = manager;
+  }
+
   public start(): void {
     if (globalScene.abilityBar.shown) {
       globalScene.abilityBar.resetAutoHideTimer();
@@ -12,7 +19,7 @@ export class Phase {
   }
 
   public end(): void {
-    globalScene.shiftPhase();
+    this.manager.shiftPhase();
   }
 
   isEvolutionPhase(): this is EvolutionPhase {

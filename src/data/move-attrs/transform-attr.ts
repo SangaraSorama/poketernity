@@ -5,6 +5,7 @@ import { PokemonTransformPhase } from "#app/phases/pokemon-transform-phase";
 import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute to transform the user into the target,
@@ -15,7 +16,7 @@ import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
  */
 export class TransformAttr extends MoveEffectAttr {
   override applyEffect(user: Pokemon, target: Pokemon, _move: Move): boolean {
-    globalScene.unshiftPhase(new PokemonTransformPhase(user.getBattlerIndex(), target.getBattlerIndex()));
+    globalPhaseManager.unshiftPhase(PokemonTransformPhase, user.getBattlerIndex(), target.getBattlerIndex());
 
     globalScene.queueMessage(
       i18next.t("moveTriggers:transformedIntoTarget", {

@@ -11,12 +11,13 @@ import { Stat } from "#enums/stat";
 import i18next from "i18next";
 import { settings } from "#app/system/settings/settings-manager";
 import { PokemonPhase } from "./abstract-pokemon-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class ScanIvsPhase extends PokemonPhase {
   private readonly shownIvs: number;
 
-  constructor(battlerIndex: BattlerIndex, shownIvs: number) {
-    super(battlerIndex);
+  constructor(manager: PhaseManager, battlerIndex: BattlerIndex, shownIvs: number) {
+    super(manager, battlerIndex);
 
     this.shownIvs = shownIvs;
   }

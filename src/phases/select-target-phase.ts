@@ -8,10 +8,6 @@ import { PokemonPhase } from "./abstract-pokemon-phase";
 import { CommandPhase } from "./command-phase";
 
 export class SelectTargetPhase extends PokemonPhase {
-  constructor(fieldIndex: number) {
-    super(fieldIndex);
-  }
-
   public override start(): void {
     super.start();
 
@@ -42,7 +38,7 @@ export class SelectTargetPhase extends PokemonPhase {
 
       if (targets.length < 1) {
         turnCommands[this.fieldIndex] = null;
-        globalScene.unshiftPhase(new CommandPhase(this.fieldIndex));
+        this.manager.unshiftPhase(CommandPhase, this.fieldIndex);
       } else {
         if (turnCommand) {
           turnCommand.targets = targets;

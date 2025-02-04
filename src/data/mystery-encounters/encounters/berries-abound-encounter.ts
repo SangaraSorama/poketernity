@@ -39,6 +39,7 @@ import { BerryType } from "#enums/berry-type";
 import { PERMANENT_STATS, Stat } from "#enums/stat";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { CLASSIC_MODE_MYSTERY_ENCOUNTER_WAVES } from "#app/constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** the i18n namespace for the encounter */
 const namespace = "mysteryEncounters/berriesAbound";
@@ -235,8 +236,12 @@ export const BerriesAboundEncounter: MysteryEncounter = MysteryEncounterBuilder.
           config.pokemonConfigs![0].tags = [BattlerTagType.MYSTERY_ENCOUNTER_POST_SUMMON];
           config.pokemonConfigs![0].mysteryEncounterBattleEffects = (pokemon: Pokemon) => {
             queueEncounterMessage(`${namespace}:option.2.boss_enraged`);
-            globalScene.unshiftPhase(
-              new StatStageChangePhase(pokemon.getBattlerIndex(), true, statChangesForBattle, 1),
+            globalPhaseManager.unshiftPhase(
+              StatStageChangePhase,
+              pokemon.getBattlerIndex(),
+              true,
+              statChangesForBattle,
+              1,
             );
           };
           setEncounterRewards(
@@ -304,8 +309,7 @@ function tryGiveBerry(prioritizedPokemon?: PlayerPokemon) {
   // Will try to apply to prioritized pokemon first, then do normal application method if it fails
   if (prioritizedPokemon) {
     const heldBerriesOfType = globalScene.findModifier(
-      (m) =>
-        m.isBerryModifier() && m.pokemonId === prioritizedPokemon.id && m.berryType === berryType,
+      (m) => m.isBerryModifier() && m.pokemonId === prioritizedPokemon.id && m.berryType === berryType,
       true,
     ) as BerryModifier;
 

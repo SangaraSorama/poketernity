@@ -5,6 +5,7 @@ import { Phase } from "#app/phase";
 import type FormChangeSceneHandler from "#app/ui/form-change-scene-handler";
 import { UiMode } from "#enums/ui-mode";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * A base phase for handling Pokemon form changes, including evolutions
@@ -25,8 +26,8 @@ export abstract class FormChangeBasePhase extends Phase {
   protected pokemonNewFormSprite: Phaser.GameObjects.Sprite;
   protected pokemonNewFormTintSprite: Phaser.GameObjects.Sprite;
 
-  constructor(pokemon: PlayerPokemon) {
-    super();
+  constructor(manager: PhaseManager, pokemon: PlayerPokemon) {
+    super(manager);
 
     this.pokemon = pokemon;
   }

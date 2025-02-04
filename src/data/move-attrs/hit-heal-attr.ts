@@ -1,6 +1,5 @@
 import type { EffectiveStat } from "#enums/stat";
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
 import { toDmgValue } from "#app/utils";
@@ -9,6 +8,7 @@ import { BlockNonDirectDamageAbAttr } from "#app/data/ab-attrs/block-non-direct-
 import { ReverseDrainAbAttr } from "#app/data/ab-attrs/reverse-drain-ab-attr";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Heals user as a side effect of a move that hits a target.
@@ -55,13 +55,11 @@ export class HitHealAttr extends MoveEffectAttr {
         message = "";
       }
     }
-    globalScene.unshiftPhase(
-      new PokemonHealPhase(user.getBattlerIndex(), healAmount, {
-        message,
-        showFullHpMessage: false,
-        skipAnim: true,
-      }),
-    );
+    globalPhaseManager.unshiftPhase(PokemonHealPhase, user.getBattlerIndex(), healAmount, {
+      message,
+      showFullHpMessage: false,
+      skipAnim: true,
+    });
     return true;
   }
 

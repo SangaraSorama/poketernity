@@ -34,6 +34,7 @@ import { UiMode } from "#enums/ui-mode";
 import { NumberHolder } from "#app/utils";
 import i18next from "i18next";
 import { BattlePhase } from "./abstract-battle-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 interface SelectModifierPhaseOptions {
   rerollCount?: number;
@@ -50,8 +51,8 @@ export class SelectModifierPhase extends BattlePhase {
 
   private typeOptions: ModifierTypeOption[];
 
-  constructor(options?: SelectModifierPhaseOptions) {
-    super();
+  constructor(manager: PhaseManager, options?: SelectModifierPhaseOptions) {
+    super(manager);
 
     this.rerollCount = options?.rerollCount ?? 0;
     this.modifierTiers = options?.modifierTiers;
@@ -134,12 +135,10 @@ export class SelectModifierPhase extends BattlePhase {
                 return false;
               } else {
                 globalScene.reroll = true;
-                globalScene.unshiftPhase(
-                  new SelectModifierPhase({
-                    rerollCount: this.rerollCount + 1,
-                    modifierTiers: this.typeOptions.map((o) => o.type?.tier).filter((t) => t !== undefined),
-                  }),
-                );
+                this.manager.unshiftPhase(SelectModifierPhase, {
+                  rerollCount: this.rerollCount + 1,
+                  modifierTiers: this.typeOptions.map((o) => o.type?.tier).filter((t) => t !== undefined),
+                });
 
                 ui.clearText();
                 ui.setMode(UiMode.MESSAGE).then(() => super.end());
@@ -257,7 +256,7 @@ export class SelectModifierPhase extends BattlePhase {
         // If the player selects either of these, then escapes out of consuming them,
         // they are returned to a shop in the same state.
         if (modifier.type instanceof RememberMoveModifierType || modifier.type instanceof TmModifierType) {
-          globalScene.unshiftPhase(this.copy());
+          this.unshiftCopy();
         }
 
         if (cost && !(modifier.type instanceof RememberMoveModifierType)) {
@@ -427,8 +426,8 @@ export class SelectModifierPhase extends BattlePhase {
     );
   }
 
-  protected copy(): SelectModifierPhase {
-    return new SelectModifierPhase({
+  protected unshiftCopy(): void {
+    this.manager.unshiftPhase(SelectModifierPhase, {
       rerollCount: this.rerollCount,
       modifierTiers: this.modifierTiers,
       customModifierSettings: {

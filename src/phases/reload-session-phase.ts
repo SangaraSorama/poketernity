@@ -2,12 +2,13 @@ import { globalScene } from "#app/global-scene";
 import { Phase } from "#app/phase";
 import { UiMode } from "#enums/ui-mode";
 import { fixedNumber } from "#app/utils";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class ReloadSessionPhase extends Phase {
   private readonly systemDataStr?: string;
 
-  constructor(systemDataStr?: string) {
-    super();
+  constructor(manager: PhaseManager, systemDataStr?: string) {
+    super(manager);
 
     this.systemDataStr = systemDataStr;
   }

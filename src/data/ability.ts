@@ -18,6 +18,7 @@ import type { AbAttrCondition } from "#app/@types/AbAttrCondition";
 import { ForceSwitchOutImmunityAbAttr } from "./ab-attrs/force-switch-out-immunity-ab-attr";
 import { AbilityApplyMode } from "#enums/ability-apply-mode";
 import { applyAbAttrs, applyRevealedAbAttrs } from "#app/data/apply-ab-attrs";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export class Ability implements Localizable {
   public id: Abilities;
@@ -150,9 +151,13 @@ export class ForceSwitchOutHelper {
 
       if (switchOutTarget.hp > 0) {
         switchOutTarget.leaveField(this.switchType === SwitchType.SWITCH);
-        globalScene.prependToPhase(
-          new SwitchPhase(this.switchType, switchOutTarget.getFieldIndex(), true, true),
+        globalPhaseManager.prependToPhase(
           MoveEndPhase,
+          SwitchPhase,
+          this.switchType,
+          switchOutTarget.getFieldIndex(),
+          true,
+          true,
         );
         return true;
       }
@@ -169,9 +174,14 @@ export class ForceSwitchOutHelper {
         const summonIndex = globalScene.currentBattle.trainer
           ? globalScene.currentBattle.trainer.getNextSummonIndex((switchOutTarget as EnemyPokemon).trainerSlot)
           : 0;
-        globalScene.prependToPhase(
-          new SwitchSummonPhase(this.switchType, switchOutTarget.getFieldIndex(), summonIndex, false, false),
+        globalPhaseManager.prependToPhase(
           MoveEndPhase,
+          SwitchSummonPhase,
+          this.switchType,
+          switchOutTarget.getFieldIndex(),
+          summonIndex,
+          false,
+          false,
         );
         return true;
       }
@@ -203,8 +213,8 @@ export class ForceSwitchOutHelper {
         globalScene.clearEnemyHeldItemModifiers();
 
         if (switchOutTarget.hp) {
-          globalScene.pushPhase(new BattleEndPhase(false));
-          globalScene.pushPhase(new NewBattlePhase());
+          globalPhaseManager.pushPhase(BattleEndPhase, false);
+          globalPhaseManager.pushPhase(NewBattlePhase);
         }
       }
     }

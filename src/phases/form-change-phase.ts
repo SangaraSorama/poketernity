@@ -16,6 +16,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { SpeciesFormKey } from "#enums/species-form-key";
 import { FormChangeBasePhase } from "./abstract-form-change-base-phase";
 import { EndEvolutionPhase } from "./end-evolution-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * A phase for handling Pokemon form changes, this does not cover evolutions
@@ -26,8 +27,8 @@ export class FormChangePhase extends FormChangeBasePhase {
   private readonly formChange: SpeciesFormChange;
   private readonly modal: boolean;
 
-  constructor(pokemon: PlayerPokemon, formChange: SpeciesFormChange, modal: boolean) {
-    super(pokemon);
+  constructor(manager: PhaseManager, pokemon: PlayerPokemon, formChange: SpeciesFormChange, modal: boolean) {
+    super(manager, pokemon);
 
     this.formChange = formChange;
     this.modal = modal;
@@ -167,7 +168,7 @@ export class FormChangePhase extends FormChangeBasePhase {
     time.delayedCall(900, () => {
       this.pokemon.changeForm(this.formChange).then(() => {
         if (!this.modal) {
-          globalScene.unshiftPhase(new EndEvolutionPhase());
+          this.manager.unshiftPhase(EndEvolutionPhase);
         }
 
         globalScene.playSound("se/shine");

@@ -492,8 +492,8 @@ export class MoveEffectPhase extends HitCheckPhase {
 
     if (target.isFainted()) {
       // set splice index here, so future scene queues happen before FaintedPhase
-      globalScene.setPhaseQueueSplice();
-      globalScene.unshiftPhase(new FaintPhase(target.getBattlerIndex(), isOneHitKo, destinyTag, grudgeTag, user));
+      this.manager.setPhaseQueueSplice();
+      this.manager.unshiftPhase(FaintPhase, target.getBattlerIndex(), isOneHitKo, destinyTag, grudgeTag, user);
     }
 
     return result;
@@ -558,7 +558,7 @@ export class MoveEffectPhase extends HitCheckPhase {
      */
     if (user) {
       if (user.turnData.hitsLeft && --user.turnData.hitsLeft >= 1 && this.getFirstTarget()?.isActive()) {
-        globalScene.unshiftPhase(this.getNewHitPhase());
+        this.manager.unshiftPhase(MoveEffectPhase, this.battlerIndex, this.targets, this.move);
       } else {
         // Queue message for number of hits made by multi-move
         // If multi-hit attack only hits once, still want to render a message
@@ -643,10 +643,5 @@ export class MoveEffectPhase extends HitCheckPhase {
     const targets = this.adjustedTargets ?? this.targets;
     const activeOnly = !this.move.getMove().isFieldTarget();
     return globalScene.getField(activeOnly).filter((p) => targets.includes(p.getBattlerIndex()));
-  }
-
-  /** @returns A new `MoveEffectPhase` with the same properties as this phase */
-  protected getNewHitPhase(): MoveEffectPhase {
-    return new MoveEffectPhase(this.battlerIndex, this.targets, this.move);
   }
 }

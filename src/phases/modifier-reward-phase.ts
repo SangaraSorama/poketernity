@@ -2,13 +2,14 @@ import { globalScene } from "#app/global-scene";
 import type { ModifierType, ModifierTypeFunc } from "#app/modifier/modifier-type";
 import { getModifierType } from "#app/modifier/modifier-type";
 import { Phase } from "#app/phase";
+import type { PhaseManager } from "#app/phase-manager";
 import i18next from "i18next";
 
 export class ModifierRewardPhase extends Phase {
   protected readonly modifierType: ModifierType;
 
-  constructor(modifierTypeFunc: ModifierTypeFunc) {
-    super();
+  constructor(manager: PhaseManager, modifierTypeFunc: ModifierTypeFunc) {
+    super(manager);
 
     this.modifierType = getModifierType(modifierTypeFunc);
   }

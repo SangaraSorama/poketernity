@@ -2,6 +2,7 @@ import { applyMoveAttrs } from "#app/data/move";
 import { MoveHeaderAttr } from "#app/data/move-attrs/move-header-attr";
 import { type Pokemon } from "#app/field/pokemon";
 import { type PokemonMove } from "#app/field/pokemon-move";
+import type { PhaseManager } from "#app/phase-manager";
 import { BattlePhase } from "./abstract-battle-phase";
 
 /**
@@ -12,8 +13,8 @@ export class MoveHeaderPhase extends BattlePhase {
   public readonly pokemon: Pokemon;
   public readonly move: PokemonMove;
 
-  constructor(pokemon: Pokemon, move: PokemonMove) {
-    super();
+  constructor(manager: PhaseManager, pokemon: Pokemon, move: PokemonMove) {
+    super(manager);
 
     this.pokemon = pokemon;
     this.move = move;

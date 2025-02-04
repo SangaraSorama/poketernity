@@ -22,6 +22,7 @@ import type { PokemonHeldItemModifier } from "#app/modifier/modifier";
 import { CLASSIC_MODE_MYSTERY_ENCOUNTER_WAVES } from "#app/constants";
 import { Challenges } from "#enums/challenges";
 import { SpeciesGroups } from "#enums/pokemon-species-groups";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** i18n namespace for encounter */
 const namespace = "mysteryEncounters/darkDeal";
@@ -99,7 +100,7 @@ export const DarkDealEncounter: MysteryEncounter = MysteryEncounterBuilder.withE
       .withOptionPhase(async () => {
         // Give the player 5 Ultra Balls
         const encounter = globalScene.currentBattle.mysteryEncounter!;
-        globalScene.unshiftPhase(new ModifierRewardPhase(modifierTypes.ULTRA_BALL));
+        globalPhaseManager.unshiftPhase(ModifierRewardPhase, modifierTypes.ULTRA_BALL);
 
         // Start encounter with random legendary (7-10 starter strength) that has level additive
         // If this is a mono-type challenge, always ensure the required type is filtered for

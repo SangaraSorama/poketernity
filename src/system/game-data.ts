@@ -71,6 +71,7 @@ import type { SessionSaveData } from "#app/@types/SessionData";
 import { defaultStarterSpecies } from "#app/data/balance/default-starters";
 import type { ConfirmModeConfig } from "#app/ui/interfaces/confirm-menu-config";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const saveKey = "x0i2O7WRiANTqPmZ"; // Temporary; secure encryption is not yet necessary
 
@@ -293,8 +294,8 @@ export class GameData {
           globalScene.ui.savingIcon.hide();
           if (error) {
             if (error.startsWith("session out of date")) {
-              globalScene.clearPhaseQueue();
-              globalScene.unshiftPhase(new ReloadSessionPhase());
+              globalPhaseManager.clearPhaseQueue();
+              globalPhaseManager.unshiftPhase(ReloadSessionPhase);
             }
             console.error(error);
             return resolve(false);
@@ -608,8 +609,8 @@ export class GameData {
     const systemData = await api.savedata.system.verify({ clientSessionId });
 
     if (systemData) {
-      globalScene.clearPhaseQueue();
-      globalScene.unshiftPhase(new ReloadSessionPhase(JSON.stringify(systemData)));
+      globalPhaseManager.clearPhaseQueue();
+      globalPhaseManager.unshiftPhase(ReloadSessionPhase, JSON.stringify(systemData));
       this.clearLocalData();
       return false;
     }
@@ -1022,8 +1023,8 @@ export class GameData {
         api.savedata.session.delete({ slot: slotId, clientSessionId }).then((error) => {
           if (error) {
             if (error.startsWith("session out of date")) {
-              globalScene.clearPhaseQueue();
-              globalScene.unshiftPhase(new ReloadSessionPhase());
+              globalPhaseManager.clearPhaseQueue();
+              globalPhaseManager.unshiftPhase(ReloadSessionPhase);
             }
             console.error(error);
             resolve(false);
@@ -1100,8 +1101,8 @@ export class GameData {
         localStorage.removeItem(`sessionData${slotId ? slotId : ""}_${loggedInUser?.username}`);
       } else {
         if (jsonResponse && jsonResponse.error?.startsWith("session out of date")) {
-          globalScene.clearPhaseQueue();
-          globalScene.unshiftPhase(new ReloadSessionPhase());
+          globalPhaseManager.clearPhaseQueue();
+          globalPhaseManager.unshiftPhase(ReloadSessionPhase);
         }
 
         console.error(jsonResponse);
@@ -1240,8 +1241,8 @@ export class GameData {
             }
             if (error) {
               if (error.startsWith("session out of date")) {
-                globalScene.clearPhaseQueue();
-                globalScene.unshiftPhase(new ReloadSessionPhase());
+                globalPhaseManager.clearPhaseQueue();
+                globalPhaseManager.unshiftPhase(ReloadSessionPhase);
               }
               console.error(error);
               return resolve(false);

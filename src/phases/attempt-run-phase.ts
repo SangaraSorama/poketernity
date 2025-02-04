@@ -19,10 +19,6 @@ export class AttemptRunPhase extends PokemonPhase {
   /** For testing purposes: this is to force the pokemon to fail to escape */
   public forceFailEscape = false; // TODO: replace with a new override
 
-  constructor(fieldIndex: number) {
-    super(fieldIndex);
-  }
-
   public override start(): void {
     super.start();
 
@@ -59,8 +55,8 @@ export class AttemptRunPhase extends PokemonPhase {
         enemyPokemon.trySetStatus(StatusEffect.FAINT);
       });
 
-      globalScene.pushPhase(new BattleEndPhase(false));
-      globalScene.pushPhase(new NewBattlePhase());
+      this.manager.pushPhase(BattleEndPhase, false);
+      this.manager.pushPhase(NewBattlePhase);
     } else {
       playerPokemon.turnData.failedRunAway = true;
       globalScene.queueMessage(i18next.t("battle:runAwayCannotEscape"), null, true, 500);

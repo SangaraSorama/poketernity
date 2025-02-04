@@ -14,12 +14,13 @@ import { GameOverPhase } from "./game-over-phase";
 import { PostSummonPhase } from "./post-summon-phase";
 import { ShinySparklePhase } from "./shiny-sparkle-phase";
 import { MysteryEncounterMode } from "#enums/mystery-encounter-mode";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class SummonPhase extends PartyMemberPokemonPhase {
   private readonly loaded: boolean;
 
-  constructor(fieldIndex: number, player: boolean = true, loaded: boolean = false) {
-    super(fieldIndex, player);
+  constructor(manager: PhaseManager, fieldIndex: number, player: boolean = true, loaded: boolean = false) {
+    super(manager, fieldIndex, player);
 
     this.loaded = loaded;
   }
@@ -58,8 +59,8 @@ export class SummonPhase extends PartyMemberPokemonPhase {
       if (legalIndex === -1) {
         console.error("Party Details:\n", party);
         console.error("All available Pokemon were fainted or illegal!");
-        globalScene.clearPhaseQueue();
-        globalScene.unshiftPhase(new GameOverPhase());
+        this.manager.clearPhaseQueue();
+        this.manager.unshiftPhase(GameOverPhase);
         return this.end();
       }
 
@@ -270,7 +271,7 @@ export class SummonPhase extends PartyMemberPokemonPhase {
     const pokemon = this.getPokemon();
 
     if (pokemon.isShiny()) {
-      globalScene.unshiftPhase(new ShinySparklePhase(pokemon.getBattlerIndex()));
+      this.manager.unshiftPhase(ShinySparklePhase, pokemon.getBattlerIndex());
     }
 
     pokemon.resetTurnData();
@@ -286,7 +287,7 @@ export class SummonPhase extends PartyMemberPokemonPhase {
   }
 
   protected queuePostSummon(): void {
-    globalScene.pushPhase(new PostSummonPhase(this.getPokemon().getBattlerIndex()));
+    this.manager.pushPhase(PostSummonPhase, this.getPokemon().getBattlerIndex());
   }
 
   public getTrainerSlot(): TrainerSlot {

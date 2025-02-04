@@ -1,5 +1,5 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BooleanHolder } from "#app/utils";
 import type { BattleStat } from "#enums/stat";
@@ -19,7 +19,7 @@ export class PostIntimidateStatStageChangeAbAttr extends AbAttr {
 
   override apply(pokemon: Pokemon, simulated: boolean, cancelled: BooleanHolder): boolean {
     if (!simulated) {
-      globalScene.pushPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), false, this.stats, this.stages));
+      globalPhaseManager.pushPhase(StatStageChangePhase, pokemon.getBattlerIndex(), false, this.stats, this.stages);
     }
     cancelled.value = this.overwrites;
     return true;

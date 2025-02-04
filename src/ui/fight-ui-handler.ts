@@ -19,6 +19,7 @@ import { BattleType } from "#enums/battle-type";
 import { settings } from "#app/system/settings/settings-manager";
 import { AbilityApplyMode } from "#enums/ability-apply-mode";
 import { GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export default class FightUiHandler extends UiHandler implements InfoToggle {
   public static readonly MOVES_CONTAINER_NAME = "moves";
@@ -123,7 +124,7 @@ export default class FightUiHandler extends UiHandler implements InfoToggle {
     messageHandler.bg.setVisible(false);
     messageHandler.commandWindow.setVisible(false);
     messageHandler.movesWindowContainer.setVisible(true);
-    const pokemon = (globalScene.getCurrentPhase() as CommandPhase).getPokemon();
+    const pokemon = (globalPhaseManager.getCurrentPhase() as CommandPhase).getPokemon();
     if (pokemon.battleSummonData.turnCount <= 1) {
       this.setCursor(0);
     } else {
@@ -144,7 +145,7 @@ export default class FightUiHandler extends UiHandler implements InfoToggle {
 
     if (button === Button.CANCEL || button === Button.ACTION) {
       if (button === Button.ACTION) {
-        if ((globalScene.getCurrentPhase() as CommandPhase).handleCommand(BattleCommand.FIGHT, cursor, false)) {
+        if ((globalPhaseManager.getCurrentPhase() as CommandPhase).handleCommand(BattleCommand.FIGHT, cursor, false)) {
           success = true;
         } else {
           ui.playError();
@@ -232,7 +233,7 @@ export default class FightUiHandler extends UiHandler implements InfoToggle {
       ui.add(this.cursorObj);
     }
 
-    const pokemon = (globalScene.getCurrentPhase() as CommandPhase).getPokemon();
+    const pokemon = (globalPhaseManager.getCurrentPhase() as CommandPhase).getPokemon();
     const moveset = pokemon.getMoveset();
 
     const hasMove = cursor < moveset.length;
@@ -306,7 +307,7 @@ export default class FightUiHandler extends UiHandler implements InfoToggle {
   }
 
   displayMoves() {
-    const pokemon = (globalScene.getCurrentPhase() as CommandPhase).getPokemon();
+    const pokemon = (globalPhaseManager.getCurrentPhase() as CommandPhase).getPokemon();
     const moveset = pokemon.getMoveset();
 
     for (let moveIndex = 0; moveIndex < 4; moveIndex++) {
@@ -368,7 +369,7 @@ export default class FightUiHandler extends UiHandler implements InfoToggle {
   clearMoves() {
     this.movesContainer.removeAll(true);
 
-    const opponents = (globalScene.getCurrentPhase() as CommandPhase).getPokemon().getOpponents();
+    const opponents = (globalPhaseManager.getCurrentPhase() as CommandPhase).getPokemon().getOpponents();
     opponents.forEach((opponent) => {
       opponent.updateEffectiveness(undefined);
     });

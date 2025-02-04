@@ -5,6 +5,7 @@ import { NumberHolder } from "#app/utils";
 import i18next from "i18next";
 import { PlayerPartyMemberPokemonPhase } from "./abstract-player-party-member-pokemon-phase";
 import { LevelUpPhase } from "./level-up-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Grants a player pokemon EXP and pushes a {@linkcode LevelUpPhase} if it leveled up
@@ -13,8 +14,8 @@ import { LevelUpPhase } from "./level-up-phase";
 export class ExpPhase extends PlayerPartyMemberPokemonPhase {
   private readonly expValue: number;
 
-  constructor(partyMemberIndex: number, expValue: number) {
-    super(partyMemberIndex);
+  constructor(manager: PhaseManager, partyMemberIndex: number, expValue: number) {
+    super(manager, partyMemberIndex);
 
     this.expValue = expValue;
   }
@@ -34,7 +35,7 @@ export class ExpPhase extends PlayerPartyMemberPokemonPhase {
         pokemon.addExp(exp.value);
         const newLevel = pokemon.level;
         if (newLevel > lastLevel) {
-          globalScene.unshiftPhase(new LevelUpPhase(this.partyMemberIndex, lastLevel, newLevel));
+          this.manager.unshiftPhase(LevelUpPhase, this.partyMemberIndex, lastLevel, newLevel);
         }
         pokemon.updateInfo().then(() => this.end());
       },

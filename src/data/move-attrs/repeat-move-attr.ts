@@ -10,6 +10,7 @@ import { type Move } from "#app/data/move";
 import { allMoves } from "#app/data/all-moves";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
 import type { MoveConditionFunc } from "../move-conditions";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute used for moves that causes the target to repeat their last used move.
@@ -35,7 +36,7 @@ export class RepeatMoveAttr extends MoveEffectAttr {
     );
     target.getMoveQueue().unshift({ moveId: lastMove.moveId, targets: moveTargets, ignorePP: false });
     target.turnData.extraTurns++;
-    globalScene.appendToPhase(new MovePhase(target, moveTargets, movesetMove), MoveEndPhase);
+    globalPhaseManager.appendToPhase(MoveEndPhase, MovePhase, target, moveTargets, movesetMove);
     return true;
   }
 

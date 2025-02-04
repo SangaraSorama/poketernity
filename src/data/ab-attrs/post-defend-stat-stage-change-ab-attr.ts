@@ -1,7 +1,7 @@
 import type { PokemonDefendCondition } from "#app/@types/PokemonDefendCondition";
 import type { Move } from "#app/data/move";
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BattleStat } from "#enums/stat";
 import { PostDefendAbAttr } from "./post-defend-ab-attr";
@@ -54,17 +54,22 @@ export class PostDefendStatStageChangeAbAttr extends PostDefendAbAttr {
           ? pokemon.getOpponents().concat([pokemon.getAlly()])
           : pokemon.getOpponents();
         for (const other of otherPokemon) {
-          globalScene.unshiftPhase(new StatStageChangePhase(other.getBattlerIndex(), false, [this.stat], this.stages));
+          globalPhaseManager.unshiftPhase(
+            StatStageChangePhase,
+            other.getBattlerIndex(),
+            false,
+            [this.stat],
+            this.stages,
+          );
         }
         return true;
       }
-      globalScene.unshiftPhase(
-        new StatStageChangePhase(
-          (this.selfTarget ? pokemon : attacker).getBattlerIndex(),
-          this.selfTarget,
-          [this.stat],
-          this.stages,
-        ),
+      globalPhaseManager.unshiftPhase(
+        StatStageChangePhase,
+        (this.selfTarget ? pokemon : attacker).getBattlerIndex(),
+        this.selfTarget,
+        [this.stat],
+        this.stages,
       );
       return true;
     }

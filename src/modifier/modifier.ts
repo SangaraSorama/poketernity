@@ -57,6 +57,7 @@ import { FRIENDSHIP_GAIN_FROM_RARE_CANDY } from "#app/data/balance/starters";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
 import { CommanderAbAttr } from "#app/data/ab-attrs/commander-ab-attr";
 import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const iconOverflowIndex = 24;
 
@@ -1889,13 +1890,16 @@ export class TurnHealModifier extends PokemonHeldItemModifier {
    */
   override apply(pokemon: Pokemon): boolean {
     if (!pokemon.isFullHp()) {
-      globalScene.unshiftPhase(
-        new PokemonHealPhase(pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 16) * this.stackCount, {
+      globalPhaseManager.unshiftPhase(
+        PokemonHealPhase,
+        pokemon.getBattlerIndex(),
+        toDmgValue(pokemon.getMaxHp() / 16) * this.stackCount,
+        {
           message: i18next.t("modifier:turnHealApply", {
             pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
             typeName: this.type.name,
           }),
-        }),
+        },
       );
       return true;
     }
@@ -1991,17 +1995,16 @@ export class HitHealModifier extends PokemonHeldItemModifier {
    */
   override apply(pokemon: Pokemon): boolean {
     if (pokemon.turnData.totalDamageDealt && !pokemon.isFullHp()) {
-      globalScene.unshiftPhase(
-        new PokemonHealPhase(
-          pokemon.getBattlerIndex(),
-          toDmgValue(pokemon.turnData.totalDamageDealt / 8) * this.stackCount,
-          {
-            message: i18next.t("modifier:hitHealApply", {
-              pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
-              typeName: this.type.name,
-            }),
-          },
-        ),
+      globalPhaseManager.unshiftPhase(
+        PokemonHealPhase,
+        pokemon.getBattlerIndex(),
+        toDmgValue(pokemon.turnData.totalDamageDealt / 8) * this.stackCount,
+        {
+          message: i18next.t("modifier:hitHealApply", {
+            pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
+            typeName: this.type.name,
+          }),
+        },
       );
     }
 
@@ -2182,16 +2185,14 @@ export class PokemonInstantReviveModifier extends PokemonHeldItemModifier {
    */
   override apply(pokemon: Pokemon): boolean {
     // Restore the Pokemon to half HP
-    globalScene.unshiftPhase(
-      new PokemonHealPhase(pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 2), {
-        message: i18next.t("modifier:pokemonInstantReviveApply", {
-          pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
-          typeName: this.type.name,
-        }),
-        showFullHpMessage: false,
-        revive: true,
+    globalPhaseManager.unshiftPhase(PokemonHealPhase, pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 2), {
+      message: i18next.t("modifier:pokemonInstantReviveApply", {
+        pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
+        typeName: this.type.name,
       }),
-    );
+      showFullHpMessage: false,
+      revive: true,
+    });
 
     // Remove the Pokemon's FAINT status
     pokemon.resetStatus(true, false, true);
@@ -2498,12 +2499,11 @@ export class PokemonLevelIncrementModifier extends ConsumablePokemonModifier {
 
     playerPokemon.addFriendship(FRIENDSHIP_GAIN_FROM_RARE_CANDY);
 
-    globalScene.unshiftPhase(
-      new LevelUpPhase(
-        globalScene.getPlayerParty().indexOf(playerPokemon),
-        playerPokemon.level - levelCount.value,
-        playerPokemon.level,
-      ),
+    globalPhaseManager.unshiftPhase(
+      LevelUpPhase,
+      globalScene.getPlayerParty().indexOf(playerPokemon),
+      playerPokemon.level - levelCount.value,
+      playerPokemon.level,
     );
 
     return true;
@@ -2523,8 +2523,11 @@ export class TmModifier extends ConsumablePokemonModifier {
    * @returns always `true`
    */
   override apply(playerPokemon: PlayerPokemon): boolean {
-    globalScene.unshiftPhase(
-      new LearnMovePhase(globalScene.getPlayerParty().indexOf(playerPokemon), this.type.moveId, LearnMoveType.TM),
+    globalPhaseManager.unshiftPhase(
+      LearnMovePhase,
+      globalScene.getPlayerParty().indexOf(playerPokemon),
+      this.type.moveId,
+      LearnMoveType.TM,
     );
 
     return true;
@@ -2546,13 +2549,12 @@ export class RememberMoveModifier extends ConsumablePokemonModifier {
    * @returns always `true`
    */
   override apply(playerPokemon: PlayerPokemon, cost?: number): boolean {
-    globalScene.unshiftPhase(
-      new LearnMovePhase(
-        globalScene.getPlayerParty().indexOf(playerPokemon),
-        playerPokemon.getLearnableLevelMoves()[this.levelMoveIndex],
-        LearnMoveType.MEMORY,
-        cost,
-      ),
+    globalPhaseManager.unshiftPhase(
+      LearnMovePhase,
+      globalScene.getPlayerParty().indexOf(playerPokemon),
+      playerPokemon.getLearnableLevelMoves()[this.levelMoveIndex],
+      LearnMoveType.MEMORY,
+      cost,
     );
 
     return true;
@@ -2594,7 +2596,7 @@ export class EvolutionItemModifier extends ConsumablePokemonModifier {
     }
 
     if (matchingEvolution) {
-      globalScene.unshiftPhase(new EvolutionPhase(playerPokemon, matchingEvolution, playerPokemon.level - 1));
+      globalPhaseManager.unshiftPhase(EvolutionPhase, playerPokemon, matchingEvolution, playerPokemon.level - 1);
       return true;
     }
 

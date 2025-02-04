@@ -164,30 +164,35 @@ export class TurnStartPhase extends FieldPhase {
             pokemon.getMoveset().find((m) => m.moveId === queuedMove.moveId && m.ppUsed < m.getMovePp())
             ?? new PokemonMove(queuedMove.moveId);
           if (move.getMove().hasAttr(MoveHeaderAttr)) {
-            globalScene.unshiftPhase(new MoveHeaderPhase(pokemon, move));
+            this.manager.unshiftPhase(MoveHeaderPhase, pokemon, move);
           }
           if (pokemon.isPlayer()) {
             if (turnCommand.cursor === -1) {
-              globalScene.pushPhase(new MovePhase(pokemon, turnCommand.targets ?? queuedMove.targets, move));
+              this.manager.pushPhase(MovePhase, pokemon, turnCommand.targets ?? queuedMove.targets, move);
             } else {
-              const playerPhase = new MovePhase(
+              this.manager.pushPhase(
+                MovePhase,
                 pokemon,
                 turnCommand.targets ?? queuedMove.targets,
                 move,
                 false,
                 queuedMove.ignorePP,
               );
-              globalScene.pushPhase(playerPhase);
             }
           } else {
-            globalScene.pushPhase(
-              new MovePhase(pokemon, turnCommand.targets ?? queuedMove.targets, move, false, queuedMove.ignorePP),
+            this.manager.pushPhase(
+              MovePhase,
+              pokemon,
+              turnCommand.targets ?? queuedMove.targets,
+              move,
+              false,
+              queuedMove.ignorePP,
             );
           }
           break;
         case BattleCommand.BALL:
           if (!isNullOrUndefined(turnCommand.targets) && !isNullOrUndefined(turnCommand.cursor)) {
-            globalScene.unshiftPhase(new AttemptCapturePhase(turnCommand.targets[0] % 2, turnCommand.cursor));
+            this.manager.unshiftPhase(AttemptCapturePhase, turnCommand.targets[0] % 2, turnCommand.cursor);
           } else {
             console.error("Error encountered when trying to throw Pokeball!");
             console.error(turnCommand);
@@ -196,8 +201,13 @@ export class TurnStartPhase extends FieldPhase {
         case BattleCommand.POKEMON:
           const switchType = turnCommand.args?.[0] ? SwitchType.BATON_PASS : SwitchType.SWITCH;
           if (!isNullOrUndefined(turnCommand.cursor)) {
-            globalScene.unshiftPhase(
-              new SwitchSummonPhase(switchType, pokemon.getFieldIndex(), turnCommand.cursor, true, pokemon.isPlayer()),
+            this.manager.unshiftPhase(
+              SwitchSummonPhase,
+              switchType,
+              pokemon.getFieldIndex(),
+              turnCommand.cursor,
+              true,
+              pokemon.isPlayer(),
             );
           } else {
             console.error("Error encountered when trying to switch Pokemon!");
@@ -225,18 +235,18 @@ export class TurnStartPhase extends FieldPhase {
               runningPokemon = hasRunAway ?? fasterPokemon;
             }
           }
-          globalScene.unshiftPhase(new AttemptRunPhase(runningPokemon.getFieldIndex()));
+          this.manager.unshiftPhase(AttemptRunPhase, runningPokemon.getFieldIndex());
           break;
       }
     }
 
-    globalScene.pushPhase(new WeatherEffectPhase());
-    globalScene.pushPhase(new BerryPhase());
+    this.manager.pushPhase(WeatherEffectPhase);
+    this.manager.pushPhase(BerryPhase);
 
     // Add a new phase to check who should be taking status damage
-    globalScene.pushPhase(new CheckStatusEffectPhase(moveOrder));
+    this.manager.pushPhase(CheckStatusEffectPhase, moveOrder);
 
-    globalScene.pushPhase(new TurnEndPhase());
+    this.manager.pushPhase(TurnEndPhase);
 
     /**
      * this.end() will call shiftPhase(), which dumps everything from PrependQueue (aka everything that is unshifted()) to the front

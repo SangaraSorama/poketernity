@@ -12,6 +12,7 @@ import type { Move } from "#app/data/move";
 import { OverrideMoveEffectAttr } from "#app/data/move-attrs/override-move-effect-attr";
 import type { DelayedAttackTag } from "#app/data/arena-tag";
 import type { MoveConditionFunc } from "#app/data/move-conditions";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attack Move that doesn't hit the turn it is played and doesn't allow for multiple uses on the same target.
@@ -43,7 +44,7 @@ export class DelayedAttackAttr extends OverrideMoveEffectAttr {
 
     if (!virtual) {
       overridden.value = true;
-      globalScene.unshiftPhase(new MoveAnimPhase(new MoveChargeAnim(this.chargeAnim, move.id, user)));
+      globalPhaseManager.unshiftPhase(MoveAnimPhase, new MoveChargeAnim(this.chargeAnim, move.id, user));
       globalScene.queueMessage(
         this.chargeText
           .replace("{TARGET}", getPokemonNameWithAffix(target))

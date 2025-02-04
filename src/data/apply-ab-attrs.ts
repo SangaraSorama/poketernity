@@ -1,6 +1,7 @@
 import type { AbAttr } from "#app/data/ab-attrs/ab-attr";
 import type { AbilityFilterOptions } from "#app/data/ability-filter-options";
 import { queueShowAbility } from "#app/data/ability-utils";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { globalScene } from "#app/global-scene";
 import type { AbstractConstructor } from "#app/utils";
 
@@ -40,7 +41,7 @@ function applyAbAttrsInternal<TAttr extends AbAttr>(
     });
 
     matchingAttrs.forEach((attr) => {
-      globalScene.setPhaseQueueSplice();
+      globalPhaseManager.setPhaseQueueSplice();
 
       const result = attr.apply(pokemon, simulated, ...args);
       if (result && !simulated) {
@@ -69,7 +70,7 @@ function applyAbAttrsInternal<TAttr extends AbAttr>(
         }
       }
 
-      globalScene.clearPhaseQueueSplice();
+      globalPhaseManager.clearPhaseQueueSplice();
     });
   });
 

@@ -13,6 +13,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { StatusEffect } from "#enums/status-effect";
 import i18next from "i18next";
 import { CommonAnimPhase } from "./common-anim-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 interface PokemonHealPhaseOptions {
   message?: string;
@@ -34,8 +35,8 @@ export class PokemonHealPhase extends CommonAnimPhase {
   private readonly preventFullHeal: boolean;
   private readonly fullRestorePP: boolean;
 
-  constructor(battlerIndex: BattlerIndex, hpHealed: number, options?: PokemonHealPhaseOptions) {
-    super(battlerIndex, undefined, CommonAnim.HEALTH_UP);
+  constructor(manager: PhaseManager, battlerIndex: BattlerIndex, hpHealed: number, options?: PokemonHealPhaseOptions) {
+    super(manager, battlerIndex, undefined, CommonAnim.HEALTH_UP);
 
     this.hpHealed = hpHealed;
     this.message = options?.message;

@@ -17,6 +17,7 @@ import i18next from "i18next";
 import { settings } from "#app/system/settings/settings-manager";
 import { PokemonPhase } from "./abstract-pokemon-phase";
 import { CANVAS_SCALE } from "#app/ui-constants";
+import type { PhaseManager } from "#app/phase-manager";
 
 export type StatStageChangeCallback = (changed: BattleStat[], relativeChanges: number[], target?: Pokemon) => void;
 
@@ -38,13 +39,14 @@ export class StatStageChangePhase extends PokemonPhase {
   private readonly options?: SSCPhaseOptions;
 
   constructor(
+    manager: PhaseManager,
     battlerIndex: BattlerIndex,
     selfTarget: boolean,
     stats: BattleStat[],
     stages: number,
     options?: SSCPhaseOptions,
   ) {
-    super(battlerIndex);
+    super(manager, battlerIndex);
 
     this.selfTarget = selfTarget;
     this.stats = stats;
@@ -69,8 +71,13 @@ export class StatStageChangePhase extends PokemonPhase {
     if (this.stats.length > 1) {
       for (let i = 0; i < this.stats.length; i++) {
         const stat = [this.stats[i]];
-        globalScene.unshiftPhase(
-          new StatStageChangePhase(this.battlerIndex, this.selfTarget, stat, this.stages, this.options),
+        this.manager.unshiftPhase(
+          StatStageChangePhase,
+          this.battlerIndex,
+          this.selfTarget,
+          stat,
+          this.stages,
+          this.options,
         );
       }
       return super.end();
@@ -158,7 +165,7 @@ export class StatStageChangePhase extends PokemonPhase {
       applyAbAttrs(PostStatStageChangeAbAttr, pokemon, false, filteredStats, this.stages, this.selfTarget);
 
       // Look for any other stat change phases; if this is the last one, do White Herb check
-      const existingPhase = globalScene.findPhase(
+      const existingPhase = this.manager.findPhase(
         (p) => p instanceof StatStageChangePhase && p.battlerIndex === this.battlerIndex,
       );
       if (!existingPhase) {

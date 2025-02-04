@@ -23,6 +23,7 @@ import { MoveId } from "#enums/move-id";
 import { MysteryEncounterMode } from "#enums/mystery-encounter-mode";
 import { PokeballType } from "#enums/pokeball";
 import i18next from "i18next";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Handles the player's start-of-turn actions (`Fight/Ball/Pokemon/Run`) during a battle
@@ -33,8 +34,8 @@ export class CommandPhase extends FieldPhase {
   /** TODO: Is this supposed to be a {@linkcode FieldPosition} or a {@linkcode BattlerIndex}? */
   protected fieldIndex: number;
 
-  constructor(fieldIndex: number) {
-    super();
+  constructor(manager: PhaseManager, fieldIndex: number) {
+    super(manager);
 
     this.fieldIndex = fieldIndex;
   }
@@ -206,7 +207,7 @@ export class CommandPhase extends FieldPhase {
 
           console.log(moveTargets, getPokemonNameWithAffix(playerPokemon));
           if (moveTargets.targets.length > 1 && moveTargets.multiple) {
-            globalScene.unshiftPhase(new SelectTargetPhase(this.fieldIndex));
+            this.manager.unshiftPhase(SelectTargetPhase, this.fieldIndex);
           }
           if (turnCommand.move && (moveTargets.targets.length <= 1 || moveTargets.multiple)) {
             turnCommand.move.targets = moveTargets.targets;
@@ -217,7 +218,7 @@ export class CommandPhase extends FieldPhase {
           ) {
             turnCommand.move.targets = playerPokemon.getMoveQueue()[0].targets;
           } else {
-            globalScene.unshiftPhase(new SelectTargetPhase(this.fieldIndex));
+            this.manager.unshiftPhase(SelectTargetPhase, this.fieldIndex);
           }
 
           currentBattle.turnCommands[this.fieldIndex] = turnCommand;
@@ -381,8 +382,8 @@ export class CommandPhase extends FieldPhase {
 
   public cancel(): void {
     if (this.fieldIndex) {
-      globalScene.unshiftPhase(new CommandPhase(0));
-      globalScene.unshiftPhase(new CommandPhase(1));
+      this.manager.unshiftPhase(CommandPhase, 0);
+      this.manager.unshiftPhase(CommandPhase, 1);
       this.end();
     }
   }

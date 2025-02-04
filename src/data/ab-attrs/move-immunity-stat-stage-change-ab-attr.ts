@@ -1,7 +1,7 @@
 import type { PreDefendAbAttrCondition } from "#app/@types/PreDefendAbAttrCondition";
 import type { Move } from "#app/data/move";
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BooleanHolder } from "#app/utils";
 import type { BattleStat } from "#enums/stat";
@@ -26,7 +26,7 @@ export class MoveImmunityStatStageChangeAbAttr extends MoveImmunityAbAttr {
   ): boolean {
     const ret = super.apply(pokemon, simulated, attacker, move, cancelled);
     if (ret && !simulated) {
-      globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [this.stat], this.stages));
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [this.stat], this.stages);
     }
 
     return ret;

@@ -4,6 +4,7 @@ import { globalScene } from "#app/global-scene";
 import { ShowAbilityPhase } from "#app/phases/show-ability-phase";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Cures the user's party of non-volatile status conditions, ie. Heal Bell, Aromatherapy
@@ -47,8 +48,10 @@ export class PartyStatusCureAttr extends MoveEffectAttr {
       pokemon.resetStatus();
       pokemon.updateInfo();
     } else {
-      globalScene.unshiftPhase(
-        new ShowAbilityPhase(pokemon.id, pokemon.getPassiveAbility()?.id === this.abilityCondition),
+      globalPhaseManager.unshiftPhase(
+        ShowAbilityPhase,
+        pokemon.id,
+        pokemon.getPassiveAbility()?.id === this.abilityCondition,
       );
     }
   }

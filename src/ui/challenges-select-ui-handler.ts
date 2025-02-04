@@ -14,6 +14,7 @@ import { SelectStarterPhase } from "#app/phases/select-starter-phase";
 import { TitlePhase } from "#app/phases/title-phase";
 import { globalScene } from "#app/global-scene";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Handles all the UI for choosing optional challenges.
@@ -364,16 +365,16 @@ export default class GameChallengesUiHandler extends UiHandler {
         this.cursorObj?.setVisible(true);
         this.updateChallengeArrows(this.startCursor.visible);
       } else {
-        globalScene.clearPhaseQueue();
-        globalScene.pushPhase(new TitlePhase());
-        globalScene.getCurrentPhase()?.end();
+        globalPhaseManager.clearPhaseQueue();
+        globalPhaseManager.pushPhase(TitlePhase);
+        globalPhaseManager.getCurrentPhase()?.end();
       }
       success = true;
     } else if (button === Button.SUBMIT || button === Button.ACTION) {
       if (this.hasSelectedChallenge) {
         if (this.startCursor.visible) {
-          globalScene.unshiftPhase(new SelectStarterPhase());
-          globalScene.getCurrentPhase()?.end();
+          globalPhaseManager.unshiftPhase(SelectStarterPhase);
+          globalPhaseManager.getCurrentPhase()?.end();
         } else {
           this.startCursor.setVisible(true);
           this.cursorObj?.setVisible(false);

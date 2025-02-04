@@ -14,6 +14,7 @@ import { Phase } from "#app/phase";
 import { UiMode } from "#enums/ui-mode";
 import { isNullOrUndefined } from "#app/utils";
 import { MysteryEncounterOptionSelectedPhase } from "./option-selected-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Will handle (in order):
@@ -34,8 +35,8 @@ export class MysteryEncounterPhase extends Phase {
    * Mostly useful for having repeated queries during a single encounter, where the queries and options may differ each time
    * @param optionSelectSettings allows overriding the typical options of an encounter with new ones
    */
-  constructor(optionSelectSettings?: OptionSelectSettings) {
-    super();
+  constructor(manager: PhaseManager, optionSelectSettings?: OptionSelectSettings) {
+    super(manager);
     this.optionSelectSettings = optionSelectSettings;
   }
 
@@ -49,8 +50,8 @@ export class MysteryEncounterPhase extends Phase {
     const mysteryEncounter = currentBattle.mysteryEncounter!; // TODO: Resolve bang?
 
     // Clears out queued phases that are part of standard battle
-    globalScene.clearPhaseQueue();
-    globalScene.clearPhaseQueueSplice();
+    this.manager.clearPhaseQueue();
+    this.manager.clearPhaseQueueSplice();
 
     mysteryEncounter.updateSeedOffset();
 
@@ -117,7 +118,7 @@ export class MysteryEncounterPhase extends Phase {
     const { currentBattle, ui } = globalScene;
 
     const endDialogueAndContinueEncounter = (): void => {
-      globalScene.pushPhase(new MysteryEncounterOptionSelectedPhase());
+      this.manager.pushPhase(MysteryEncounterOptionSelectedPhase);
       this.end();
     };
 

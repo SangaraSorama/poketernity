@@ -231,6 +231,7 @@ import { ArenaTrapAbAttr } from "#app/data/ab-attrs/arena-trap-ab-attr";
 import { AbilityApplyMode } from "#enums/ability-apply-mode";
 import type { AbilityFilterOptions } from "#app/data/ability-filter-options";
 import { PokemonMove } from "#app/field/pokemon-move";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export abstract class Pokemon extends Phaser.GameObjects.Container {
   public id: number;
@@ -947,7 +948,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       }
 
       // During the Pokemon's MoveEffect phase, the offset is removed to put the Pokemon "in focus"
-      const currentPhase = globalScene.getCurrentPhase();
+      const currentPhase = globalPhaseManager.getCurrentPhase();
       if (currentPhase instanceof MoveEffectPhase && currentPhase.getPokemon() === this) {
         return false;
       }
@@ -3488,8 +3489,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
        *
        * Once the MoveEffectPhase is over (and calls it's .end() function, shiftPhase() will reset the PhaseQueueSplice via clearPhaseQueueSplice() )
        */
-      globalScene.setPhaseQueueSplice();
-      globalScene.unshiftPhase(new FaintPhase(this.getBattlerIndex(), preventEndure));
+      globalPhaseManager.setPhaseQueueSplice();
+      globalPhaseManager.unshiftPhase(FaintPhase, this.getBattlerIndex(), preventEndure);
     }
     return damage;
   }
@@ -3513,14 +3514,12 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     ignoreFaintPhase: boolean = false,
     source?: Pokemon,
   ): number {
-    const damagePhase = new DamageAnimPhase(this.getBattlerIndex(), damage, result as DamageResult, critical);
-    globalScene.unshiftPhase(damagePhase);
     if (this.switchOutStatus && source) {
       damage = 0;
     }
     damage = this.damage(damage, ignoreSegments, preventEndure, ignoreFaintPhase);
     // Damage amount may have changed, but needed to be queued before calling damage function
-    damagePhase.updateAmount(damage);
+    globalPhaseManager.unshiftPhase(DamageAnimPhase, this.getBattlerIndex(), damage, result as DamageResult, critical);
     /**
      * Run PostDamageAbAttr from any source of damage that is not from a multi-hit
      * Multi-hits are handled in move-effect-phase.ts for PostDamageAbAttr
@@ -4143,7 +4142,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
      * cancel the attack's subsequent hits.
      */
     if (effect === StatusEffect.SLEEP || effect === StatusEffect.FREEZE) {
-      const currentPhase = globalScene.getCurrentPhase();
+      const currentPhase = globalPhaseManager.getCurrentPhase();
       if (currentPhase instanceof MoveEffectPhase && currentPhase.getUserPokemon() === this) {
         this.turnData.hitCount = 1;
         this.turnData.hitsLeft = 1;
@@ -4151,8 +4150,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     if (asPhase) {
-      globalScene.unshiftPhase(
-        new ObtainStatusEffectPhase(this.getBattlerIndex(), effect, turnsRemaining, sourceText, sourcePokemon),
+      globalPhaseManager.unshiftPhase(
+        ObtainStatusEffectPhase,
+        this.getBattlerIndex(),
+        effect,
+        turnsRemaining,
+        sourceText,
+        sourcePokemon,
       );
       return true;
     }
@@ -4899,9 +4903,13 @@ export class PlayerPokemon extends Pokemon {
         this.getFieldIndex(),
         (slotIndex: number, _option: PartyOption) => {
           if (slotIndex >= globalScene.currentBattle.getBattlerCount() && slotIndex < 6) {
-            globalScene.prependToPhase(
-              new SwitchSummonPhase(switchType, this.getFieldIndex(), slotIndex, false),
+            globalPhaseManager.prependToPhase(
               MoveEndPhase,
+              SwitchSummonPhase,
+              switchType,
+              this.getFieldIndex(),
+              slotIndex,
+              false,
             );
           }
           globalScene.ui.setMode(UiMode.MESSAGE).then(resolve);
@@ -5280,7 +5288,7 @@ export class PlayerPokemon extends Pokemon {
     const newPartyMemberIndex = globalScene.getPlayerParty().indexOf(this);
     pokemon
       .getMoveset(true)
-      .map((m: PokemonMove) => globalScene.unshiftPhase(new LearnMovePhase(newPartyMemberIndex, m.getMove().id)));
+      .map((m: PokemonMove) => globalPhaseManager.unshiftPhase(LearnMovePhase, newPartyMemberIndex, m.getMove().id));
     pokemon.destroy();
     this.updateFusionPalette();
   }
@@ -5889,9 +5897,9 @@ export class EnemyPokemon extends Pokemon {
         stages++;
       }
 
-      globalScene.unshiftPhase(
-        new StatStageChangePhase(this.getBattlerIndex(), true, [boostedStat!], stages, { ignoreAbilities: true }),
-      );
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, this.getBattlerIndex(), true, [boostedStat!], stages, {
+        ignoreAbilities: true,
+      });
       this.bossSegmentIndex--;
     }
   }

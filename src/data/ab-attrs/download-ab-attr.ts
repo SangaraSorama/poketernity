@@ -1,5 +1,5 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { AbilityApplyMode } from "#enums/ability-apply-mode";
 import { type BattleStat, Stat } from "#enums/stat";
@@ -38,7 +38,7 @@ export class DownloadAbAttr extends PostSummonAbAttr {
     // only activate if there's actually an enemy to download from
     if (this.enemyDef > 0 && this.enemySpDef > 0) {
       if (!simulated) {
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), false, this.stats, 1));
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), false, this.stats, 1);
       }
       return true;
     }

@@ -15,6 +15,7 @@ import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { globalScene } from "#app/global-scene";
 import { getBerryName } from "#app/utils/berry-utils";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export type BerryPredicate = (pokemon: Pokemon) => boolean;
 
@@ -72,14 +73,12 @@ export function getBerryEffectFunc(berryType: BerryType): BerryEffectFunc {
         }
         const hpHealed = new NumberHolder(toDmgValue(pokemon.getMaxHp() / 4));
         applyAbAttrs(DoubleBerryEffectAbAttr, pokemon, false, hpHealed);
-        globalScene.unshiftPhase(
-          new PokemonHealPhase(pokemon.getBattlerIndex(), hpHealed.value, {
-            message: i18next.t("battle:hpHealBerry", {
-              pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
-              berryName: getBerryName(berryType),
-            }),
+        globalPhaseManager.unshiftPhase(PokemonHealPhase, pokemon.getBattlerIndex(), hpHealed.value, {
+          message: i18next.t("battle:hpHealBerry", {
+            pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
+            berryName: getBerryName(berryType),
           }),
-        );
+        });
         applyAbAttrs(PostItemLostAbAttr, berryOwner ?? pokemon, false);
       };
     case BerryType.LUM:
@@ -107,7 +106,13 @@ export function getBerryEffectFunc(berryType: BerryType): BerryEffectFunc {
         const stat: BattleStat = berryType - BerryType.ENIGMA;
         const statStages = new NumberHolder(1);
         applyAbAttrs(DoubleBerryEffectAbAttr, pokemon, false, statStages);
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [stat], statStages.value));
+        globalPhaseManager.unshiftPhase(
+          StatStageChangePhase,
+          pokemon.getBattlerIndex(),
+          true,
+          [stat],
+          statStages.value,
+        );
         applyAbAttrs(PostItemLostAbAttr, berryOwner ?? pokemon, false);
       };
     case BerryType.LANSAT:
@@ -126,7 +131,13 @@ export function getBerryEffectFunc(berryType: BerryType): BerryEffectFunc {
         const randStat = randSeedInt(Stat.SPD, Stat.ATK);
         const stages = new NumberHolder(2);
         applyAbAttrs(DoubleBerryEffectAbAttr, pokemon, false, stages);
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [randStat], stages.value));
+        globalPhaseManager.unshiftPhase(
+          StatStageChangePhase,
+          pokemon.getBattlerIndex(),
+          true,
+          [randStat],
+          stages.value,
+        );
         applyAbAttrs(PostItemLostAbAttr, berryOwner ?? pokemon, false);
       };
     case BerryType.LEPPA:

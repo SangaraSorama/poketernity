@@ -57,7 +57,7 @@ export class PostMysteryEncounterPhase extends Phase {
     const { mysteryEncounter } = currentBattle;
 
     const endPhase = (): void => {
-      globalScene.pushPhase(new NewBattlePhase());
+      this.manager.pushPhase(NewBattlePhase);
       this.end();
     };
 

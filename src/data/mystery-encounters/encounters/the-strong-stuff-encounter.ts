@@ -29,6 +29,7 @@ import { CustomPokemonData } from "#app/data/custom-pokemon-data";
 import { Stat } from "#enums/stat";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { CLASSIC_MODE_MYSTERY_ENCOUNTER_WAVES } from "#app/constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** the i18n namespace for the encounter */
 const namespace = "mysteryEncounters/theStrongStuff";
@@ -115,8 +116,12 @@ export const TheStrongStuffEncounter: MysteryEncounter = MysteryEncounterBuilder
           tags: [BattlerTagType.MYSTERY_ENCOUNTER_POST_SUMMON],
           mysteryEncounterBattleEffects: (pokemon: Pokemon) => {
             queueEncounterMessage(`${namespace}:option.2.stat_boost`);
-            globalScene.unshiftPhase(
-              new StatStageChangePhase(pokemon.getBattlerIndex(), true, [Stat.DEF, Stat.SPDEF], 2),
+            globalPhaseManager.unshiftPhase(
+              StatStageChangePhase,
+              pokemon.getBattlerIndex(),
+              true,
+              [Stat.DEF, Stat.SPDEF],
+              2,
             );
           },
         },

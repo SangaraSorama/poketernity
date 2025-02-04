@@ -19,6 +19,7 @@ import { PostDamageForceSwitchAbAttr } from "#app/data/ab-attrs/post-damage-forc
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
 import type { MoveConditionFunc } from "../move-conditions";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute to force either the user (e.g. {@link https://bulbapedia.bulbagarden.net/wiki/U-turn_(move) | U-turn})
@@ -81,15 +82,24 @@ export class ForceSwitchOutAttr extends MoveEffectAttr {
         if (this.switchType === SwitchType.FORCE_SWITCH) {
           switchOutTarget.leaveField(true);
           const slotIndex = eligibleNewIndices[user.randSeedInt(eligibleNewIndices.length)];
-          globalScene.prependToPhase(
-            new SwitchSummonPhase(this.switchType, switchOutTarget.getFieldIndex(), slotIndex, false, true),
+          globalPhaseManager.prependToPhase(
             MoveEndPhase,
+            SwitchSummonPhase,
+            this.switchType,
+            switchOutTarget.getFieldIndex(),
+            slotIndex,
+            false,
+            true,
           );
         } else {
           switchOutTarget.leaveField(this.switchType === SwitchType.SWITCH);
-          globalScene.prependToPhase(
-            new SwitchPhase(this.switchType, switchOutTarget.getFieldIndex(), true, true),
+          globalPhaseManager.prependToPhase(
             MoveEndPhase,
+            SwitchPhase,
+            this.switchType,
+            switchOutTarget.getFieldIndex(),
+            true,
+            true,
           );
           return true;
         }
@@ -113,23 +123,27 @@ export class ForceSwitchOutAttr extends MoveEffectAttr {
         if (this.switchType === SwitchType.FORCE_SWITCH) {
           switchOutTarget.leaveField(true);
           const slotIndex = eligibleNewIndices[user.randSeedInt(eligibleNewIndices.length)];
-          globalScene.prependToPhase(
-            new SwitchSummonPhase(this.switchType, switchOutTarget.getFieldIndex(), slotIndex, false, false),
+          globalPhaseManager.prependToPhase(
             MoveEndPhase,
+            SwitchSummonPhase,
+            this.switchType,
+            switchOutTarget.getFieldIndex(),
+            slotIndex,
+            false,
+            false,
           );
         } else {
           switchOutTarget.leaveField(this.switchType === SwitchType.SWITCH);
-          globalScene.prependToPhase(
-            new SwitchSummonPhase(
-              this.switchType,
-              switchOutTarget.getFieldIndex(),
-              globalScene.currentBattle.trainer
-                ? globalScene.currentBattle.trainer.getNextSummonIndex((switchOutTarget as EnemyPokemon).trainerSlot)
-                : 0,
-              false,
-              false,
-            ),
+          globalPhaseManager.prependToPhase(
             MoveEndPhase,
+            SwitchSummonPhase,
+            this.switchType,
+            switchOutTarget.getFieldIndex(),
+            globalScene.currentBattle.trainer
+              ? globalScene.currentBattle.trainer.getNextSummonIndex((switchOutTarget as EnemyPokemon).trainerSlot)
+              : 0,
+            false,
+            false,
           );
         }
       }
@@ -177,8 +191,8 @@ export class ForceSwitchOutAttr extends MoveEffectAttr {
         globalScene.clearEnemyHeldItemModifiers();
 
         if (switchOutTarget.hp) {
-          globalScene.pushPhase(new BattleEndPhase(false));
-          globalScene.pushPhase(new NewBattlePhase());
+          globalPhaseManager.pushPhase(BattleEndPhase, false);
+          globalPhaseManager.pushPhase(NewBattlePhase);
         }
       }
     }

@@ -28,8 +28,8 @@ export class TurnInitPhase extends FieldPhase {
 
         if (!allowedPokemon.length) {
           // If there are no longer any legal pokemon in the party, game over.
-          globalScene.clearPhaseQueue();
-          globalScene.unshiftPhase(new GameOverPhase());
+          this.manager.clearPhaseQueue();
+          this.manager.unshiftPhase(GameOverPhase);
         } else if (
           allowedPokemon.length >= currentBattle.getBattlerCount()
           || (currentBattle.double && !allowedPokemon[0].isActive(true))
@@ -42,7 +42,7 @@ export class TurnInitPhase extends FieldPhase {
           p.leaveField();
         }
         if (allowedPokemon.length === 1 && currentBattle.double) {
-          globalScene.unshiftPhase(new ToggleDoublePositionPhase(true));
+          this.manager.unshiftPhase(ToggleDoublePositionPhase, true);
         }
       }
     });
@@ -68,11 +68,15 @@ export class TurnInitPhase extends FieldPhase {
         pokemon.battleSummonData.turnCount++;
         pokemon.battleSummonData.waveTurnCount++;
 
-        globalScene.pushPhase(pokemon.isPlayer() ? new CommandPhase(fieldIndex) : new EnemyCommandPhase(fieldIndex));
+        if (pokemon.isPlayer()) {
+          this.manager.pushPhase(CommandPhase, fieldIndex);
+        } else {
+          this.manager.pushPhase(EnemyCommandPhase, fieldIndex);
+        }
       }
     });
 
-    globalScene.pushPhase(new TurnStartPhase());
+    this.manager.pushPhase(TurnStartPhase);
 
     this.end();
   }

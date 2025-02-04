@@ -1,7 +1,7 @@
 import type { PokemonDefendCondition } from "#app/@types/PokemonDefendCondition";
 import type { Move } from "#app/data/move";
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BattleStat } from "#enums/stat";
 import { PostDefendAbAttr } from "./post-defend-ab-attr";
@@ -41,13 +41,12 @@ export class PostDefendHpGatedStatStageChangeAbAttr extends PostDefendAbAttr {
       && pokemon.hp + damageReceived > hpGateFlat
     ) {
       if (!simulated) {
-        globalScene.unshiftPhase(
-          new StatStageChangePhase(
-            (this.selfTarget ? pokemon : attacker).getBattlerIndex(),
-            true,
-            this.stats,
-            this.stages,
-          ),
+        globalPhaseManager.unshiftPhase(
+          StatStageChangePhase,
+          (this.selfTarget ? pokemon : attacker).getBattlerIndex(),
+          true,
+          this.stats,
+          this.stages,
         );
       }
       return true;

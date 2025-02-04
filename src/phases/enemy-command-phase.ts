@@ -9,6 +9,7 @@ import { BattleCommand } from "#enums/battle-command";
 import { Abilities } from "#enums/abilities";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { FieldPhase } from "./abstract-field-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Phase for determining an enemy AI's action for the next turn.
@@ -26,8 +27,8 @@ export class EnemyCommandPhase extends FieldPhase {
   protected readonly fieldIndex: number;
   protected skipTurn: boolean = false;
 
-  constructor(fieldIndex: number) {
-    super();
+  constructor(manager: PhaseManager, fieldIndex: number) {
+    super(manager);
 
     this.fieldIndex = fieldIndex;
     if (globalScene.currentBattle.mysteryEncounter?.skipEnemyBattleTurns) {

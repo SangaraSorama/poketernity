@@ -1,11 +1,11 @@
 import { MoveCategory } from "#enums/move-category";
 import { type BattleStat, Stat } from "#enums/stat";
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { Move } from "#app/data/move";
 import type { MoveConditionFunc } from "#app/data/move-conditions";
 import { ChanceBasedMoveEffectAttr, type ChanceBasedMoveEffectAttrOptions } from "./chance-based-move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Set of optional parameters that may be applied to stat stage changing effects
@@ -67,14 +67,13 @@ export class StatStageChangeAttr extends ChanceBasedMoveEffectAttr {
     }
 
     const stages = this.getLevels(user);
-    globalScene.unshiftPhase(
-      new StatStageChangePhase(
-        (this.selfTarget ? user : target).getBattlerIndex(),
-        this.selfTarget,
-        this.stats,
-        stages,
-        { showMessage: this.showMessage },
-      ),
+    globalPhaseManager.unshiftPhase(
+      StatStageChangePhase,
+      (this.selfTarget ? user : target).getBattlerIndex(),
+      this.selfTarget,
+      this.stats,
+      stages,
+      { showMessage: this.showMessage },
     );
     return true;
   }

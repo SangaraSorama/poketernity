@@ -1,11 +1,11 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
 import { toDmgValue } from "#app/utils";
 import type { StatusEffect } from "#enums/status-effect";
 import i18next from "i18next";
 import { PostTurnAbAttr } from "./post-turn-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * This attribute will heal 1/8th HP if the ability pokemon has the correct status.
@@ -26,13 +26,16 @@ export class PostTurnStatusHealAbAttr extends PostTurnAbAttr {
       if (!pokemon.isFullHp()) {
         if (!simulated) {
           const abilityName = this.source.name;
-          globalScene.unshiftPhase(
-            new PokemonHealPhase(pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 8), {
+          globalPhaseManager.unshiftPhase(
+            PokemonHealPhase,
+            pokemon.getBattlerIndex(),
+            toDmgValue(pokemon.getMaxHp() / 8),
+            {
               message: i18next.t("abilityTriggers:poisonHeal", {
                 pokemonName: getPokemonNameWithAffix(pokemon),
                 abilityName,
               }),
-            }),
+            },
           );
         }
         return true;

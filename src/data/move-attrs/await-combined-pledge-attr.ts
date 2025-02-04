@@ -1,11 +1,12 @@
 import type { Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
-import { MovePhase } from "#app/phases/move-phase";
+import type { MovePhase } from "#app/phases/move-phase";
 import type { BooleanHolder } from "#app/utils";
 import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { OverrideMoveEffectAttr } from "#app/data/move-attrs/override-move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute that cancels the associated move's effects when set to be combined
@@ -25,7 +26,7 @@ export class AwaitCombinedPledgeAttr extends OverrideMoveEffectAttr {
       return false;
     }
 
-    const allyMovePhase = globalScene.findPhase<MovePhase>(
+    const allyMovePhase = globalPhaseManager.findPhase<MovePhase>(
       (phase) => phase.isMovePhase() && phase.pokemon.isPlayer() === user.isPlayer(),
     );
     if (allyMovePhase) {
@@ -44,8 +45,9 @@ export class AwaitCombinedPledgeAttr extends OverrideMoveEffectAttr {
         // Move the ally's MovePhase (if needed) so that the ally moves next
         const allyMovePhaseIndex = globalScene.phaseQueue.indexOf(allyMovePhase);
         const firstMovePhaseIndex = globalScene.phaseQueue.findIndex((phase) => phase.isMovePhase());
-        if (allyMovePhaseIndex !== firstMovePhaseIndex) {
-          globalScene.prependToPhase(globalScene.phaseQueue.splice(allyMovePhaseIndex, 1)[0], MovePhase);
+        if (allyMovePhaseIndex > firstMovePhaseIndex) {
+          globalPhaseManager.phaseQueue.splice(allyMovePhaseIndex, 1);
+          globalPhaseManager.phaseQueue.splice(firstMovePhaseIndex, 0, allyMovePhase);
         }
 
         overridden.value = true;

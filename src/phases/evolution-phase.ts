@@ -19,6 +19,7 @@ import { BooleanHolder, fixedNumber } from "#app/utils";
 import i18next from "i18next";
 import SoundFade from "phaser3-rex-plugins/plugins/soundfade";
 import { FormChangeBasePhase } from "./abstract-form-change-base-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * A phase for handling Pokemon evolution
@@ -40,8 +41,13 @@ export class EvolutionPhase extends FormChangeBasePhase {
    */
   private cancelled: BooleanHolder = new BooleanHolder(false);
 
-  constructor(pokemon: PlayerPokemon, evolution: SpeciesFormEvolution | null, lastLevel: number) {
-    super(pokemon);
+  constructor(
+    manager: PhaseManager,
+    pokemon: PlayerPokemon,
+    evolution: SpeciesFormEvolution | null,
+    lastLevel: number,
+  ) {
+    super(manager, pokemon);
 
     this.pokemon = pokemon;
     this.evolution = evolution;
@@ -171,7 +177,7 @@ export class EvolutionPhase extends FormChangeBasePhase {
 
     SoundFade.fadeOut(globalScene, this.evolutionBgm, 100);
 
-    globalScene.unshiftPhase(new EndEvolutionPhase());
+    this.manager.unshiftPhase(EndEvolutionPhase);
 
     ui.showText(
       i18next.t("menu:stoppedEvolving", { pokemonName: this.preEvolvedPokemonName }),
@@ -260,9 +266,9 @@ export class EvolutionPhase extends FormChangeBasePhase {
           .getLevelMoves(this.lastLevel + 1, true, false, false, learnSituation)
           .filter((lm) => lm[0] === EVOLVE_MOVE);
         for (const lm of levelMoves) {
-          globalScene.unshiftPhase(new LearnMovePhase(globalScene.getPlayerParty().indexOf(this.pokemon), lm[1]));
+          this.manager.unshiftPhase(LearnMovePhase, globalScene.getPlayerParty().indexOf(this.pokemon), lm[1]);
         }
-        globalScene.unshiftPhase(new EndEvolutionPhase());
+        this.manager.unshiftPhase(EndEvolutionPhase);
 
         globalScene.playSound("se/shine");
         animations.doSpray(this.baseBgImg, this.container);

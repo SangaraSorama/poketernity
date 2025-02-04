@@ -1,5 +1,6 @@
 import type { Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
+import type { PhaseManager } from "#app/phase-manager";
 import { FieldPhase } from "./abstract-field-phase";
 
 // TODO: Delete this class and replace its uses with `PokemonPhase`
@@ -8,8 +9,8 @@ export abstract class PartyMemberPokemonPhase extends FieldPhase {
   protected fieldIndex: number;
   protected isPlayer: boolean;
 
-  constructor(partyMemberIndex: number, isPlayer: boolean) {
-    super();
+  constructor(manager: PhaseManager, partyMemberIndex: number, isPlayer: boolean) {
+    super(manager);
 
     this.partyMemberIndex = partyMemberIndex;
     this.fieldIndex = partyMemberIndex < globalScene.currentBattle.getBattlerCount() ? partyMemberIndex : -1;

@@ -1,5 +1,5 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BattleStat } from "#enums/stat";
 import { FlinchEffectAbAttr } from "./flinch-effect-ab-attr";
@@ -17,7 +17,7 @@ export class FlinchStatStageChangeAbAttr extends FlinchEffectAbAttr {
 
   override apply(pokemon: Pokemon, simulated: boolean): boolean {
     if (!simulated) {
-      globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, this.stats, this.stages));
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, this.stats, this.stages);
     }
     return true;
   }

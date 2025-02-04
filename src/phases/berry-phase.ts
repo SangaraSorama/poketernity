@@ -33,8 +33,11 @@ export class BerryPhase extends FieldPhase {
             i18next.t("abilityTriggers:preventBerryUse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
           );
         } else {
-          globalScene.unshiftPhase(
-            new CommonAnimPhase(pokemon.getBattlerIndex(), pokemon.getBattlerIndex(), CommonAnim.USE_ITEM),
+          this.manager.unshiftPhase(
+            CommonAnimPhase,
+            pokemon.getBattlerIndex(),
+            pokemon.getBattlerIndex(),
+            CommonAnim.USE_ITEM,
           );
 
           for (const berryModifier of globalScene.applyModifiers(BerryModifier, pokemon.isPlayer(), pokemon)) {

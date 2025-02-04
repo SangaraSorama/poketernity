@@ -32,6 +32,7 @@ import { Nature } from "#enums/nature";
 import { CLASSIC_MODE_MYSTERY_ENCOUNTER_WAVES } from "#app/constants";
 import { isPokemonValidForEncounterOptionSelection } from "#app/data/mystery-encounters/utils/encounter-pokemon-utils";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** the i18n namespace for the encounter */
 const namespace = "mysteryEncounters/funAndGames";
@@ -394,13 +395,13 @@ function summonPlayerPokemonAnimation(pokemon: PlayerPokemon): Promise<void> {
                 pokemon.resetSummonData();
                 globalScene.time.delayedCall(1000, () => {
                   if (pokemon.isShiny()) {
-                    globalScene.unshiftPhase(new ShinySparklePhase(pokemon.getBattlerIndex()));
+                    globalPhaseManager.unshiftPhase(ShinySparklePhase, pokemon.getBattlerIndex());
                   }
 
                   pokemon.resetTurnData();
 
                   globalScene.triggerPokemonFormChange(pokemon, SpeciesFormChangeActiveTrigger, true);
-                  globalScene.pushPhase(new PostSummonPhase(pokemon.getBattlerIndex()));
+                  globalPhaseManager.pushPhase(PostSummonPhase, pokemon.getBattlerIndex());
                   resolve();
                 });
               },

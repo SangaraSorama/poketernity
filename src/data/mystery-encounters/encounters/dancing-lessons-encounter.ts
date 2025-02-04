@@ -42,6 +42,7 @@ import { PokeballType } from "#enums/pokeball";
 import { Species } from "#enums/species";
 import { Stat } from "#enums/stat";
 import i18next from "i18next";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** the i18n namespace for this encounter */
 const namespace = "mysteryEncounters/dancingLessons";
@@ -176,13 +177,12 @@ export const DancingLessonsEncounter: MysteryEncounter = MysteryEncounterBuilder
           tags: [BattlerTagType.MYSTERY_ENCOUNTER_POST_SUMMON],
           mysteryEncounterBattleEffects: (pokemon: Pokemon) => {
             queueEncounterMessage(`${namespace}:option.1.boss_enraged`);
-            globalScene.unshiftPhase(
-              new StatStageChangePhase(
-                pokemon.getBattlerIndex(),
-                true,
-                [Stat.ATK, Stat.DEF, Stat.SPATK, Stat.SPDEF],
-                1,
-              ),
+            globalPhaseManager.unshiftPhase(
+              StatStageChangePhase,
+              pokemon.getBattlerIndex(),
+              true,
+              [Stat.ATK, Stat.DEF, Stat.SPATK, Stat.SPDEF],
+              1,
             );
           },
         },
@@ -242,8 +242,10 @@ export const DancingLessonsEncounter: MysteryEncounter = MysteryEncounterBuilder
 
         const onPokemonSelected = (pokemon: PlayerPokemon) => {
           encounter.setDialogueToken("selectedPokemon", pokemon.getNameToRender());
-          globalScene.unshiftPhase(
-            new LearnMovePhase(globalScene.getPlayerParty().indexOf(pokemon), MoveId.REVELATION_DANCE),
+          globalPhaseManager.unshiftPhase(
+            LearnMovePhase,
+            globalScene.getPlayerParty().indexOf(pokemon),
+            MoveId.REVELATION_DANCE,
           );
 
           // Play animation again to "learn" the dance

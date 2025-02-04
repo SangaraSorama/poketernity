@@ -3,6 +3,8 @@ import type { Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { PostBattleInitAbAttr } from "./post-battle-init-ab-attr";
+import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export class PostBattleInitStatStageChangeAbAttr extends PostBattleInitAbAttr {
   private readonly stats: BattleStat[];
@@ -18,24 +20,22 @@ export class PostBattleInitStatStageChangeAbAttr extends PostBattleInitAbAttr {
   }
 
   override apply(pokemon: Pokemon, simulated: boolean): boolean {
-    const statStageChangePhases: StatStageChangePhase[] = [];
+    const statStageChangePhaseParams: PhaseConstructorParams<typeof StatStageChangePhase>[] = [];
 
     if (!simulated) {
       if (this.selfTarget) {
-        statStageChangePhases.push(new StatStageChangePhase(pokemon.getBattlerIndex(), true, this.stats, this.stages));
+        statStageChangePhaseParams.push([pokemon.getBattlerIndex(), true, this.stats, this.stages]);
       } else {
         for (const opponent of pokemon.getOpponents()) {
-          statStageChangePhases.push(
-            new StatStageChangePhase(opponent.getBattlerIndex(), false, this.stats, this.stages),
-          );
+          statStageChangePhaseParams.push([opponent.getBattlerIndex(), false, this.stats, this.stages]);
         }
       }
 
-      for (const statStageChangePhase of statStageChangePhases) {
-        if (!this.selfTarget && !statStageChangePhase.getPokemon()?.summonData) {
-          globalScene.pushPhase(statStageChangePhase);
+      for (const params of statStageChangePhaseParams) {
+        if (!this.selfTarget && !globalScene.getFieldPokemonByBattlerIndex(params[0])?.summonData) {
+          globalPhaseManager.pushPhase(StatStageChangePhase, ...params);
         } else {
-          globalScene.unshiftPhase(statStageChangePhase);
+          globalPhaseManager.unshiftPhase(StatStageChangePhase, ...params);
         }
       }
     }

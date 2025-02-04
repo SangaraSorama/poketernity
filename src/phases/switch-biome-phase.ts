@@ -1,13 +1,14 @@
 import { getBiomeKey } from "#app/field/arena";
 import { globalScene } from "#app/global-scene";
+import type { PhaseManager } from "#app/phase-manager";
 import type { Biome } from "#enums/biome";
 import { BattlePhase } from "./abstract-battle-phase";
 
 export class SwitchBiomePhase extends BattlePhase {
   private readonly nextBiome: Biome;
 
-  constructor(nextBiome: Biome) {
-    super();
+  constructor(manager: PhaseManager, nextBiome: Biome) {
+    super(manager);
 
     this.nextBiome = nextBiome;
   }

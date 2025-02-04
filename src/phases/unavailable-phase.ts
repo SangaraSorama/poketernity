@@ -6,7 +6,7 @@ import { LoginPhase } from "./login-phase";
 export class UnavailablePhase extends Phase {
   public override start(): void {
     globalScene.ui.setMode(UiMode.UNAVAILABLE, () => {
-      globalScene.unshiftPhase(new LoginPhase(true));
+      this.manager.unshiftPhase(LoginPhase, true);
       this.end();
     });
   }

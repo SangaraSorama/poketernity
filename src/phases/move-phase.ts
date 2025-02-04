@@ -41,6 +41,7 @@ import { MoveId } from "#enums/move-id";
 import { StatusEffect } from "#enums/status-effect";
 import { ElementalType } from "#enums/elemental-type";
 import i18next from "i18next";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Resolves the following:
@@ -98,13 +99,14 @@ export class MovePhase extends BattlePhase {
    *                 Follow-ups bypass a few failure conditions, including flinches, sleep/paralysis/freeze and volatile status checks, etc.
    */
   constructor(
+    manager: PhaseManager,
     pokemon: Pokemon,
     targets: BattlerIndex[],
     move: PokemonMove,
     followUp: boolean = false,
     ignorePp: boolean = false,
   ) {
-    super();
+    super(manager);
 
     this.pokemon = pokemon;
     this.targets = targets;
@@ -264,12 +266,11 @@ export class MovePhase extends BattlePhase {
         globalScene.queueMessage(
           getStatusEffectActivationText(this.pokemon.status.effect, getPokemonNameWithAffix(this.pokemon)),
         );
-        globalScene.unshiftPhase(
-          new CommonAnimPhase(
-            this.pokemon.getBattlerIndex(),
-            undefined,
-            CommonAnim.POISON + (this.pokemon.status.effect - 1),
-          ),
+        this.manager.unshiftPhase(
+          CommonAnimPhase,
+          this.pokemon.getBattlerIndex(),
+          undefined,
+          CommonAnim.POISON + (this.pokemon.status.effect - 1),
         );
       } else if (healed) {
         globalScene.queueMessage(
@@ -356,7 +357,7 @@ export class MovePhase extends BattlePhase {
      */
     if (success) {
       applyAbAttrs(PokemonTypeChangeAbAttr, this.pokemon, false, this.move.getMove());
-      globalScene.unshiftPhase(new MoveEffectPhase(this.pokemon.getBattlerIndex(), this.targets, this.move));
+      this.manager.unshiftPhase(MoveEffectPhase, this.pokemon.getBattlerIndex(), this.targets, this.move);
     } else {
       if ([MoveId.ROAR, MoveId.WHIRLWIND, MoveId.TRICK_OR_TREAT, MoveId.FORESTS_CURSE].includes(this.move.moveId)) {
         applyAbAttrs(PokemonTypeChangeAbAttr, this.pokemon, false, this.move.getMove());
@@ -403,7 +404,7 @@ export class MovePhase extends BattlePhase {
       applyAbAttrs(PokemonTypeChangeAbAttr, this.pokemon, false, this.move.getMove());
 
       this.showMoveText();
-      globalScene.unshiftPhase(new MoveChargePhase(this.pokemon.getBattlerIndex(), this.targets, this.move));
+      this.manager.unshiftPhase(MoveChargePhase, this.pokemon.getBattlerIndex(), this.targets, this.move);
     } else {
       this.pokemon.pushMoveHistory({
         moveId: this.move.moveId,
@@ -427,7 +428,7 @@ export class MovePhase extends BattlePhase {
    */
   public override end(): void {
     if (!this.followUp && this.canMove()) {
-      globalScene.unshiftPhase(new MoveEndPhase(this.pokemon.getBattlerIndex()));
+      this.manager.unshiftPhase(MoveEndPhase, this.pokemon.getBattlerIndex());
     }
 
     super.end();
@@ -491,11 +492,10 @@ export class MovePhase extends BattlePhase {
 
         if (this.pokemon.hasAbilityWithAttr(BlockRedirectAbAttr)) {
           redirectTarget.value = currentTarget;
-          globalScene.unshiftPhase(
-            new ShowAbilityPhase(
-              this.pokemon.getBattlerIndex(),
-              this.pokemon.getPassiveAbility().hasAttr(BlockRedirectAbAttr),
-            ),
+          this.manager.unshiftPhase(
+            ShowAbilityPhase,
+            this.pokemon.getBattlerIndex(),
+            this.pokemon.getPassiveAbility().hasAttr(BlockRedirectAbAttr),
           );
         }
 

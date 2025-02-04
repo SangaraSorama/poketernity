@@ -4,10 +4,6 @@ import i18next from "i18next";
 import { SummonPhase } from "./summon-phase";
 
 export class SummonMissingPhase extends SummonPhase {
-  constructor(fieldIndex: number) {
-    super(fieldIndex);
-  }
-
   protected override preSummon(): void {
     globalScene.ui.showText(
       i18next.t("battle:sendOutPokemon", { pokemonName: getPokemonNameWithAffix(this.getPokemon()) }),

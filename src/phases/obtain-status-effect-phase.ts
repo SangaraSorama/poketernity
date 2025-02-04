@@ -7,6 +7,7 @@ import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { StatusEffect } from "#enums/status-effect";
 import { PokemonPhase } from "./abstract-pokemon-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Applies a status effect to a pokemon
@@ -19,13 +20,14 @@ export class ObtainStatusEffectPhase extends PokemonPhase {
   private readonly sourcePokemon?: Pokemon | null;
 
   constructor(
+    manager: PhaseManager,
     battlerIndex: BattlerIndex,
     statusEffect: StatusEffect,
     turnsRemaining?: number,
     sourceText?: string | null,
     sourcePokemon?: Pokemon | null,
   ) {
-    super(battlerIndex);
+    super(manager, battlerIndex);
 
     this.statusEffect = statusEffect;
     this.turnsRemaining = turnsRemaining;

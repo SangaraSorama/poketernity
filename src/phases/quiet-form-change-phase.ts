@@ -3,6 +3,7 @@ import { getTypeRgb } from "#app/data/type";
 import { type Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
+import type { PhaseManager } from "#app/phase-manager";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BattlePhase } from "./abstract-battle-phase";
 import type { MovePhase } from "./move-phase";
@@ -12,8 +13,8 @@ export class QuietFormChangePhase extends BattlePhase {
   protected readonly pokemon: Pokemon;
   protected readonly formChange: SpeciesFormChange;
 
-  constructor(pokemon: Pokemon, formChange: SpeciesFormChange) {
-    super();
+  constructor(manager: PhaseManager, pokemon: Pokemon, formChange: SpeciesFormChange) {
+    super(manager);
     this.pokemon = pokemon;
     this.formChange = formChange;
   }
@@ -158,12 +159,10 @@ export class QuietFormChangePhase extends BattlePhase {
 
     if (globalScene?.currentBattle.isClassicFinalBoss && this.pokemon.isEnemy()) {
       globalScene.playBgm();
-      globalScene.unshiftPhase(
-        new PokemonHealPhase(this.pokemon.getBattlerIndex(), this.pokemon.getMaxHp(), {
-          showFullHpMessage: false,
-          healStatus: true,
-        }),
-      );
+      this.manager.unshiftPhase(PokemonHealPhase, this.pokemon.getBattlerIndex(), this.pokemon.getMaxHp(), {
+        showFullHpMessage: false,
+        healStatus: true,
+      });
 
       this.pokemon.findAndRemoveTags(() => true);
       this.pokemon.bossSegments = 5;
@@ -171,7 +170,7 @@ export class QuietFormChangePhase extends BattlePhase {
       this.pokemon.initBattleInfo();
       this.pokemon.cry();
 
-      const movePhase = globalScene.findPhase<MovePhase>((p) => p.isMovePhase() && p.pokemon === this.pokemon);
+      const movePhase = this.manager.findPhase<MovePhase>((p) => p.isMovePhase() && p.pokemon === this.pokemon);
       if (movePhase) {
         movePhase.cancel();
       }

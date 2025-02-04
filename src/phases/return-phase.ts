@@ -1,11 +1,12 @@
 import { SpeciesFormChangeActiveTrigger } from "#app/data/pokemon-forms";
 import { globalScene } from "#app/global-scene";
+import type { PhaseManager } from "#app/phase-manager";
 import { SwitchType } from "#enums/switch-type";
 import { SwitchSummonPhase } from "./switch-summon-phase";
 
 export class ReturnPhase extends SwitchSummonPhase {
-  constructor(fieldIndex: number) {
-    super(SwitchType.SWITCH, fieldIndex, -1, true);
+  constructor(manager: PhaseManager, fieldIndex: number) {
+    super(manager, SwitchType.SWITCH, fieldIndex, -1, true);
   }
 
   protected override switchAndSummon(): void {

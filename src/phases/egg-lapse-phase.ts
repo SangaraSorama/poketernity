@@ -82,7 +82,7 @@ export class EggLapsePhase extends Phase {
   protected hatchEggsRegular(eggsToHatch: Egg[]): void {
     let eggsToHatchCount: number = eggsToHatch.length;
     for (const egg of eggsToHatch) {
-      globalScene.unshiftPhase(new EggHatchPhase(this, egg, eggsToHatchCount));
+      this.manager.unshiftPhase(EggHatchPhase, this, egg, eggsToHatchCount);
       eggsToHatchCount--;
     }
   }
@@ -98,7 +98,7 @@ export class EggLapsePhase extends Phase {
   }
 
   protected showSummary(): void {
-    globalScene.unshiftPhase(new EggSummaryPhase(this.eggHatchData));
+    this.manager.unshiftPhase(EggSummaryPhase, this.eggHatchData);
     this.end();
   }
 

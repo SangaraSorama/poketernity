@@ -12,6 +12,7 @@ import { SwitchType } from "#enums/switch-type";
 import i18next from "i18next";
 import { PostSummonPhase } from "./post-summon-phase";
 import { SummonPhase } from "./summon-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class SwitchSummonPhase extends SummonPhase {
   private readonly switchType: SwitchType;
@@ -28,8 +29,15 @@ export class SwitchSummonPhase extends SummonPhase {
    * @param doReturn boolean whether to render "comeback" dialogue
    * @param player boolean if the switch is from the player
    */
-  constructor(switchType: SwitchType, fieldIndex: number, slotIndex: number, doReturn: boolean, player?: boolean) {
-    super(fieldIndex, player !== undefined ? player : true);
+  constructor(
+    manager: PhaseManager,
+    switchType: SwitchType,
+    fieldIndex: number,
+    slotIndex: number,
+    doReturn: boolean,
+    player?: boolean,
+  ) {
+    super(manager, fieldIndex, player !== undefined ? player : true);
 
     this.switchType = switchType;
     this.slotIndex = slotIndex;
@@ -217,6 +225,6 @@ export class SwitchSummonPhase extends SummonPhase {
   }
 
   protected override queuePostSummon(): void {
-    globalScene.unshiftPhase(new PostSummonPhase(this.getPokemon().getBattlerIndex()));
+    this.manager.unshiftPhase(PostSummonPhase, this.getPokemon().getBattlerIndex());
   }
 }

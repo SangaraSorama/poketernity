@@ -1,5 +1,5 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BattleStat } from "#enums/stat";
 import { PostVictoryAbAttr } from "./post-victory-ab-attr";
@@ -18,7 +18,7 @@ export class PostVictoryStatStageChangeAbAttr extends PostVictoryAbAttr {
   override apply(pokemon: Pokemon, simulated: boolean): boolean {
     const stat = typeof this.stat === "function" ? this.stat(pokemon) : this.stat;
     if (!simulated) {
-      globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [stat], this.stages));
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [stat], this.stages);
     }
     return true;
   }

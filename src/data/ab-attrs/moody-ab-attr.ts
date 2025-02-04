@@ -1,5 +1,5 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { EFFECTIVE_STATS } from "#enums/stat";
 import { PostTurnAbAttr } from "./post-turn-ab-attr";
@@ -20,11 +20,11 @@ export class MoodyAbAttr extends PostTurnAbAttr {
       if (canRaise.length > 0) {
         const raisedStat = canRaise[pokemon.randSeedInt(canRaise.length)];
         canLower = canLower.filter((s) => s !== raisedStat);
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [raisedStat], 2));
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [raisedStat], 2);
       }
       if (canLower.length > 0) {
         const loweredStat = canLower[pokemon.randSeedInt(canLower.length)];
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [loweredStat], -1));
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [loweredStat], -1);
       }
     }
 

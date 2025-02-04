@@ -1,5 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { Phase } from "#app/phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class MessagePhase extends Phase {
   private text: string;
@@ -9,13 +10,14 @@ export class MessagePhase extends Phase {
   private readonly speaker?: string;
 
   constructor(
+    manager: PhaseManager,
     text: string,
     callbackDelay: number | null = null,
     prompt: boolean | null = null,
     promptDelay: number | null = null,
     speaker?: string,
   ) {
-    super();
+    super(manager);
 
     this.text = text;
     this.callbackDelay = callbackDelay;
@@ -29,14 +31,13 @@ export class MessagePhase extends Phase {
 
     if (this.text.indexOf("$") > -1) {
       const pageIndex = this.text.indexOf("$");
-      globalScene.unshiftPhase(
-        new MessagePhase(
-          this.text.slice(pageIndex + 1),
-          this.callbackDelay,
-          this.prompt,
-          this.promptDelay,
-          this.speaker,
-        ),
+      this.manager.unshiftPhase(
+        MessagePhase,
+        this.text.slice(pageIndex + 1),
+        this.callbackDelay,
+        this.prompt,
+        this.promptDelay,
+        this.speaker,
       );
       this.text = this.text.slice(0, pageIndex).trim();
     }

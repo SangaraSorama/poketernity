@@ -23,8 +23,8 @@ export class SelectStarterPhase extends Phase {
       globalScene.ui.clearText();
       globalScene.ui.setMode(UiMode.SAVE_SLOT, SaveSlotUiMode.SAVE, (slotId: number) => {
         if (slotId === -1) {
-          globalScene.clearPhaseQueue();
-          globalScene.pushPhase(new TitlePhase());
+          this.manager.clearPhaseQueue();
+          this.manager.pushPhase(TitlePhase);
           return this.end();
         }
         globalScene.sessionSlotId = slotId;

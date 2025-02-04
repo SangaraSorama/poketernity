@@ -9,6 +9,7 @@ import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
 import type { MoveConditionFunc } from "../move-conditions";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute to revive a Pokemon in the user's party to 50% HP.
@@ -23,7 +24,7 @@ export class RevivalBlessingAttr extends MoveEffectAttr {
   override applyEffect(user: Pokemon, _target: Pokemon, _move: Move): boolean {
     // If user is player, checks if the user has fainted pokemon
     if (user.isPlayer()) {
-      globalScene.unshiftPhase(new RevivalBlessingPhase(user));
+      globalPhaseManager.unshiftPhase(RevivalBlessingPhase, user);
       return true;
     } else if (user.isEnemy()) {
       // If used by an enemy trainer with at least one fainted non-boss Pokemon, this
@@ -42,12 +43,22 @@ export class RevivalBlessingAttr extends MoveEffectAttr {
       if (globalScene.currentBattle.double && globalScene.getEnemyParty().length > 1) {
         const allyPokemon = user.getAlly();
         if (slotIndex <= 1) {
-          globalScene.unshiftPhase(
-            new SwitchSummonPhase(SwitchType.SWITCH, pokemon.getFieldIndex(), slotIndex, false, false),
+          globalPhaseManager.unshiftPhase(
+            SwitchSummonPhase,
+            SwitchType.SWITCH,
+            pokemon.getFieldIndex(),
+            slotIndex,
+            false,
+            false,
           );
         } else if (allyPokemon.isFainted()) {
-          globalScene.unshiftPhase(
-            new SwitchSummonPhase(SwitchType.SWITCH, allyPokemon.getFieldIndex(), slotIndex, false, false),
+          globalPhaseManager.unshiftPhase(
+            SwitchSummonPhase,
+            SwitchType.SWITCH,
+            allyPokemon.getFieldIndex(),
+            slotIndex,
+            false,
+            false,
           );
         }
       }

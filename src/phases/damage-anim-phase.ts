@@ -5,6 +5,7 @@ import { globalScene } from "#app/global-scene";
 import { PokemonPhase } from "#app/phases/abstract-pokemon-phase";
 import { fixedNumber } from "#app/utils";
 import { settings } from "#app/system/settings/settings-manager";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Displays damage numbers and plays move hit SFX during battle
@@ -16,12 +17,13 @@ export class DamageAnimPhase extends PokemonPhase {
   private readonly critical: boolean;
 
   constructor(
+    manager: PhaseManager,
     battlerIndex: BattlerIndex,
     amount: number,
     damageResult: DamageResult = HitResult.EFFECTIVE,
     critical: boolean = false,
   ) {
-    super(battlerIndex);
+    super(manager, battlerIndex);
 
     this.amount = amount;
     this.damageResult = damageResult;

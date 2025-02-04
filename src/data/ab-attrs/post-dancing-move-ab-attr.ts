@@ -1,10 +1,10 @@
 import type { BattlerIndex } from "#enums/battler-index";
 import type { Pokemon } from "#app/field/pokemon";
 import type { PokemonMove } from "#app/field/pokemon-move";
-import { globalScene } from "#app/global-scene";
 import { MovePhase } from "#app/phases/move-phase";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { PostMoveUsedAbAttr } from "./post-move-used-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Triggers after a dance move is used either by the opponent or the player
@@ -33,11 +33,11 @@ export class PostDancingMoveAbAttr extends PostMoveUsedAbAttr {
       if (!simulated) {
         if (move.getMove().isSelfStatusMove()) {
           // If the move is a SelfStatusMove (ie. Swords Dance), the Dancer should replicate it on itself
-          globalScene.unshiftPhase(new MovePhase(pokemon, [pokemon.getBattlerIndex()], move, true, true));
+          globalPhaseManager.unshiftPhase(MovePhase, pokemon, [pokemon.getBattlerIndex()], move, true, true);
         } else {
           // Otherwise, the Dancer must replicate the move on the source of the Dance
           const target = this.getTarget(pokemon, source, targets);
-          globalScene.unshiftPhase(new MovePhase(pokemon, target, move, true, true));
+          globalPhaseManager.unshiftPhase(MovePhase, pokemon, target, move, true, true);
         }
       }
       return true;

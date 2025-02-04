@@ -18,6 +18,7 @@ import { MysteryEncounterTier } from "#enums/mystery-encounter-tier";
 import type BBCodeText from "phaser3-rex-plugins/plugins/bbcodetext";
 import { globalScene } from "#app/global-scene";
 import { CANVAS_SCALE, GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export default class MysteryEncounterUiHandler extends UiHandler {
   private cursorContainer: Phaser.GameObjects.Container;
@@ -159,7 +160,7 @@ export default class MysteryEncounterUiHandler extends UiHandler {
         ) {
           success = false;
         } else {
-          if ((globalScene.getCurrentPhase() as MysteryEncounterPhase).handleOptionSelect(selected, cursor)) {
+          if ((globalPhaseManager.getCurrentPhase() as MysteryEncounterPhase).handleOptionSelect(selected, cursor)) {
             success = true;
           } else {
             ui.playError();

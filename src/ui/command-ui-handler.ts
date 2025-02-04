@@ -10,6 +10,7 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import { CommandPhase } from "#app/phases/command-phase";
 import { globalScene } from "#app/global-scene";
 import { BattleCommand } from "#enums/battle-command";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export default class CommandUiHandler extends UiHandler {
   private commandsContainer: Phaser.GameObjects.Container;
@@ -51,11 +52,11 @@ export default class CommandUiHandler extends UiHandler {
     this.commandsContainer.setVisible(true);
 
     let commandPhase: CommandPhase;
-    const currentPhase = globalScene.getCurrentPhase();
+    const currentPhase = globalPhaseManager.getCurrentPhase();
     if (currentPhase instanceof CommandPhase) {
       commandPhase = currentPhase;
     } else {
-      commandPhase = globalScene.getStandbyPhase() as CommandPhase;
+      commandPhase = globalPhaseManager.getStandbyPhase() as CommandPhase;
     }
 
     const messageHandler = this.getUi().getMessageHandler();
@@ -88,7 +89,7 @@ export default class CommandUiHandler extends UiHandler {
         switch (cursor) {
           // Fight
           case BattleCommand.FIGHT:
-            ui.setMode(UiMode.FIGHT, (globalScene.getCurrentPhase() as CommandPhase).getFieldIndex());
+            ui.setMode(UiMode.FIGHT, (globalPhaseManager.getCurrentPhase() as CommandPhase).getFieldIndex());
             success = true;
             break;
           // Ball
@@ -101,7 +102,7 @@ export default class CommandUiHandler extends UiHandler {
             ui.setMode(
               UiMode.PARTY,
               PartyUiMode.SWITCH,
-              (globalScene.getCurrentPhase() as CommandPhase).getPokemon().getFieldIndex(),
+              (globalPhaseManager.getCurrentPhase() as CommandPhase).getPokemon().getFieldIndex(),
               null,
               PartyUiHandler.FilterNonFainted,
             );
@@ -109,12 +110,12 @@ export default class CommandUiHandler extends UiHandler {
             break;
           // Run
           case BattleCommand.RUN:
-            (globalScene.getCurrentPhase() as CommandPhase).handleCommand(BattleCommand.RUN, 0);
+            (globalPhaseManager.getCurrentPhase() as CommandPhase).handleCommand(BattleCommand.RUN, 0);
             success = true;
             break;
         }
       } else {
-        (globalScene.getCurrentPhase() as CommandPhase).cancel();
+        (globalPhaseManager.getCurrentPhase() as CommandPhase).cancel();
       }
     } else {
       switch (button) {

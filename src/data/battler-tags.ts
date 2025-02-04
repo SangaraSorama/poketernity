@@ -43,6 +43,7 @@ import { ReverseDrainAbAttr } from "./ab-attrs/reverse-drain-ab-attr";
 import Overrides from "#app/overrides";
 import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { AbilityApplyMode } from "#enums/ability-apply-mode";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export class BattlerTag {
   public tagType: BattlerTagType;
@@ -149,7 +150,7 @@ export abstract class MoveRestrictionBattlerTag extends BattlerTag {
   override lapse(pokemon: Pokemon, lapseType: BattlerTagLapseType): boolean {
     if (lapseType === BattlerTagLapseType.PRE_MOVE) {
       // Cancel the affected pokemon's selected move
-      const phase = globalScene.getCurrentPhase() as MovePhase;
+      const phase = globalPhaseManager.getCurrentPhase() as MovePhase;
       const move = phase.move;
 
       if (this.isMoveRestricted(move.moveId, pokemon)) {
@@ -442,7 +443,7 @@ export class RechargingTag extends BattlerTag {
       globalScene.queueMessage(
         i18next.t("battlerTags:rechargingLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
       );
-      (globalScene.getCurrentPhase() as MovePhase).cancel();
+      (globalPhaseManager.getCurrentPhase() as MovePhase).cancel();
       pokemon.getMoveQueue().shift();
     }
     return super.lapse(pokemon, lapseType);
@@ -531,7 +532,7 @@ export class ShellTrapTag extends BattlerTag {
         // Only shift MovePhase timing if it's not already next up
         if (shellTrapPhaseIndex !== -1 && shellTrapPhaseIndex !== firstMovePhaseIndex) {
           const shellTrapMovePhase = globalScene.phaseQueue.splice(shellTrapPhaseIndex, 1)[0];
-          globalScene.prependToPhase(shellTrapMovePhase, MovePhase);
+          globalPhaseManager.phaseQueue.splice(firstMovePhaseIndex, 0, shellTrapMovePhase);
         }
 
         this.activated = true;
@@ -639,7 +640,7 @@ export class FlinchedTag extends BattlerTag {
    */
   override lapse(pokemon: Pokemon, lapseType: BattlerTagLapseType): boolean {
     if (lapseType === BattlerTagLapseType.PRE_MOVE) {
-      (globalScene.getCurrentPhase() as MovePhase).cancel();
+      (globalPhaseManager.getCurrentPhase() as MovePhase).cancel();
       globalScene.queueMessage(
         i18next.t("battlerTags:flinchedLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
       );
@@ -670,7 +671,7 @@ export class InterruptedTag extends BattlerTag {
   }
 
   override lapse(pokemon: Pokemon, lapseType: BattlerTagLapseType): boolean {
-    (globalScene.getCurrentPhase() as MovePhase).cancel();
+    (globalPhaseManager.getCurrentPhase() as MovePhase).cancel();
     return super.lapse(pokemon, lapseType);
   }
 }
@@ -691,7 +692,7 @@ export class ConfusedTag extends BattlerTag {
   override onAdd(pokemon: Pokemon): void {
     super.onAdd(pokemon);
 
-    globalScene.unshiftPhase(new CommonAnimPhase(pokemon.getBattlerIndex(), undefined, CommonAnim.CONFUSION));
+    globalPhaseManager.unshiftPhase(CommonAnimPhase, pokemon.getBattlerIndex(), undefined, CommonAnim.CONFUSION);
     globalScene.queueMessage(
       i18next.t("battlerTags:confusedOnAdd", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
     );
@@ -722,14 +723,14 @@ export class ConfusedTag extends BattlerTag {
       globalScene.queueMessage(
         i18next.t("battlerTags:confusedLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
       );
-      globalScene.unshiftPhase(new CommonAnimPhase(pokemon.getBattlerIndex(), undefined, CommonAnim.CONFUSION));
+      globalPhaseManager.unshiftPhase(CommonAnimPhase, pokemon.getBattlerIndex(), undefined, CommonAnim.CONFUSION);
 
       const damage = this.getDamage(pokemon);
       if (damage > 0) {
         globalScene.queueMessage(i18next.t("battlerTags:confusedLapseHurtItself"));
         pokemon.damageAndUpdate(damage);
         pokemon.battleData.hitCount++;
-        (globalScene.getCurrentPhase() as MovePhase).cancel();
+        (globalPhaseManager.getCurrentPhase() as MovePhase).cancel();
       }
     }
     return ret;
@@ -860,7 +861,7 @@ export class InfatuatedTag extends BattlerTag {
           sourcePokemonName: getPokemonNameWithAffix(globalScene.getPokemonById(this.sourceId!) ?? undefined), // TODO: is that bang correct?
         }),
       );
-      globalScene.unshiftPhase(new CommonAnimPhase(pokemon.getBattlerIndex(), undefined, CommonAnim.ATTRACT));
+      globalPhaseManager.unshiftPhase(CommonAnimPhase, pokemon.getBattlerIndex(), undefined, CommonAnim.ATTRACT);
 
       if (
         (pokemon.randSeedInt(100) < this.ACTIVATION_CHANCE && Overrides.STATUS_ACTIVATION_OVERRIDE !== false)
@@ -871,7 +872,7 @@ export class InfatuatedTag extends BattlerTag {
             pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
           }),
         );
-        (globalScene.getCurrentPhase() as MovePhase).cancel();
+        (globalPhaseManager.getCurrentPhase() as MovePhase).cancel();
       }
     }
 
@@ -934,20 +935,26 @@ export class SeedTag extends BattlerTag {
         applyAbAttrs(BlockNonDirectDamageAbAttr, pokemon, false, cancelled);
 
         if (!cancelled.value) {
-          globalScene.unshiftPhase(
-            new CommonAnimPhase(source.getBattlerIndex(), pokemon.getBattlerIndex(), CommonAnim.LEECH_SEED),
+          globalPhaseManager.unshiftPhase(
+            CommonAnimPhase,
+            source.getBattlerIndex(),
+            pokemon.getBattlerIndex(),
+            CommonAnim.LEECH_SEED,
           );
 
           const damage = pokemon.damageAndUpdate(toDmgValue(pokemon.getMaxHp() / 8));
           const reverseDrain = pokemon.hasAbilityWithAttr(ReverseDrainAbAttr, false);
-          globalScene.unshiftPhase(
-            new PokemonHealPhase(source.getBattlerIndex(), !reverseDrain ? damage : damage * -1, {
+          globalPhaseManager.unshiftPhase(
+            PokemonHealPhase,
+            source.getBattlerIndex(),
+            !reverseDrain ? damage : damage * -1,
+            {
               message: !reverseDrain
                 ? i18next.t("battlerTags:seededLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) })
                 : i18next.t("battlerTags:seededLapseShed", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
               showFullHpMessage: false,
               skipAnim: true,
-            }),
+            },
           );
         }
       }
@@ -989,7 +996,7 @@ export class PowderTag extends BattlerTag {
    */
   override lapse(pokemon: Pokemon, lapseType: BattlerTagLapseType): boolean {
     if (lapseType === BattlerTagLapseType.PRE_MOVE) {
-      const currPhase = globalScene.getCurrentPhase();
+      const currPhase = globalPhaseManager.getCurrentPhase();
       if (currPhase?.isMovePhase()) {
         const move = currPhase.move.getMove();
         const weather = globalScene.arena.weather;
@@ -1000,8 +1007,11 @@ export class PowderTag extends BattlerTag {
           currPhase.fail();
           currPhase.showMoveText();
 
-          globalScene.unshiftPhase(
-            new CommonAnimPhase(pokemon.getBattlerIndex(), pokemon.getBattlerIndex(), CommonAnim.POWDER),
+          globalPhaseManager.unshiftPhase(
+            CommonAnimPhase,
+            pokemon.getBattlerIndex(),
+            pokemon.getBattlerIndex(),
+            CommonAnim.POWDER,
           );
 
           const cancelDamage = new BooleanHolder(false);
@@ -1049,7 +1059,7 @@ export class NightmareTag extends BattlerTag {
       globalScene.queueMessage(
         i18next.t("battlerTags:nightmareLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
       );
-      globalScene.unshiftPhase(new CommonAnimPhase(pokemon.getBattlerIndex(), undefined, CommonAnim.CURSE)); // TODO: Update animation type
+      globalPhaseManager.unshiftPhase(CommonAnimPhase, pokemon.getBattlerIndex(), undefined, CommonAnim.CURSE); // TODO: Update animation type
 
       const cancelled = new BooleanHolder(false);
       applyAbAttrs(BlockNonDirectDamageAbAttr, pokemon, false, cancelled);
@@ -1147,14 +1157,17 @@ export class EncoreTag extends MoveRestrictionBattlerTag {
       i18next.t("battlerTags:encoreOnAdd", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
     );
 
-    const movePhase = globalScene.findPhase((m) => m.isMovePhase() && m.pokemon === pokemon);
+    const movePhase = globalPhaseManager.findPhase((m) => m.isMovePhase() && m.pokemon === pokemon);
     if (movePhase) {
       const movesetMove = pokemon.getMoveset().find((m) => m.moveId === this.moveId);
       if (movesetMove) {
         const lastMove = pokemon.getLastXMoves(1)[0];
-        globalScene.tryReplacePhase(
+        globalPhaseManager.tryReplacePhase(
           (m) => m.isMovePhase() && m.pokemon === pokemon,
-          new MovePhase(pokemon, lastMove.targets ?? [], movesetMove),
+          MovePhase,
+          pokemon,
+          lastMove.targets ?? [],
+          movesetMove,
         );
       }
     }
@@ -1241,10 +1254,13 @@ export class IngrainTag extends TrappedTag {
     const ret = lapseType !== BattlerTagLapseType.CUSTOM || super.lapse(pokemon, lapseType);
 
     if (ret) {
-      globalScene.unshiftPhase(
-        new PokemonHealPhase(pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 16), {
+      globalPhaseManager.unshiftPhase(
+        PokemonHealPhase,
+        pokemon.getBattlerIndex(),
+        toDmgValue(pokemon.getMaxHp() / 16),
+        {
           message: i18next.t("battlerTags:ingrainLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
-        }),
+        },
       );
     }
 
@@ -1273,7 +1289,13 @@ export class OctolockTag extends TrappedTag {
     const shouldLapse = lapseType !== BattlerTagLapseType.CUSTOM || super.lapse(pokemon, lapseType);
 
     if (shouldLapse) {
-      globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), false, [Stat.DEF, Stat.SPDEF], -1));
+      globalPhaseManager.unshiftPhase(
+        StatStageChangePhase,
+        pokemon.getBattlerIndex(),
+        false,
+        [Stat.DEF, Stat.SPDEF],
+        -1,
+      );
       return true;
     }
 
@@ -1298,13 +1320,16 @@ export class AquaRingTag extends BattlerTag {
     const ret = lapseType !== BattlerTagLapseType.CUSTOM || super.lapse(pokemon, lapseType);
 
     if (ret) {
-      globalScene.unshiftPhase(
-        new PokemonHealPhase(pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 16), {
+      globalPhaseManager.unshiftPhase(
+        PokemonHealPhase,
+        pokemon.getBattlerIndex(),
+        toDmgValue(pokemon.getMaxHp() / 16),
+        {
           message: i18next.t("battlerTags:aquaRingLapse", {
             moveName: this.getMoveName(),
             pokemonName: getPokemonNameWithAffix(pokemon),
           }),
-        }),
+        },
       );
     }
 
@@ -1408,7 +1433,7 @@ export abstract class DamagingTrapTag extends TrappedTag {
           moveName: this.getMoveName(),
         }),
       );
-      globalScene.unshiftPhase(new CommonAnimPhase(pokemon.getBattlerIndex(), undefined, this.commonAnim));
+      globalPhaseManager.unshiftPhase(CommonAnimPhase, pokemon.getBattlerIndex(), undefined, this.commonAnim);
 
       const cancelled = new BooleanHolder(false);
       applyAbAttrs(BlockNonDirectDamageAbAttr, pokemon, false, cancelled);
@@ -1694,7 +1719,13 @@ export class ContactStatStageChangeProtectedTag extends DamageProtectedTag {
     }
 
     if (!simulated && move.checkFlag(MoveFlags.MAKES_CONTACT, attacker, null)) {
-      globalScene.unshiftPhase(new StatStageChangePhase(attacker.getBattlerIndex(), false, [this.stat], this.levels));
+      globalPhaseManager.unshiftPhase(
+        StatStageChangePhase,
+        attacker.getBattlerIndex(),
+        false,
+        [this.stat],
+        this.levels,
+      );
     }
     return true;
   }
@@ -1888,8 +1919,8 @@ export class TruantTag extends AbilityBattlerTag {
     const lastMove = pokemon.getLastXMoves().find(() => true);
 
     if (lastMove && lastMove.moveId !== MoveId.NONE) {
-      (globalScene.getCurrentPhase() as MovePhase).cancel();
-      globalScene.unshiftPhase(new ShowAbilityPhase(pokemon.id, passive));
+      (globalPhaseManager.getCurrentPhase() as MovePhase).cancel();
+      globalPhaseManager.unshiftPhase(ShowAbilityPhase, pokemon.id, passive);
       globalScene.queueMessage(
         i18next.t("battlerTags:truantLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
       );
@@ -2087,7 +2118,7 @@ export class SkyDropTag extends BattlerTag {
       if (pokemon?.getTag(BattlerTagType.SKY_DROP)?.sourceId === this.sourceId) {
         // Cancel the Sky Drop user's next use of Sky Drop
         if (this.sourceId === pokemon.id) {
-          globalScene.tryRemovePhase((phase) => phase.isMovePhase() && phase.pokemon.id === pokemon.id);
+          globalPhaseManager.tryRemovePhase((phase) => phase.isMovePhase() && phase.pokemon.id === pokemon.id);
           pokemon.getMoveQueue().shift();
           pokemon.removeTag(BattlerTagType.CHARGING);
         }
@@ -2290,8 +2321,11 @@ export class SaltCuredTag extends BattlerTag {
     const ret = lapseType !== BattlerTagLapseType.CUSTOM || super.lapse(pokemon, lapseType);
 
     if (ret) {
-      globalScene.unshiftPhase(
-        new CommonAnimPhase(pokemon.getBattlerIndex(), pokemon.getBattlerIndex(), CommonAnim.SALT_CURE),
+      globalPhaseManager.unshiftPhase(
+        CommonAnimPhase,
+        pokemon.getBattlerIndex(),
+        pokemon.getBattlerIndex(),
+        CommonAnim.SALT_CURE,
       );
 
       const cancelled = new BooleanHolder(false);
@@ -2339,8 +2373,11 @@ export class CursedTag extends BattlerTag {
     const ret = lapseType !== BattlerTagLapseType.CUSTOM || super.lapse(pokemon, lapseType);
 
     if (ret) {
-      globalScene.unshiftPhase(
-        new CommonAnimPhase(pokemon.getBattlerIndex(), pokemon.getBattlerIndex(), CommonAnim.SALT_CURE),
+      globalPhaseManager.unshiftPhase(
+        CommonAnimPhase,
+        pokemon.getBattlerIndex(),
+        pokemon.getBattlerIndex(),
+        CommonAnim.SALT_CURE,
       );
 
       const cancelled = new BooleanHolder(false);
@@ -2537,13 +2574,12 @@ export class CommandedTag extends BattlerTag {
   /** Caches the Tatsugiri's form key and sharply boosts the tagged Pokemon's stats */
   override onAdd(pokemon: Pokemon): void {
     this._tatsugiriFormKey = this.getSourcePokemon()?.getFormKey() ?? "curly";
-    globalScene.unshiftPhase(
-      new StatStageChangePhase(
-        pokemon.getBattlerIndex(),
-        true,
-        [Stat.ATK, Stat.DEF, Stat.SPATK, Stat.SPDEF, Stat.SPD],
-        2,
-      ),
+    globalPhaseManager.unshiftPhase(
+      StatStageChangePhase,
+      pokemon.getBattlerIndex(),
+      true,
+      [Stat.ATK, Stat.DEF, Stat.SPATK, Stat.SPDEF, Stat.SPD],
+      2,
     );
   }
 
@@ -2620,10 +2656,15 @@ export class StockpilingTag extends BattlerTag {
       );
 
       // Attempt to increase DEF and SPDEF by one stage, keeping track of successful changes.
-      globalScene.unshiftPhase(
-        new StatStageChangePhase(pokemon.getBattlerIndex(), true, [Stat.SPDEF, Stat.DEF], 1, {
+      globalPhaseManager.unshiftPhase(
+        StatStageChangePhase,
+        pokemon.getBattlerIndex(),
+        true,
+        [Stat.SPDEF, Stat.DEF],
+        1,
+        {
           onChange: this.onStatStagesChanged,
-        }),
+        },
       );
     }
   }
@@ -2641,11 +2682,17 @@ export class StockpilingTag extends BattlerTag {
     const spDefChange = this.statChangeCounts[Stat.SPDEF];
 
     if (defChange) {
-      globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [Stat.DEF], -defChange));
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [Stat.DEF], -defChange);
     }
 
     if (spDefChange) {
-      globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [Stat.SPDEF], -spDefChange));
+      globalPhaseManager.unshiftPhase(
+        StatStageChangePhase,
+        pokemon.getBattlerIndex(),
+        true,
+        [Stat.SPDEF],
+        -spDefChange,
+      );
     }
   }
 }
@@ -2664,7 +2711,7 @@ export class GulpMissileTag extends BattlerTag {
       return true;
     }
 
-    const moveEffectPhase = globalScene.getCurrentPhase();
+    const moveEffectPhase = globalPhaseManager.getCurrentPhase();
     if (moveEffectPhase instanceof MoveEffectPhase) {
       const attacker = moveEffectPhase.getUserPokemon();
 
@@ -2684,7 +2731,7 @@ export class GulpMissileTag extends BattlerTag {
       }
 
       if (this.tagType === BattlerTagType.GULP_MISSILE_ARROKUDA) {
-        globalScene.unshiftPhase(new StatStageChangePhase(attacker.getBattlerIndex(), false, [Stat.DEF], -1));
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, attacker.getBattlerIndex(), false, [Stat.DEF], -1);
       } else {
         attacker.trySetStatus(StatusEffect.PARALYSIS, true, pokemon);
       }
@@ -3013,7 +3060,7 @@ export class SubstituteTag extends BattlerTag {
 
   /** If the Substitute redirects damage, queue a message to indicate it. */
   onHit(pokemon: Pokemon): void {
-    const moveEffectPhase = globalScene.getCurrentPhase();
+    const moveEffectPhase = globalPhaseManager.getCurrentPhase();
     if (moveEffectPhase instanceof MoveEffectPhase) {
       const attacker = moveEffectPhase.getUserPokemon();
       if (!attacker) {
@@ -3279,7 +3326,7 @@ export class SyrupBombTag extends BattlerTag {
     globalScene.queueMessage(
       i18next.t("battlerTags:syrupBombLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
     );
-    globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [Stat.SPD], -1));
+    globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [Stat.SPD], -1);
     return --this.turnCount > 0;
   }
 }
@@ -3651,7 +3698,7 @@ export function loadBattlerTag(source: BattlerTag | any): BattlerTag {
  * corresponding {@linkcode Move} and user {@linkcode Pokemon}
  */
 function getMoveEffectPhaseData(_pokemon: Pokemon): { phase: MoveEffectPhase; attacker: Pokemon; move: Move } | null {
-  const phase = globalScene.getCurrentPhase();
+  const phase = globalPhaseManager.getCurrentPhase();
   if (phase instanceof MoveEffectPhase) {
     return {
       phase: phase,

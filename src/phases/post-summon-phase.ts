@@ -1,4 +1,3 @@
-import type { BattlerIndex } from "#enums/battler-index";
 import { CommanderAbAttr } from "#app/data/ab-attrs/commander-ab-attr";
 import { PostSummonAbAttr } from "#app/data/ab-attrs/post-summon-ab-attr";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
@@ -10,10 +9,6 @@ import { StatusEffect } from "#enums/status-effect";
 import { PokemonPhase } from "./abstract-pokemon-phase";
 
 export class PostSummonPhase extends PokemonPhase {
-  constructor(battlerIndex: BattlerIndex) {
-    super(battlerIndex);
-  }
-
   public override start(): void {
     super.start();
 

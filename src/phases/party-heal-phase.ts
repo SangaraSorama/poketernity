@@ -1,4 +1,5 @@
 import { globalScene } from "#app/global-scene";
+import type { PhaseManager } from "#app/phase-manager";
 import { fixedNumber } from "#app/utils";
 import { BattlePhase } from "./abstract-battle-phase";
 
@@ -9,8 +10,8 @@ import { BattlePhase } from "./abstract-battle-phase";
 export class PartyHealPhase extends BattlePhase {
   private readonly resumeBgm: boolean;
 
-  constructor(resumeBgm: boolean) {
-    super();
+  constructor(manager: PhaseManager, resumeBgm: boolean) {
+    super(manager);
 
     this.resumeBgm = resumeBgm;
   }

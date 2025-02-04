@@ -71,9 +71,9 @@ export class MoveChargePhase extends HitCheckPhase {
 
       if (instantCharge.value) {
         // this MoveEndPhase will be duplicated by the queued MovePhase if not removed
-        globalScene.tryRemovePhase((phase) => phase instanceof MoveEndPhase && phase.getPokemon() === user);
+        this.manager.tryRemovePhase((phase) => phase instanceof MoveEndPhase && phase.getPokemon() === user);
         // queue a new MovePhase for this move's attack phase
-        globalScene.unshiftPhase(new MovePhase(user, this.targets, this.move, false));
+        this.manager.unshiftPhase(MovePhase, user, this.targets, this.move, false);
       } else {
         user.getMoveQueue().push({ moveId: move.id, targets: this.targets });
       }

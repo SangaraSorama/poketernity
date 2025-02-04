@@ -24,16 +24,16 @@ export class TrainerVictoryPhase extends BattlePhase {
 
     globalScene.playBgm(trainer.config.victoryBgm);
 
-    globalScene.unshiftPhase(new MoneyRewardPhase(trainer.config.moneyMultiplier));
+    this.manager.unshiftPhase(MoneyRewardPhase, trainer.config.moneyMultiplier);
 
     const modifierRewardFuncs = trainer.config.modifierRewardFuncs;
     for (const modifierRewardFunc of modifierRewardFuncs) {
-      globalScene.unshiftPhase(new ModifierRewardPhase(modifierRewardFunc));
+      this.manager.unshiftPhase(ModifierRewardPhase, modifierRewardFunc);
     }
 
     if (eventManager.isEventActive()) {
       for (const rewardFunc of trainer.config.eventRewardFuncs) {
-        globalScene.unshiftPhase(new ModifierRewardPhase(rewardFunc));
+        this.manager.unshiftPhase(ModifierRewardPhase, rewardFunc);
       }
     }
 
@@ -41,12 +41,11 @@ export class TrainerVictoryPhase extends BattlePhase {
     // Validate Voucher for boss trainers
     if (vouchers.hasOwnProperty(TrainerType[trainerType])) {
       if (!globalScene.validateVoucher(vouchers[TrainerType[trainerType]]) && trainer.config.isBoss) {
-        globalScene.unshiftPhase(
-          new ModifierRewardPhase(
-            [modifierTypes.VOUCHER, modifierTypes.VOUCHER, modifierTypes.VOUCHER_PLUS, modifierTypes.VOUCHER_PREMIUM][
-              vouchers[TrainerType[trainerType]].voucherType
-            ],
-          ),
+        this.manager.unshiftPhase(
+          ModifierRewardPhase,
+          [modifierTypes.VOUCHER, modifierTypes.VOUCHER, modifierTypes.VOUCHER_PLUS, modifierTypes.VOUCHER_PREMIUM][
+            vouchers[TrainerType[trainerType]].voucherType
+          ],
         );
       }
     }

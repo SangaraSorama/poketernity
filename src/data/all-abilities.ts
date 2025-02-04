@@ -198,6 +198,7 @@ import { TerrainEventTypeChangeAbAttr } from "./ab-attrs/terrain-event-type-chan
 import { WeatherBasedSpeedDoublerAbAttr } from "./ab-attrs/weather-based-speed-doubler-ab-attr";
 import { MoveFlagPowerBoostAbAttr } from "./ab-attrs/move-flag-power-boost-ab-attr";
 import { MoveFlagImmunityAbAttr } from "./ab-attrs/move-flag-immunity-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 function getTerrainCondition(...terrainTypes: TerrainType[]): AbAttrCondition {
   return (_pokemon: Pokemon) => {
@@ -824,7 +825,7 @@ export function initAbilities() {
     new Ability(Abilities.ANALYTIC, 5).attr(
       MovePowerBoostAbAttr,
       (user, _target, _move) => {
-        const movePhase = globalScene.findPhase((phase) => phase.isMovePhase() && phase.pokemon.id !== user?.id);
+        const movePhase = globalPhaseManager.findPhase((phase) => phase.isMovePhase() && phase.pokemon.id !== user?.id);
         return isNullOrUndefined(movePhase);
       },
       1.3,

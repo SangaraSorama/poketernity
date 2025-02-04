@@ -16,6 +16,7 @@ import SoundFade from "phaser3-rex-plugins/plugins/soundfade";
 import type { EggLapsePhase } from "./egg-lapse-phase";
 import type { EggHatchData } from "#app/data/egg-hatch-data";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Class that represents egg hatching
@@ -70,8 +71,8 @@ export class EggHatchPhase extends Phase {
   private evolutionBgm: AnySound;
   private readonly eggLapsePhase: EggLapsePhase;
 
-  constructor(hatchScene: EggLapsePhase, egg: Egg, eggsToHatchCount: number) {
-    super();
+  constructor(manager: PhaseManager, hatchScene: EggLapsePhase, egg: Egg, eggsToHatchCount: number) {
+    super(manager);
     this.eggLapsePhase = hatchScene;
     this.egg = egg;
     this.eggsToHatchCount = eggsToHatchCount;
@@ -222,7 +223,7 @@ export class EggHatchPhase extends Phase {
   }
 
   public override end(): void {
-    if (globalScene.findPhase((p) => p instanceof EggHatchPhase)) {
+    if (this.manager.findPhase((p) => p instanceof EggHatchPhase)) {
       this.eggHatchHandler.clear();
     } else {
       globalScene.time.delayedCall(250, () => globalScene.setModifiersVisible(true));

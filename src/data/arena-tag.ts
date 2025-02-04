@@ -31,6 +31,7 @@ import { ProtectStatAbAttr } from "./ab-attrs/protect-stat-ab-attr";
 import { MoveFlags } from "#enums/move-flags";
 import { ArenaTagSide } from "#enums/arena-tag-side";
 import { SkyDropTag } from "./battler-tags";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export abstract class ArenaTag {
   constructor(
@@ -375,7 +376,7 @@ export abstract class ConditionalProtectTag extends ArenaTag {
  */
 const QuickGuardConditionFunc: ProtectConditionFunc = (_arena, moveId) => {
   const move = allMoves[moveId];
-  const effectPhase = globalScene.getCurrentPhase();
+  const effectPhase = globalPhaseManager.getCurrentPhase();
 
   if (effectPhase instanceof MoveEffectPhase) {
     const attacker = effectPhase.getUserPokemon();
@@ -560,7 +561,7 @@ class WishTag extends ArenaTag {
     const target = globalScene.getFieldPokemonByBattlerIndex(this.battlerIndex);
     if (target?.isActive(true)) {
       globalScene.queueMessage(this.triggerMessage);
-      globalScene.unshiftPhase(new PokemonHealPhase(target.getBattlerIndex(), this.healHp));
+      globalPhaseManager.unshiftPhase(PokemonHealPhase, target.getBattlerIndex(), this.healHp);
     }
   }
 }
@@ -899,13 +900,19 @@ export class DelayedAttackTag extends ArenaTag {
       if (!isNullOrUndefined(globalScene.getPokemonById(attack.sourceId)) && attack.turnCount <= 0) {
         const target = globalScene.getField(true).find((p) => attack.targetIndex === p.getBattlerIndex());
         if (target) {
-          globalScene.unshiftPhase(
-            new MoveEffectPhase(attack.sourceId, [attack.targetIndex], new PokemonMove(attack.moveId, 0, 0, true)),
+          globalPhaseManager.unshiftPhase(
+            MoveEffectPhase,
+            attack.sourceId,
+            [attack.targetIndex],
+            new PokemonMove(attack.moveId, 0, 0, true),
           );
         } else if (globalScene.currentBattle.double) {
           const redirectIndex = attack.targetIndex + (attack.targetIndex % 2 === 0 ? 1 : -1);
-          globalScene.unshiftPhase(
-            new MoveEffectPhase(attack.sourceId, [redirectIndex], new PokemonMove(attack.moveId, 0, 0, true)),
+          globalPhaseManager.unshiftPhase(
+            MoveEffectPhase,
+            attack.sourceId,
+            [redirectIndex],
+            new PokemonMove(attack.moveId, 0, 0, true),
           );
         }
       }
@@ -1072,7 +1079,13 @@ class StickyWebTag extends ArenaTrapTag {
           i18next.t("arenaTag:stickyWebActivateTrap", { pokemonName: pokemon.getNameToRender() }),
         );
         const stages = new NumberHolder(-1);
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), false, [Stat.SPD], stages.value));
+        globalPhaseManager.unshiftPhase(
+          StatStageChangePhase,
+          pokemon.getBattlerIndex(),
+          false,
+          [Stat.SPD],
+          stages.value,
+        );
         return true;
       }
     }
@@ -1182,8 +1195,8 @@ class TailwindTag extends ArenaTag {
       }
       // Raise attack by one stage if party member has WIND_RIDER ability
       if (pokemon.hasAbility(Abilities.WIND_RIDER)) {
-        globalScene.unshiftPhase(new ShowAbilityPhase(pokemon.getBattlerIndex()));
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), true, [Stat.ATK], 1));
+        globalPhaseManager.unshiftPhase(ShowAbilityPhase, pokemon.getBattlerIndex());
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [Stat.ATK], 1);
       }
     }
   }
@@ -1347,8 +1360,11 @@ class FireGrassPledgeTag extends ArenaTag {
           i18next.t("arenaTag:fireGrassPledgeLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
         );
         // TODO: Replace this with a proper animation
-        globalScene.unshiftPhase(
-          new CommonAnimPhase(pokemon.getBattlerIndex(), pokemon.getBattlerIndex(), CommonAnim.MAGMA_STORM),
+        globalPhaseManager.unshiftPhase(
+          CommonAnimPhase,
+          pokemon.getBattlerIndex(),
+          pokemon.getBattlerIndex(),
+          CommonAnim.MAGMA_STORM,
         );
         pokemon.damageAndUpdate(toDmgValue(pokemon.getMaxHp() / 8));
       });
@@ -1477,8 +1493,11 @@ export class TypeImmuneDamageOverTimeTag extends ArenaTag {
           }),
         );
         // TODO: Replace this with a proper animation
-        globalScene.unshiftPhase(
-          new CommonAnimPhase(pokemon.getBattlerIndex(), pokemon.getBattlerIndex(), this.getAnimationForType()),
+        globalPhaseManager.unshiftPhase(
+          CommonAnimPhase,
+          pokemon.getBattlerIndex(),
+          pokemon.getBattlerIndex(),
+          this.getAnimationForType(),
         );
         pokemon.damageAndUpdate(toDmgValue(pokemon.getMaxHp() / 6));
       });

@@ -3,6 +3,7 @@ import type { Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import type { nil } from "#app/utils";
 import { FieldPhase } from "./abstract-field-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Provides helper functions to get the pokemon involved in the phase
@@ -13,8 +14,8 @@ export abstract class PokemonPhase extends FieldPhase {
   public isPlayer: boolean;
   public fieldIndex: number;
 
-  constructor(battlerIndex?: BattlerIndex | number) {
-    super();
+  constructor(manager: PhaseManager, battlerIndex?: BattlerIndex | number) {
+    super(manager);
 
     battlerIndex =
       battlerIndex

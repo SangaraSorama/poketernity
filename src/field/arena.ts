@@ -33,6 +33,7 @@ import { CommonAnimPhase } from "#app/phases/common-anim-phase";
 import { ShowAbilityPhase } from "#app/phases/show-ability-phase";
 import { WeatherType } from "#enums/weather-type";
 import { TerrainEventTypeChangeAbAttr } from "#app/data/ab-attrs/terrain-event-type-change-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export class Arena {
   public biomeType: Biome;
@@ -283,7 +284,7 @@ export class Arena {
    */
   trySetWeatherOverride(weather: WeatherType): boolean {
     this.weather = new Weather(weather, 0);
-    globalScene.unshiftPhase(new CommonAnimPhase(undefined, undefined, CommonAnim.SUNNY + (weather - 1)));
+    globalPhaseManager.unshiftPhase(CommonAnimPhase, undefined, undefined, CommonAnim.SUNNY + (weather - 1));
     globalScene.queueMessage(getWeatherStartMessage(weather) ?? "");
     return true;
   }
@@ -311,7 +312,7 @@ export class Arena {
       this.eventTarget.dispatchEvent(
         new WeatherChangedEvent(oldWeatherType, this.weather.weatherType, this.weather.turnsLeft),
       );
-      globalScene.unshiftPhase(new CommonAnimPhase(undefined, undefined, CommonAnim.SUNNY + (weather - 1)));
+      globalPhaseManager.unshiftPhase(CommonAnimPhase, undefined, undefined, CommonAnim.SUNNY + (weather - 1));
       globalScene.queueMessage(getWeatherStartMessage(weather) ?? "");
     } else {
       globalScene.queueMessage(getWeatherClearMessage(oldWeatherType) ?? "");
@@ -339,7 +340,7 @@ export class Arena {
       const isCherrimWithFlowerGift = p.hasAbility(Abilities.FLOWER_GIFT) && p.species.speciesId === Species.CHERRIM;
 
       if (isCastformWithForecast || isCherrimWithFlowerGift) {
-        new ShowAbilityPhase(p.getBattlerIndex());
+        globalPhaseManager.unshiftPhase(ShowAbilityPhase, p.getBattlerIndex());
         globalScene.triggerPokemonFormChange(p, SpeciesFormChangeWeatherTrigger);
       }
     });
@@ -356,7 +357,7 @@ export class Arena {
         p.hasAbility(Abilities.FLOWER_GIFT, false, true) && p.species.speciesId === Species.CHERRIM;
 
       if (isCastformWithForecast || isCherrimWithFlowerGift) {
-        new ShowAbilityPhase(p.getBattlerIndex());
+        globalPhaseManager.unshiftPhase(ShowAbilityPhase, p.getBattlerIndex());
         return globalScene.triggerPokemonFormChange(p, SpeciesFormChangeRevertWeatherFormTrigger);
       }
     });
@@ -376,7 +377,12 @@ export class Arena {
         new TerrainChangedEvent(oldTerrainType, this.terrain.terrainType, this.terrain.turnsLeft),
       );
       if (!ignoreAnim) {
-        globalScene.unshiftPhase(new CommonAnimPhase(undefined, undefined, CommonAnim.MISTY_TERRAIN + (terrain - 1)));
+        globalPhaseManager.unshiftPhase(
+          CommonAnimPhase,
+          undefined,
+          undefined,
+          CommonAnim.MISTY_TERRAIN + (terrain - 1),
+        );
       }
       globalScene.queueMessage(getTerrainStartMessage(terrain) ?? "");
     } else {

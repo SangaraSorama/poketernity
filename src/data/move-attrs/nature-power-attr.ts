@@ -8,6 +8,7 @@ import { LoadMoveAnimPhase } from "#app/phases/load-move-anim-phase";
 import { MovePhase } from "#app/phases/move-phase";
 import type { Move } from "#app/data/move";
 import { OverrideMoveEffectAttr } from "#app/data/move-attrs/override-move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute to invoke another move based on the current biome
@@ -148,9 +149,13 @@ export class NaturePowerAttr extends OverrideMoveEffectAttr {
     }
 
     user.getMoveQueue().push({ moveId: moveId, targets: [target.getBattlerIndex()], ignorePP: true });
-    globalScene.unshiftPhase(new LoadMoveAnimPhase(moveId));
-    globalScene.unshiftPhase(
-      new MovePhase(user, [target.getBattlerIndex()], new PokemonMove(moveId, 0, 0, true), true),
+    globalPhaseManager.unshiftPhase(LoadMoveAnimPhase, moveId);
+    globalPhaseManager.unshiftPhase(
+      MovePhase,
+      user,
+      [target.getBattlerIndex()],
+      new PokemonMove(moveId, 0, 0, true),
+      true,
     );
     return true;
   }

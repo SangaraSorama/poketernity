@@ -12,12 +12,14 @@ import { BooleanHolder, toDmgValue } from "#app/utils";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { WeatherType } from "#enums/weather-type";
 import { CommonAnimPhase } from "./common-anim-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class WeatherEffectPhase extends CommonAnimPhase {
   public weather: Weather | null;
 
-  constructor() {
+  constructor(manager: PhaseManager) {
     super(
+      manager,
       undefined,
       undefined,
       CommonAnim.SUNNY + ((globalScene?.arena?.weather?.weatherType ?? WeatherType.NONE) - 1),

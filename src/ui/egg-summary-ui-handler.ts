@@ -14,6 +14,7 @@ import { globalScene } from "#app/global-scene";
 import { settings } from "#app/system/settings/settings-manager";
 import { EggSkipPreference } from "#enums/egg-skip-preference";
 import { GAME_HEIGHT } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const iconContainerX = 112;
 const iconContainerY = 9;
@@ -226,7 +227,7 @@ export default class EggSummaryUiHandler extends MessageUiHandler {
     let error = false;
     if (button === Button.CANCEL) {
       if (!this.blockExit) {
-        const phase = globalScene.getCurrentPhase();
+        const phase = globalPhaseManager.getCurrentPhase();
         if (phase instanceof EggSummaryPhase) {
           phase.end();
         }

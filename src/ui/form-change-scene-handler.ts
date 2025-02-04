@@ -6,6 +6,7 @@ import { Button } from "#enums/buttons";
 import { globalScene } from "#app/global-scene";
 import { settings } from "#app/system/settings/settings-manager";
 import { GAME_HEIGHT } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * A handler for Pokemon form change and evolution scenes
@@ -68,7 +69,7 @@ export default class FormChangeSceneHandler extends MessageUiHandler {
   processInput(button: Button): boolean {
     if (this.canCancel && button === Button.CANCEL) {
       this.canCancel = false;
-      const currentPhase = globalScene.getCurrentPhase();
+      const currentPhase = globalPhaseManager.getCurrentPhase();
       if (currentPhase?.isEvolutionPhase()) {
         currentPhase.cancelEvolution();
       }

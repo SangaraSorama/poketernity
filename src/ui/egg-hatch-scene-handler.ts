@@ -4,6 +4,7 @@ import { Button } from "#enums/buttons";
 import { EggHatchPhase } from "#app/phases/egg-hatch-phase";
 import { globalScene } from "#app/global-scene";
 import { GAME_HEIGHT } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export default class EggHatchSceneHandler extends UiHandler {
   public eggHatchContainer: Phaser.GameObjects.Container;
@@ -46,7 +47,7 @@ export default class EggHatchSceneHandler extends UiHandler {
 
   processInput(button: Button): boolean {
     if (button === Button.ACTION || button === Button.CANCEL) {
-      const phase = globalScene.getCurrentPhase();
+      const phase = globalPhaseManager.getCurrentPhase();
       if (phase instanceof EggHatchPhase && phase.trySkip()) {
         return true;
       }

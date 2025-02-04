@@ -10,6 +10,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { SwitchType } from "#enums/switch-type";
 import { settings } from "#app/system/settings/settings-manager";
 import i18next from "i18next";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Handles the prompt to switch pokemon at the start of a battle when the player is playing in Switch mode
@@ -20,8 +21,8 @@ export class CheckSwitchPhase extends BattlePhase {
   /** Whether to use the pokemon's name or "Pokemon" when displaying the dialog box */
   protected readonly useName: boolean;
 
-  constructor(fieldIndex: number, useName: boolean) {
-    super();
+  constructor(manager: PhaseManager, fieldIndex: number, useName: boolean) {
+    super(manager);
 
     this.fieldIndex = fieldIndex;
     this.useName = useName;
@@ -41,7 +42,7 @@ export class CheckSwitchPhase extends BattlePhase {
 
     // ...if the checked Pokemon is somehow not on the field
     if (globalScene.field.getAll().indexOf(pokemon) === -1) {
-      globalScene.unshiftPhase(new SummonMissingPhase(this.fieldIndex));
+      this.manager.unshiftPhase(SummonMissingPhase, this.fieldIndex);
       return this.end();
     }
 
@@ -73,7 +74,7 @@ export class CheckSwitchPhase extends BattlePhase {
         const options: ConfirmModeConfig = {
           yesHandler: () => {
             globalScene.ui.setMode(UiMode.MESSAGE);
-            globalScene.unshiftPhase(new SwitchPhase(SwitchType.INITIAL_SWITCH, this.fieldIndex, false, true));
+            this.manager.unshiftPhase(SwitchPhase, SwitchType.INITIAL_SWITCH, this.fieldIndex, false, true);
             this.end();
           },
           noHandler: () => {

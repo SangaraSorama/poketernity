@@ -1,6 +1,6 @@
 import type { PokemonStatStageChangeCondition } from "#app/@types/PokemonStatStageChangeCondition";
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BattleStat } from "#enums/stat";
 import { PostStatStageChangeAbAttr } from "./post-stat-stage-change-ab-attr";
@@ -27,8 +27,12 @@ export class PostStatStageChangeStatStageChangeAbAttr extends PostStatStageChang
   ): boolean {
     if (this.condition(pokemon, statStagesChanged, stagesChanged) && !selfTarget) {
       if (!simulated) {
-        globalScene.unshiftPhase(
-          new StatStageChangePhase(pokemon.getBattlerIndex(), true, this.statsToChange, this.stages),
+        globalPhaseManager.unshiftPhase(
+          StatStageChangePhase,
+          pokemon.getBattlerIndex(),
+          true,
+          this.statsToChange,
+          this.stages,
         );
       }
       return true;

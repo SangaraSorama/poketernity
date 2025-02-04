@@ -35,6 +35,7 @@ import { ModifierTier } from "#enums/modifier-tier";
 import { CLASSIC_MODE_MYSTERY_ENCOUNTER_WAVES } from "#app/constants";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { PostBattleInitAbAttr } from "#app/data/ab-attrs/post-battle-init-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** the i18n namespace for the encounter */
 const namespace = "mysteryEncounters/theWinstrateChallenge";
@@ -143,7 +144,7 @@ export const TheWinstrateChallengeEncounter: MysteryEncounter = MysteryEncounter
     },
     async () => {
       // Refuse the challenge, they full heal the party and give the player a Rarer Candy
-      globalScene.unshiftPhase(new PartyHealPhase(true));
+      globalPhaseManager.unshiftPhase(PartyHealPhase, true);
       setEncounterRewards({ guaranteedModifierTypeFuncs: [modifierTypes.RARER_CANDY], fillRemaining: false });
       leaveEncounterWithoutBattle();
     },
@@ -200,7 +201,7 @@ function endTrainerBattleAndShowDialogue(): Promise<void> {
       globalScene.arena.resetArenaEffects();
       const playerField = globalScene.getPlayerField();
       playerField.forEach((pokemon) => pokemon.lapseTag(BattlerTagType.COMMANDED));
-      playerField.forEach((_, p) => globalScene.unshiftPhase(new ReturnPhase(p)));
+      playerField.forEach((_, p) => globalPhaseManager.unshiftPhase(ReturnPhase, p));
 
       for (const pokemon of globalScene.getPlayerParty()) {
         // Only trigger form change when Eiscue is in Noice form
@@ -217,7 +218,7 @@ function endTrainerBattleAndShowDialogue(): Promise<void> {
         applyAbAttrs(PostBattleInitAbAttr, pokemon, false);
       }
 
-      globalScene.unshiftPhase(new ShowTrainerPhase());
+      globalPhaseManager.unshiftPhase(ShowTrainerPhase);
       // Hide the trainer and init next battle
       const trainer = globalScene.currentBattle.trainer;
       // Unassign previous trainer from battle so it isn't destroyed before animation completes

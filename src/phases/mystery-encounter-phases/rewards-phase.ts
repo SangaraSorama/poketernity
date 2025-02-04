@@ -5,6 +5,7 @@ import type MysteryEncounter from "#app/data/mystery-encounters/mystery-encounte
 
 import { globalScene } from "#app/global-scene";
 import { Phase } from "#app/phase";
+import type { PhaseManager } from "#app/phase-manager";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { PostMysteryEncounterPhase } from "./post-mystery-encounter-phase";
 
@@ -24,8 +25,8 @@ import { PostMysteryEncounterPhase } from "./post-mystery-encounter-phase";
 export class MysteryEncounterRewardsPhase extends Phase {
   protected addHealPhase: boolean;
 
-  constructor(addHealPhase: boolean = false) {
-    super();
+  constructor(manager: PhaseManager, addHealPhase: boolean = false) {
+    super(manager);
     this.addHealPhase = addHealPhase;
   }
 
@@ -68,13 +69,13 @@ export class MysteryEncounterRewardsPhase extends Phase {
     if (encounter.doEncounterRewards) {
       encounter.doEncounterRewards();
     } else if (this.addHealPhase) {
-      globalScene.tryRemovePhase((p) => p.isSelectModifierPhase());
-      globalScene.unshiftPhase(
-        new SelectModifierPhase({ customModifierSettings: { fillRemaining: false, rerollMultiplier: -1 } }),
-      );
+      this.manager.tryRemovePhase((p) => p.isSelectModifierPhase());
+      this.manager.unshiftPhase(SelectModifierPhase, {
+        customModifierSettings: { fillRemaining: false, rerollMultiplier: -1 },
+      });
     }
 
-    globalScene.pushPhase(new PostMysteryEncounterPhase());
+    this.manager.pushPhase(PostMysteryEncounterPhase);
     this.end();
   }
 }

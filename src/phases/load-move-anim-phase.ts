@@ -1,5 +1,6 @@
 import { initMoveAnim, loadMoveAnimAssets } from "#app/data/battle-anims";
 import { Phase } from "#app/phase";
+import type { PhaseManager } from "#app/phase-manager";
 import type { MoveId } from "#enums/move-id";
 
 /**
@@ -10,8 +11,11 @@ import type { MoveId } from "#enums/move-id";
  * @extends Phase
  */
 export class LoadMoveAnimPhase extends Phase {
-  constructor(protected readonly moveId: MoveId) {
-    super();
+  protected readonly moveId: MoveId;
+
+  constructor(manager: PhaseManager, moveId: MoveId) {
+    super(manager);
+    this.moveId = moveId;
   }
 
   public override start(): void {

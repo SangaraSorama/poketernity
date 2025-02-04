@@ -23,6 +23,7 @@ import { type PokeballType } from "#enums/pokeball";
 import { StatusEffect } from "#enums/status-effect";
 import i18next from "i18next";
 import { globalScene } from "#app/global-scene";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Handles catching a pokemon after the player throws a ball
@@ -33,8 +34,8 @@ export class AttemptCapturePhase extends PokemonPhase {
   private pokeball: Phaser.GameObjects.Sprite;
   private originalY: number;
 
-  constructor(targetIndex: number, pokeballType: PokeballType) {
-    super(BattlerIndex.ENEMY + targetIndex);
+  constructor(manager: PhaseManager, targetIndex: number, pokeballType: PokeballType) {
+    super(manager, BattlerIndex.ENEMY + targetIndex);
 
     this.pokeballType = pokeballType;
   }
@@ -259,7 +260,7 @@ export class AttemptCapturePhase extends PokemonPhase {
       null,
       () => {
         const end = (): void => {
-          globalScene.unshiftPhase(new VictoryPhase(this.battlerIndex));
+          this.manager.unshiftPhase(VictoryPhase, this.battlerIndex);
           pokemonInfoContainer.hide();
           this.removePb();
           this.end();

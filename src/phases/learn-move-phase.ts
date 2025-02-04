@@ -14,6 +14,7 @@ import { UiMode } from "#enums/ui-mode";
 import { MoveId } from "#enums/move-id";
 import i18next from "i18next";
 import { LearnMoveType } from "#enums/learn-move-type";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class LearnMovePhase extends PlayerPartyMemberPokemonPhase {
   private readonly moveId: MoveId;
@@ -22,12 +23,13 @@ export class LearnMovePhase extends PlayerPartyMemberPokemonPhase {
   private readonly cost: number;
 
   constructor(
+    manager: PhaseManager,
     partyMemberIndex: number,
     moveId: MoveId,
     learnMoveType: LearnMoveType = LearnMoveType.LEARN_MOVE,
     cost: number = -1,
   ) {
-    super(partyMemberIndex);
+    super(manager, partyMemberIndex);
     this.moveId = moveId;
     this.learnMoveType = learnMoveType;
     this.cost = cost;
@@ -197,7 +199,7 @@ export class LearnMovePhase extends PlayerPartyMemberPokemonPhase {
         pokemon.usedTMs = [];
       }
       pokemon.usedTMs.push(this.moveId);
-      globalScene.tryRemovePhase((phase) => phase.isSelectModifierPhase());
+      this.manager.tryRemovePhase((phase) => phase.isSelectModifierPhase());
     } else if (this.learnMoveType === LearnMoveType.MEMORY) {
       if (this.cost !== -1) {
         if (!Overrides.WAIVE_SHOP_FEES_OVERRIDE) {
@@ -207,7 +209,7 @@ export class LearnMovePhase extends PlayerPartyMemberPokemonPhase {
         }
         globalScene.playSound("se/buy");
       } else {
-        globalScene.tryRemovePhase((phase) => phase.isSelectModifierPhase());
+        this.manager.tryRemovePhase((phase) => phase.isSelectModifierPhase());
       }
     }
 

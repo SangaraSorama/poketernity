@@ -9,6 +9,7 @@ import { NumberHolder } from "#app/utils";
 import { ExpNotification } from "#enums/exp-notification";
 import i18next from "i18next";
 import { settings } from "#app/system/settings/settings-manager";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Handles the effects of a pokemon levelling up:
@@ -26,8 +27,8 @@ export class LevelUpPhase extends PlayerPartyMemberPokemonPhase {
   protected readonly level: number;
   protected readonly pokemon: PlayerPokemon = this.getPlayerPokemon();
 
-  constructor(partyMemberIndex: number, lastLevel: number, level: number) {
-    super(partyMemberIndex);
+  constructor(manager: PhaseManager, partyMemberIndex: number, lastLevel: number, level: number) {
+    super(manager, partyMemberIndex);
 
     this.lastLevel = lastLevel;
     this.level = level;
@@ -74,14 +75,14 @@ export class LevelUpPhase extends PlayerPartyMemberPokemonPhase {
     if (this.lastLevel < 100) {
       const levelMoves = this.getPokemon().getLevelMoves(this.lastLevel + 1);
       for (const lm of levelMoves) {
-        globalScene.unshiftPhase(new LearnMovePhase(this.partyMemberIndex, lm[1]));
+        this.manager.unshiftPhase(LearnMovePhase, this.partyMemberIndex, lm[1]);
       }
     }
 
     if (!this.pokemon.pauseEvolutions) {
       const evolution = this.pokemon.getEvolution();
       if (evolution) {
-        globalScene.unshiftPhase(new EvolutionPhase(this.pokemon, evolution, this.lastLevel));
+        this.manager.unshiftPhase(EvolutionPhase, this.pokemon, evolution, this.lastLevel);
       }
     }
 

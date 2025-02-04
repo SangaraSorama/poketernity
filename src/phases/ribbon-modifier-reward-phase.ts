@@ -4,12 +4,13 @@ import type { ModifierTypeFunc } from "#app/modifier/modifier-type";
 import { UiMode } from "#enums/ui-mode";
 import i18next from "i18next";
 import { ModifierRewardPhase } from "./modifier-reward-phase";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class RibbonModifierRewardPhase extends ModifierRewardPhase {
   private readonly species: PokemonSpecies;
 
-  constructor(modifierTypeFunc: ModifierTypeFunc, species: PokemonSpecies) {
-    super(modifierTypeFunc);
+  constructor(manager: PhaseManager, modifierTypeFunc: ModifierTypeFunc, species: PokemonSpecies) {
+    super(manager, modifierTypeFunc);
 
     this.species = species;
   }

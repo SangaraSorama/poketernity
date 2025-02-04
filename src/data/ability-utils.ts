@@ -1,4 +1,5 @@
 import { type Pokemon } from "#app/field/pokemon";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { globalScene } from "#app/global-scene";
 import { ShowAbilityPhase } from "#app/phases/show-ability-phase";
 import { Abilities } from "#enums/abilities";
@@ -18,6 +19,6 @@ export function getPokemonWithWeatherBasedForms() {
 }
 
 export function queueShowAbility(pokemon: Pokemon, passive: boolean): void {
-  globalScene.unshiftPhase(new ShowAbilityPhase(pokemon.id, passive));
-  globalScene.clearPhaseQueueSplice();
+  globalPhaseManager.unshiftPhase(ShowAbilityPhase, pokemon.id, passive);
+  globalPhaseManager.clearPhaseQueueSplice();
 }

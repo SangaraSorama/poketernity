@@ -1,5 +1,4 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
 import { toDmgValue } from "#app/utils";
@@ -9,6 +8,7 @@ import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
 import { NumberHolder } from "#app/utils";
 import { RecoveryBoostAbAttr } from "../ab-attrs/recovery-boost-ab-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Heals the user or target by {@linkcode healRatio} depending on the value of {@linkcode selfTarget}
@@ -47,11 +47,14 @@ export class HealAttr extends MoveEffectAttr {
    * This heals the target and shows the appropriate message.
    */
   addHealPhase(target: Pokemon, healRatio: number) {
-    globalScene.unshiftPhase(
-      new PokemonHealPhase(target.getBattlerIndex(), toDmgValue(target.getMaxHp() * healRatio), {
+    globalPhaseManager.unshiftPhase(
+      PokemonHealPhase,
+      target.getBattlerIndex(),
+      toDmgValue(target.getMaxHp() * healRatio),
+      {
         message: i18next.t("moveTriggers:healHp", { pokemonName: getPokemonNameWithAffix(target) }),
         skipAnim: !this.showAnim,
-      }),
+      },
     );
   }
 

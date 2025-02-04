@@ -9,6 +9,7 @@ import { ElementalType } from "#enums/elemental-type";
 import i18next from "i18next";
 import type { Move } from "../move";
 import { MoveEffectAttr } from "./move-effect-attr";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute for {@link https://bulbapedia.bulbagarden.net/wiki/Curse_(move) | Curse}
@@ -38,8 +39,8 @@ export class CurseAttr extends MoveEffectAttr {
       target.addTag(BattlerTagType.CURSED, 0, move.id, user.id);
       return true;
     } else {
-      globalScene.unshiftPhase(new StatStageChangePhase(user.getBattlerIndex(), true, [Stat.ATK, Stat.DEF], 1));
-      globalScene.unshiftPhase(new StatStageChangePhase(user.getBattlerIndex(), true, [Stat.SPD], -1));
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), true, [Stat.ATK, Stat.DEF], 1);
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), true, [Stat.SPD], -1);
       return true;
     }
   }

@@ -3,6 +3,7 @@ import type { CommonAnim } from "#enums/common-anim";
 import { CommonBattleAnim } from "#app/data/battle-anims";
 import { PokemonPhase } from "#app/phases/abstract-pokemon-phase";
 import { globalScene } from "#app/global-scene";
+import type { PhaseManager } from "#app/phase-manager";
 
 /**
  * Plays a {@linkcode CommonBattleAnim}
@@ -12,8 +13,13 @@ export class CommonAnimPhase extends PokemonPhase {
   private anim: CommonAnim | null;
   private readonly targetIndex?: BattlerIndex;
 
-  constructor(battlerIndex?: BattlerIndex, targetIndex?: BattlerIndex, anim: CommonAnim | null = null) {
-    super(battlerIndex);
+  constructor(
+    manager: PhaseManager,
+    battlerIndex?: BattlerIndex,
+    targetIndex?: BattlerIndex,
+    anim: CommonAnim | null = null,
+  ) {
+    super(manager, battlerIndex);
 
     this.anim = anim;
     this.targetIndex = targetIndex;

@@ -11,12 +11,13 @@ import i18next from "i18next";
 import { SelectGenderPhase } from "./select-gender-phase";
 import { UnavailablePhase } from "./unavailable-phase";
 import { settings } from "#app/system/settings/settings-manager";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class LoginPhase extends Phase {
   private readonly showText: boolean;
 
-  constructor(showText: boolean = true) {
-    super();
+  constructor(manager: PhaseManager, showText: boolean = true) {
+    super(manager);
 
     this.showText = showText;
   }
@@ -73,7 +74,7 @@ export class LoginPhase extends Phase {
                       });
                     },
                     (): void => {
-                      globalScene.unshiftPhase(new LoginPhase(false));
+                      this.manager.unshiftPhase(LoginPhase, false);
                       this.end();
                     },
                   ],
@@ -97,7 +98,7 @@ export class LoginPhase extends Phase {
           removeCookie(SESSION_ID_COOKIE);
           globalScene.reset(true, true);
         } else {
-          globalScene.unshiftPhase(new UnavailablePhase());
+          this.manager.unshiftPhase(UnavailablePhase);
           super.end();
         }
         return null;
@@ -118,7 +119,7 @@ export class LoginPhase extends Phase {
     globalScene.ui.setMode(UiMode.MESSAGE);
 
     if (!settings.display.playerGender) {
-      globalScene.unshiftPhase(new SelectGenderPhase());
+      this.manager.unshiftPhase(SelectGenderPhase);
     }
 
     handleTutorial(Tutorial.INTRO).then(() => super.end());

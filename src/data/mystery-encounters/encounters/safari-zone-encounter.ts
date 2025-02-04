@@ -34,6 +34,7 @@ import { SummonPhase } from "#app/phases/summon-phase";
 import { CLASSIC_MODE_MYSTERY_ENCOUNTER_WAVES } from "#app/constants";
 import { SpeciesGroups } from "#enums/pokemon-species-groups";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /** the i18n namespace for the encounter */
 const namespace = "mysteryEncounters/safariZone";
@@ -322,7 +323,7 @@ async function summonSafariPokemon() {
   encounter.misc.pokemon = pokemon;
   encounter.misc.safariPokemonRemaining -= 1;
 
-  globalScene.unshiftPhase(new SummonPhase(0, false));
+  globalPhaseManager.unshiftPhase(SummonPhase, 0, false);
 
   encounter.setDialogueToken("pokemonName", getPokemonNameWithAffix(pokemon));
 
@@ -333,8 +334,10 @@ async function summonSafariPokemon() {
 
   const ivScannerModifier = globalScene.findModifier((m) => m instanceof IvScannerModifier);
   if (ivScannerModifier) {
-    globalScene.pushPhase(
-      new ScanIvsPhase(pokemon.getBattlerIndex(), Math.min(ivScannerModifier.getStackCount() * 2, 6)),
+    globalPhaseManager.pushPhase(
+      ScanIvsPhase,
+      pokemon.getBattlerIndex(),
+      Math.min(ivScannerModifier.getStackCount() * 2, 6),
     );
   }
 }

@@ -6,6 +6,7 @@ import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { SacrificialAttr } from "#app/data/move-attrs/sacrificial-attr";
 import type { MoveConditionFunc } from "../move-conditions";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attr used for moves that faint the user but revive a different Pokemon
@@ -33,14 +34,11 @@ export class SacrificialFullRestoreAttr extends SacrificialAttr {
       .map((p) => p.getMaxHp())
       .reduce((maxHp: number, hp: number) => Math.max(hp, maxHp), 0);
 
-    globalScene.pushPhase(
-      new PokemonHealPhase(user.getBattlerIndex(), maxPartyMemberHp, {
-        message: i18next.t(this.moveTriggerMessage, { pokemonName: getPokemonNameWithAffix(user) }),
-        healStatus: true,
-        fullRestorePP: this.restorePP,
-      }),
-      true,
-    );
+    globalPhaseManager.deferPhase(PokemonHealPhase, user.getBattlerIndex(), maxPartyMemberHp, {
+      message: i18next.t(this.moveTriggerMessage, { pokemonName: getPokemonNameWithAffix(user) }),
+      healStatus: true,
+      fullRestorePP: this.restorePP,
+    });
 
     return super.applyEffect(user, target, move);
   }

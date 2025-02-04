@@ -41,6 +41,7 @@ import type { PartyModifierSpliceSelectCallback } from "#app/@types/PartyModifie
 import type { PokemonModifierTransferSelectFilter } from "#app/@types/PokemonModifierTransferSelectFilter";
 import type { PokemonMoveSelectFilter } from "#app/@types/PokemonMoveSelectFilter";
 import { GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const defaultMessage = i18next.t("partyUiHandler:choosePokemon");
 
@@ -411,7 +412,10 @@ export default class PartyUiHandler extends MessageUiHandler {
                 selectCallback(this.cursor, option);
               }
             } else {
-              if (option >= PartyOption.FORM_CHANGE_ITEM && globalScene.getCurrentPhase()?.isSelectModifierPhase()) {
+              if (
+                option >= PartyOption.FORM_CHANGE_ITEM
+                && globalPhaseManager.getCurrentPhase()?.isSelectModifierPhase()
+              ) {
                 if (this.partyUiMode === PartyUiMode.CHECK) {
                   const formChangeItemModifiers = this.getFormChangeItemsModifiers(pokemon);
                   const modifier = formChangeItemModifiers[option - PartyOption.FORM_CHANGE_ITEM];
@@ -419,7 +423,7 @@ export default class PartyUiHandler extends MessageUiHandler {
                   globalScene.triggerPokemonFormChange(pokemon, SpeciesFormChangeItemTrigger, false, true);
                 }
               } else if (this.cursor) {
-                (globalScene.getCurrentPhase() as CommandPhase).handleCommand(
+                (globalPhaseManager.getCurrentPhase() as CommandPhase).handleCommand(
                   BattleCommand.POKEMON,
                   this.cursor,
                   option === PartyOption.PASS_BATON,
@@ -938,7 +942,7 @@ export default class PartyUiHandler extends MessageUiHandler {
           this.options.push(PartyOption.RELEASE);
           break;
         case PartyUiMode.CHECK:
-          if (globalScene.getCurrentPhase()?.isSelectModifierPhase()) {
+          if (globalPhaseManager.getCurrentPhase()?.isSelectModifierPhase()) {
             formChangeItemModifiers = this.getFormChangeItemsModifiers(pokemon);
             for (let i = 0; i < formChangeItemModifiers.length; i++) {
               this.options.push(PartyOption.FORM_CHANGE_ITEM + i);

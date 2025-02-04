@@ -10,6 +10,7 @@ import type { CommandPhase } from "#app/phases/command-phase";
 import { globalScene } from "#app/global-scene";
 import { settings } from "#app/system/settings/settings-manager";
 import { GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * TODO: This should extend AbstractOptionSelectUiHandler
@@ -85,7 +86,7 @@ export default class BallUiHandler extends UiHandler {
     const pokeballTypeCount = Object.keys(globalScene.pokeballCounts).length;
 
     if (button === Button.ACTION || button === Button.CANCEL) {
-      const commandPhase = globalScene.getCurrentPhase() as CommandPhase;
+      const commandPhase = globalPhaseManager.getCurrentPhase() as CommandPhase;
       success = true;
       if (button === Button.ACTION && this.cursor < pokeballTypeCount) {
         if (globalScene.pokeballCounts[this.cursor]) {

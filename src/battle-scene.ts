@@ -19,6 +19,7 @@ import {
   NumberHolder,
   randItem,
   type AbstractConstructor,
+  type Constructor,
 } from "#app/utils";
 import type { Modifier, TurnHeldItemTransferModifier } from "./modifier/modifier";
 import type { ModifierPredicate } from "./@types/ModifierPredicate";
@@ -146,7 +147,6 @@ import { ShowTrainerPhase } from "#app/phases/show-trainer-phase";
 import { SummonPhase } from "#app/phases/summon-phase";
 import { TitlePhase } from "#app/phases/title-phase";
 import { ToggleDoublePositionPhase } from "#app/phases/toggle-double-position-phase";
-import { TurnInitPhase } from "#app/phases/turn-init-phase";
 import MysteryEncounter from "#app/data/mystery-encounters/mystery-encounter";
 import { allMysteryEncounters, mysteryEncountersByBiome } from "#app/data/mystery-encounters/mystery-encounters";
 import {
@@ -179,6 +179,8 @@ import { Animation } from "./animations";
 import { resetStarterColors, starterColors } from "./data/starter-colors";
 import { CallSourceLogger } from "#app/loggers";
 import { CANVAS_SCALE, GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "./global-phase-manager";
+import type { PhaseConstructorParams } from "./@types/PhaseConstructorParams";
 
 const DEBUG_RNG = false;
 
@@ -691,10 +693,10 @@ export default class BattleScene extends SceneBase {
       ).then(() => loadMoveAnimAssets(defaultMoves, true)),
       this.initStarterColors(),
     ]).then(() => {
-      this.pushPhase(new LoginPhase());
-      this.pushPhase(new TitlePhase());
+      globalPhaseManager.pushPhase(LoginPhase);
+      globalPhaseManager.pushPhase(TitlePhase);
 
-      this.shiftPhase();
+      globalPhaseManager.shiftPhase();
     });
   }
 
@@ -883,7 +885,7 @@ export default class BattleScene extends SceneBase {
     if (allyPokemon?.isActive(true)) {
       let targetingMovePhase: MovePhase | undefined;
       do {
-        targetingMovePhase = this.findPhase(
+        targetingMovePhase = globalPhaseManager.findPhase(
           (mp) =>
             mp.isMovePhase()
             && mp.targets.length === 1
@@ -1260,7 +1262,7 @@ export default class BattleScene extends SceneBase {
         duration: 250,
         ease: "Sine.easeInOut",
         onComplete: () => {
-          this.clearPhaseQueue();
+          globalPhaseManager.clearPhaseQueue();
 
           this.children.removeAll(true);
           this.game.domContainer.innerHTML = "";
@@ -1409,7 +1411,7 @@ export default class BattleScene extends SceneBase {
     }
 
     if (lastBattle?.double && !newDouble) {
-      this.tryRemovePhase((p) => p.isSwitchPhase());
+      globalPhaseManager.tryRemovePhase((p) => p.isSwitchPhase());
       this.getPlayerField().forEach((p) => p.lapseTag(BattlerTagType.COMMANDED));
     }
 
@@ -1450,7 +1452,7 @@ export default class BattleScene extends SceneBase {
 
         playerField.forEach((pokemon, p) => {
           if (pokemon.isOnField()) {
-            this.pushPhase(new ReturnPhase(p));
+            globalPhaseManager.pushPhase(ReturnPhase, p);
           }
         });
 
@@ -1460,7 +1462,7 @@ export default class BattleScene extends SceneBase {
         }
 
         if (!this.trainer.visible) {
-          this.pushPhase(new ShowTrainerPhase());
+          globalPhaseManager.pushPhase(ShowTrainerPhase);
         }
       }
 
@@ -1469,14 +1471,14 @@ export default class BattleScene extends SceneBase {
       }
 
       if (!this.gameMode.hasRandomBiomes && !isNewBiome) {
-        this.pushPhase(new NextEncounterPhase());
+        globalPhaseManager.pushPhase(NextEncounterPhase);
       } else {
-        this.pushPhase(new SelectBiomePhase());
-        this.pushPhase(new NewBiomeEncounterPhase());
+        globalPhaseManager.pushPhase(SelectBiomePhase);
+        globalPhaseManager.pushPhase(NewBiomeEncounterPhase);
 
         const newMaxExpLevel = this.getMaxExpLevel();
         if (newMaxExpLevel > maxExpLevel) {
-          this.pushPhase(new LevelCapPhase());
+          globalPhaseManager.pushPhase(LevelCapPhase);
         }
       }
     }
@@ -2262,228 +2264,6 @@ export default class BattleScene extends SceneBase {
     }
   }
 
-  /* Phase Functions */
-  getCurrentPhase(): Phase | null {
-    return this.currentPhase;
-  }
-
-  getStandbyPhase(): Phase | null {
-    return this.standbyPhase;
-  }
-
-  /**
-   * Adds a phase to the conditional queue and ensures it is executed only when the specified condition is met.
-   *
-   * This method allows deferring the execution of a phase until certain conditions are met, which is useful for handling
-   * situations like abilities and entry hazards that depend on specific game states.
-   *
-   * @param phase The {@linkcode Phase} to be added to the conditional queue.
-   * @param condition A function that returns a boolean indicating whether the phase should be executed.
-   *
-   */
-  pushConditionalPhase(phase: Phase, condition: () => boolean): void {
-    this.conditionalQueue.push([condition, phase]);
-  }
-
-  /**
-   * Adds a phase to nextCommandPhaseQueue, as long as boolean passed in is false
-   * @param phase {@linkcode Phase} the phase to add
-   * @param defer boolean on which queue to add to, defaults to false, and adds to phaseQueue
-   */
-  pushPhase(phase: Phase, defer: boolean = false): void {
-    (!defer ? this.phaseQueue : this.nextCommandPhaseQueue).push(phase);
-  }
-
-  /**
-   * Adds Phase to the end of phaseQueuePrepend, or at phaseQueuePrependSpliceIndex
-   * @param phase {@linkcode Phase} the phase to add
-   */
-  unshiftPhase(phase: Phase): void {
-    if (this.phaseQueuePrependSpliceIndex === -1) {
-      this.phaseQueuePrepend.push(phase);
-    } else {
-      this.phaseQueuePrepend.splice(this.phaseQueuePrependSpliceIndex, 0, phase);
-    }
-  }
-
-  /**
-   * Clears the phaseQueue, but does not clear any other phase-related stuff.
-   *
-   * TODO: Should this function be replaced by {@linkcode clearAllPhases}?
-   */
-  clearPhaseQueue(): void {
-    this.phaseQueue.splice(0, this.phaseQueue.length);
-  }
-
-  /**
-   * Clears all phase-related stuff, including all phase queues, the current and standby phases, and a splice index.
-   */
-  clearAllPhases(): void {
-    for (const queue of [this.phaseQueue, this.phaseQueuePrepend, this.conditionalQueue, this.nextCommandPhaseQueue]) {
-      queue.splice(0, queue.length);
-    }
-    this.currentPhase = null;
-    this.standbyPhase = null;
-    this.clearPhaseQueueSplice();
-  }
-
-  /**
-   * Used by function unshiftPhase(), sets index to start inserting at current length instead of the end of the array, useful if phaseQueuePrepend gets longer with Phases
-   */
-  setPhaseQueueSplice(): void {
-    this.phaseQueuePrependSpliceIndex = this.phaseQueuePrepend.length;
-  }
-
-  /**
-   * Resets phaseQueuePrependSpliceIndex to -1, implies that calls to unshiftPhase will insert at end of phaseQueuePrepend
-   */
-  clearPhaseQueueSplice(): void {
-    this.phaseQueuePrependSpliceIndex = -1;
-  }
-
-  /**
-   * Is called by each Phase implementations "end()" by default
-   * We dump everything from phaseQueuePrepend to the start of of phaseQueue
-   * then removes first Phase and starts it
-   */
-  shiftPhase(): void {
-    if (this.standbyPhase) {
-      this.currentPhase = this.standbyPhase;
-      this.standbyPhase = null;
-      return;
-    }
-
-    if (this.phaseQueuePrependSpliceIndex > -1) {
-      this.clearPhaseQueueSplice();
-    }
-    if (this.phaseQueuePrepend.length) {
-      while (this.phaseQueuePrepend.length) {
-        const poppedPhase = this.phaseQueuePrepend.pop();
-        if (poppedPhase) {
-          this.phaseQueue.unshift(poppedPhase);
-        }
-      }
-    }
-    if (!this.phaseQueue.length) {
-      this.populatePhaseQueue();
-      // Clear the conditionalQueue if there are no phases left in the phaseQueue
-      this.conditionalQueue = [];
-    }
-
-    this.currentPhase = this.phaseQueue.shift() ?? null;
-
-    // Check if there are any conditional phases queued
-    if (this.conditionalQueue?.length) {
-      // Retrieve the first conditional phase from the queue
-      const conditionalPhase = this.conditionalQueue.shift();
-      // Evaluate the condition associated with the phase
-      if (conditionalPhase?.[0]()) {
-        // If the condition is met, add the phase to the phase queue
-        this.pushPhase(conditionalPhase[1]);
-      } else if (conditionalPhase) {
-        // If the condition is not met, re-add the phase back to the front of the conditional queue
-        this.conditionalQueue.unshift(conditionalPhase);
-      } else {
-        console.warn("condition phase is undefined/null!", conditionalPhase);
-      }
-    }
-
-    if (this.currentPhase) {
-      console.log(`%cStart Phase ${this.currentPhase.constructor.name}`, "color:green;");
-      this.currentPhase.start();
-    }
-  }
-
-  overridePhase(phase: Phase): boolean {
-    if (this.standbyPhase) {
-      return false;
-    }
-
-    this.standbyPhase = this.currentPhase;
-    this.currentPhase = phase;
-    console.log(`%cStart Phase ${phase.constructor.name}`, "color:green;");
-    phase.start();
-
-    return true;
-  }
-
-  /**
-   * Find a specific {@linkcode Phase} in the phase queue.
-   *
-   * @param phaseFilter filter function to use to find the wanted phase
-   * @returns the found phase or undefined if none found
-   */
-  findPhase<P extends Phase = Phase>(phaseFilter: (phase: P) => boolean): P | undefined {
-    return this.phaseQueue.find(phaseFilter) as P;
-  }
-
-  tryReplacePhase(phaseFilter: (phase: Phase) => boolean, phase: Phase): boolean {
-    const phaseIndex = this.phaseQueue.findIndex(phaseFilter);
-    if (phaseIndex > -1) {
-      this.phaseQueue[phaseIndex] = phase;
-      return true;
-    }
-    return false;
-  }
-
-  tryRemovePhase(phaseFilter: (phase: Phase) => boolean): boolean {
-    const phaseIndex = this.phaseQueue.findIndex(phaseFilter);
-    if (phaseIndex > -1) {
-      this.phaseQueue.splice(phaseIndex, 1);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Will search for a specific phase in {@linkcode phaseQueuePrepend} via filter, and remove the first result if a match is found.
-   * @param phaseFilter filter function
-   */
-  tryRemoveUnshiftedPhase(phaseFilter: (phase: Phase) => boolean): boolean {
-    const phaseIndex = this.phaseQueuePrepend.findIndex(phaseFilter);
-    if (phaseIndex > -1) {
-      this.phaseQueuePrepend.splice(phaseIndex, 1);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Tries to add the input phase to index before target phase in the phaseQueue, else simply calls unshiftPhase()
-   * @param phase {@linkcode Phase} the phase to be added
-   * @param targetPhase {@linkcode Phase} the type of phase to search for in phaseQueue
-   * @returns boolean if a targetPhase was found and added
-   */
-  prependToPhase(phase: Phase, targetPhase: AbstractConstructor<Phase>): boolean {
-    const targetIndex = this.phaseQueue.findIndex((ph) => ph instanceof targetPhase);
-
-    if (targetIndex !== -1) {
-      this.phaseQueue.splice(targetIndex, 0, phase);
-      return true;
-    } else {
-      this.unshiftPhase(phase);
-      return false;
-    }
-  }
-
-  /**
-   * Tries to add the input phase to index after target phase in the {@linkcode phaseQueue}, else simply calls {@linkcode unshiftPhase()}
-   * @param phase {@linkcode Phase} the phase to be added
-   * @param targetPhase {@linkcode Phase} the type of phase to search for in {@linkcode phaseQueue}
-   * @returns `true` if a `targetPhase` was found to append to
-   */
-  appendToPhase(phase: Phase, targetPhase: AbstractConstructor<Phase>): boolean {
-    const targetIndex = this.phaseQueue.findIndex((ph) => ph instanceof targetPhase);
-
-    if (targetIndex !== -1 && this.phaseQueue.length > targetIndex) {
-      this.phaseQueue.splice(targetIndex + 1, 0, phase);
-      return true;
-    } else {
-      this.unshiftPhase(phase);
-      return false;
-    }
-  }
-
   /**
    * Adds a MessagePhase, either to PhaseQueuePrepend or nextCommandPhaseQueue
    * @param message string for MessagePhase
@@ -2499,25 +2279,13 @@ export default class BattleScene extends SceneBase {
     promptDelay?: number | null,
     defer?: boolean | null,
   ) {
-    const phase = new MessagePhase(message, callbackDelay, prompt, promptDelay);
     if (!defer) {
       // adds to the end of PhaseQueuePrepend
-      this.unshiftPhase(phase);
+      globalPhaseManager.unshiftPhase(MessagePhase, message, callbackDelay, prompt, promptDelay);
     } else {
       //remember that pushPhase adds it to nextCommandPhaseQueue
-      this.pushPhase(phase);
+      globalPhaseManager.pushPhase(MessagePhase, message, callbackDelay, prompt, promptDelay);
     }
-  }
-
-  /**
-   * Moves everything from nextCommandPhaseQueue to phaseQueue (keeping order)
-   */
-  populatePhaseQueue(): void {
-    if (this.nextCommandPhaseQueue.length) {
-      this.phaseQueue.push(...this.nextCommandPhaseQueue);
-      this.nextCommandPhaseQueue.splice(0, this.nextCommandPhaseQueue.length);
-    }
-    this.phaseQueue.push(new TurnInitPhase());
   }
 
   addMoney(amount: number): void {
@@ -3089,18 +2857,18 @@ export default class BattleScene extends SceneBase {
         matchingFormChange = matchingFormChangeOpts[0];
       }
       if (matchingFormChange) {
-        let phase: Phase;
+        let phase: [Constructor<Phase>, ...PhaseConstructorParams<Constructor<Phase>>];
         if (pokemon.isPlayer() && !matchingFormChange.quiet) {
-          phase = new FormChangePhase(pokemon, matchingFormChange, modal);
+          phase = [FormChangePhase, pokemon, matchingFormChange, modal];
         } else {
-          phase = new QuietFormChangePhase(pokemon, matchingFormChange);
+          phase = [QuietFormChangePhase, pokemon, matchingFormChange];
         }
         if (pokemon.isPlayer() && !matchingFormChange.quiet && modal) {
-          this.overridePhase(phase);
+          globalPhaseManager.overridePhase(...phase);
         } else if (delayed) {
-          this.pushPhase(phase);
+          globalPhaseManager.pushPhase(...phase);
         } else {
-          this.unshiftPhase(phase);
+          globalPhaseManager.unshiftPhase(...phase);
         }
         return true;
       }
@@ -3115,11 +2883,10 @@ export default class BattleScene extends SceneBase {
     fieldAssets?: Phaser.GameObjects.Sprite[],
     delayed: boolean = false,
   ): boolean {
-    const phase: Phase = new PokemonAnimPhase(battleAnimType, pokemon, fieldAssets);
     if (delayed) {
-      this.pushPhase(phase);
+      globalPhaseManager.pushPhase(PokemonAnimPhase, battleAnimType, pokemon, fieldAssets);
     } else {
-      this.unshiftPhase(phase);
+      globalPhaseManager.unshiftPhase(PokemonAnimPhase, battleAnimType, pokemon, fieldAssets);
     }
     return true;
   }
@@ -3225,18 +2992,18 @@ export default class BattleScene extends SceneBase {
         this.currentBattle.double = true;
         const availablePartyMembers = this.getPlayerParty().filter((p) => p.isAllowedInBattle());
         if (availablePartyMembers.length > 1) {
-          this.pushPhase(new ToggleDoublePositionPhase(true));
+          globalPhaseManager.pushPhase(ToggleDoublePositionPhase, true);
           if (!availablePartyMembers[1].isOnField()) {
-            this.pushPhase(new SummonPhase(1));
+            globalPhaseManager.pushPhase(SummonPhase, 1);
           }
         }
 
-        this.shiftPhase();
+        globalPhaseManager.shiftPhase();
       });
       return;
     }
 
-    this.shiftPhase();
+    globalPhaseManager.shiftPhase();
   }
 
   /**
@@ -3350,10 +3117,10 @@ export default class BattleScene extends SceneBase {
 
         if (exp) {
           const partyMemberIndex = party.indexOf(expPartyMembers[pm]);
-          this.unshiftPhase(
-            expPartyMembers[pm].isOnField()
-              ? new ExpPhase(partyMemberIndex, exp)
-              : new ShowPartyExpBarPhase(partyMemberIndex, exp),
+          globalPhaseManager.unshiftPhase(
+            expPartyMembers[pm].isOnField() ? ExpPhase : ShowPartyExpBarPhase,
+            partyMemberIndex,
+            exp,
           );
         }
       }

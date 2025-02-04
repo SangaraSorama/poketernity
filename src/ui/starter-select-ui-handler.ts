@@ -87,6 +87,7 @@ import { DropDownType } from "#enums/drop-down-type";
 import { SortCriteria } from "#enums/sort-criteria";
 import { SettingKeyboard } from "#enums/setting-keyboard";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export type StarterSelectCallback = (starters: Starter[]) => void;
 
@@ -3846,15 +3847,15 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
 
     const doExit = () => {
       ui.setMode(UiMode.STARTER_SELECT);
-      globalScene.clearPhaseQueue();
+      globalPhaseManager.clearPhaseQueue();
       if (globalScene.gameMode.isChallenge) {
-        globalScene.pushPhase(new SelectChallengePhase());
-        globalScene.pushPhase(new EncounterPhase());
+        globalPhaseManager.pushPhase(SelectChallengePhase);
+        globalPhaseManager.pushPhase(EncounterPhase);
       } else {
-        globalScene.pushPhase(new TitlePhase());
+        globalPhaseManager.pushPhase(TitlePhase);
       }
       this.clearText();
-      globalScene.getCurrentPhase()?.end();
+      globalPhaseManager.getCurrentPhase()?.end();
     };
     const cancelExit = () => {
       ui.setMode(UiMode.STARTER_SELECT);
