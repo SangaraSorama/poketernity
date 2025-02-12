@@ -1,7 +1,7 @@
 import type { Pokemon } from "#app/field/pokemon";
 import type { NumberHolder } from "#app/utils";
 import type { Move } from "#app/data/move";
-import { VariablePowerAttr } from "#app/data/move-attrs/variable-power-attr";
+import { VariableBasePowerAttr } from "#app/data/move-attrs/variable-base-power-attr";
 
 /**
  * Attribute to set move power inversely proportional to the user's HP ratio.
@@ -20,9 +20,9 @@ import { VariablePowerAttr } from "#app/data/move-attrs/variable-power-attr";
  * | 33-48                | 20         |
  *
  *
- * @extends VariablePowerAttr
+ * @extends VariableBasePowerAttr
  */
-export class LowHpPowerAttr extends VariablePowerAttr {
+export class LowHpPowerAttr extends VariableBasePowerAttr {
   override apply(user: Pokemon, _target: Pokemon, _move: Move, power: NumberHolder): boolean {
     const hpRatio = Math.floor((48 * user.hp) / user.getMaxHp());
 

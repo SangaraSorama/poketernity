@@ -2,14 +2,14 @@ import type { Pokemon } from "#app/field/pokemon";
 import type { NumberHolder } from "#app/utils";
 import { type StockpilingTag } from "#app/data/battler-tags";
 import type { Move } from "#app/data/move";
-import { VariablePowerAttr } from "#app/data/move-attrs/variable-power-attr";
+import { VariableBasePowerAttr } from "#app/data/move-attrs/variable-base-power-attr";
 import { BattlerTagType } from "#enums/battler-tag-type";
 
 /**
  * Attribute used to calculate the power of attacks that scale with Stockpile stacks (i.e. Spit Up).
- * @extends VariablePowerAttr
+ * @extends VariableBasePowerAttr
  */
-export class SpitUpPowerAttr extends VariablePowerAttr {
+export class SpitUpPowerAttr extends VariableBasePowerAttr {
   private multiplier: number = 0;
 
   constructor(multiplier: number) {

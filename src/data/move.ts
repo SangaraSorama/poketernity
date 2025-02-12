@@ -26,7 +26,7 @@ import { OneHitKOAccuracyAttr } from "#app/data/move-attrs/one-hit-ko-accuracy-a
 import { SacrificialAttr } from "#app/data/move-attrs/sacrificial-attr";
 import { TypelessAttr } from "#app/data/move-attrs/typeless-attr";
 import { VariableAccuracyAttr } from "#app/data/move-attrs/variable-accuracy-attr";
-import { VariablePowerAttr } from "#app/data/move-attrs/variable-power-attr";
+import { VariableBasePowerAttr } from "#app/data/move-attrs/variable-base-power-attr";
 import { VariableTargetAttr } from "#app/data/move-attrs/variable-target-attr";
 import type { MoveConditionFunc } from "#app/@types/MoveConditionFunc";
 import { MoveCondition } from "#app/data/move-conditions/move-condition";
@@ -760,6 +760,8 @@ export abstract class Move implements Localizable {
 
     applyAbAttrs(AbAttrFlag.MOVE_TYPE_CHANGE, source, true, this, target, undefined, typeChangeMovePowerMultiplier);
 
+    applyMoveAttrs(VariableBasePowerAttr, source, target, this, power);
+
     const sourceTeraType = source.getTeraType();
     if (
       sourceTeraType !== ElementalType.UNKNOWN
@@ -805,8 +807,6 @@ export abstract class Move implements Localizable {
     if (typeBoost) {
       power.value *= typeBoost.boostValue;
     }
-
-    applyMoveAttrs(VariablePowerAttr, source, target, this, power);
 
     if (!this.hasAttr(TypelessAttr)) {
       globalScene.arena.applyTags([...WeakenMoveTypeArenaTagTypes], simulated, this.type, power);
@@ -928,7 +928,7 @@ export class AttackMove extends Move {
       }
 
       const power = new NumberHolder(this.power);
-      applyMoveAttrs(VariablePowerAttr, user, target, move, power);
+      applyMoveAttrs(VariableBasePowerAttr, user, target, move, power);
 
       attackScore += Math.floor(power.value / 5);
     }
