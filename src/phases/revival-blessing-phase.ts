@@ -3,12 +3,13 @@ import { globalScene } from "#app/global-scene";
 import { BattlePhase } from "#app/phases/abstract-battle-phase";
 import { SwitchSummonPhase } from "#app/phases/switch-summon-phase";
 import { ToggleDoublePositionPhase } from "#app/phases/toggle-double-position-phase";
-import PartyUiHandler from "#app/ui/party-ui-handler";
 import { PartyUiMode } from "#enums/party-ui-mode";
 import { UiMode } from "#enums/ui-mode";
 import { toDmgValue } from "#app/utils";
 import { SwitchType } from "#enums/switch-type";
 import i18next from "i18next";
+import { PartyFilterFainted } from "#app/utils/party-ui-utils";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -18,10 +19,13 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends BattlePhase
  */
 export class RevivalBlessingPhase extends BattlePhase {
+  override readonly id = PhaseId.REVIVAL_BLESSING;
+
   protected readonly user: PlayerPokemon;
 
   constructor(manager: PhaseManager, user: PlayerPokemon) {
     super(manager);
+
     this.user = user;
   }
 
@@ -71,7 +75,7 @@ export class RevivalBlessingPhase extends BattlePhase {
         }
         globalScene.ui.setMode(UiMode.MESSAGE).then(() => this.end());
       },
-      PartyUiHandler.FilterFainted,
+      PartyFilterFainted,
     );
   }
 }

@@ -1,5 +1,6 @@
-import type { MoveAnim } from "#app/data/battle-anims";
+import type { MoveAnim } from "#app/data/battle-anims/move-anim";
 import { Phase } from "#app/phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -7,8 +8,10 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends Phase
  */
 export class MoveAnimPhase<Anim extends MoveAnim> extends Phase {
+  override readonly id = PhaseId.MOVE_ANIM;
+
   protected readonly anim: Anim;
-  protected readonly onSubstitute: boolean = false;
+  protected readonly onSubstitute: boolean;
 
   constructor(manager: PhaseManager, anim: Anim, onSubstitute: boolean = false) {
     super(manager);

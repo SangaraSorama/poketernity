@@ -7,11 +7,8 @@ import { GameMode, getGameMode } from "#app/game-mode";
 import { GameModes } from "#enums/game-modes";
 import { globalScene } from "#app/global-scene";
 import type { Modifier } from "#app/modifier/modifier";
-import {
-  getDailyRunStarterModifiers,
-  modifierTypes,
-  regenerateModifierPoolThresholds,
-} from "#app/modifier/modifier-type";
+import { getDailyRunStarterModifiers, regenerateModifierPoolThresholds } from "#app/modifier/modifier-type";
+import { modifierTypes } from "#app/modifier/modifier-types";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
 import { Phase } from "#app/phase";
 import { Unlockables } from "#enums/unlockables";
@@ -19,7 +16,6 @@ import { vouchers } from "#app/system/voucher";
 import type { OptionSelectModeConfig, OptionSelectItem } from "#app/ui/interfaces/option-select-config";
 import { SaveSlotUiMode } from "#enums/save-slot-ui-mode";
 import { UiMode } from "#enums/ui-mode";
-import { isLocal, isLocalServerConnected } from "#app/utils";
 import { Gender } from "#enums/gender";
 import i18next from "i18next";
 import { CheckSwitchPhase } from "./check-switch-phase";
@@ -27,11 +23,15 @@ import { EncounterPhase } from "./encounter-phase";
 import { SelectChallengePhase } from "./select-challenge-phase";
 import { SelectStarterPhase } from "./select-starter-phase";
 import { SummonPhase } from "./summon-phase";
+import { api } from "#app/plugins/api/api";
+import { PhaseId } from "#enums/phase-id";
 
 export class TitlePhase extends Phase {
+  override readonly id = PhaseId.TITLE;
+  public gameMode: GameModes;
+
   private loaded: boolean = false;
   private lastSessionData: SessionSaveData;
-  public gameMode: GameModes;
 
   public override start(): void {
     super.start();
@@ -109,21 +109,10 @@ export class TitlePhase extends Phase {
               },
             ];
 
-            if (gameData.isUnlocked(Unlockables.SPLICED_ENDLESS_MODE)) {
-              options.push({
-                label: GameMode.getModeName(GameModes.SPLICED_ENDLESS),
-                handler: () => {
-                  setModeAndEnd(GameModes.SPLICED_ENDLESS);
-                  return true;
-                },
-              });
-            }
-
             options.push({
               label: i18next.t("menu:cancel"),
               handler: () => {
-                this.manager.clearPhaseQueue();
-                this.manager.pushPhase(TitlePhase);
+                globalScene.toTitleScreen({ clearPhaseQueue: true });
                 super.end();
                 return true;
               },
@@ -209,7 +198,7 @@ export class TitlePhase extends Phase {
     ui.setMode(UiMode.SAVE_SLOT, SaveSlotUiMode.SAVE, (slotId: number) => {
       this.manager.clearPhaseQueue();
       if (slotId === -1) {
-        this.manager.pushPhase(TitlePhase);
+        globalScene.toTitleScreen();
         return super.end();
       }
       globalScene.sessionSlotId = slotId;
@@ -285,7 +274,7 @@ export class TitlePhase extends Phase {
       };
 
       // If Online, calls seed fetch from db to generate daily run. If Offline, generates a daily run based on current date.
-      if (!isLocal || isLocalServerConnected) {
+      if (!api.isLocal || api.isConnected) {
         fetchDailyRunSeed()
           .then((seed) => {
             if (seed) {

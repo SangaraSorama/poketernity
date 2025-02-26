@@ -2,20 +2,22 @@ import { type BattlerIndex } from "#enums/battler-index";
 import { BattleType } from "#enums/battle-type";
 import { handleMysteryEncounterVictory } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import { globalScene } from "#app/global-scene";
-import { modifierTypes, type CustomModifierSettings } from "#app/modifier/modifier-type";
+import { type CustomModifierSettings } from "#app/modifier/modifier-type";
+import { modifierTypes } from "#app/modifier/modifier-types";
 import { PokemonPhase } from "./abstract-pokemon-phase";
 import { BattleEndPhase } from "./battle-end-phase";
 import { EggLapsePhase } from "./egg-lapse-phase";
-import { GameOverPhase } from "./game-over-phase";
 import { ModifierRewardPhase } from "./modifier-reward-phase";
 import { NewBattlePhase } from "./new-battle-phase";
 import { SelectModifierPhase } from "./select-modifier-phase";
 import { TrainerVictoryPhase } from "./trainer-victory-phase";
 import { ArenaTagType } from "#enums/arena-tag-type";
 import { EVIL_BOSS_2_WAVE } from "#app/data/special-waves";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 export class VictoryPhase extends PokemonPhase {
+  override readonly id = PhaseId.VICTORY;
   /** If true, indicates that the phase is intended for EXP purposes only, and not to continue a battle to next phase */
   public readonly isExpOnly: boolean;
 
@@ -47,9 +49,7 @@ export class VictoryPhase extends PokemonPhase {
       return this.end();
     }
 
-    if (
-      !globalScene.getEnemyParty().find((p) => (battleType === BattleType.WILD ? p.isOnField() : !p?.isFainted(true)))
-    ) {
+    if (!globalScene.getEnemyParty().find((p) => (battleType === BattleType.WILD ? p.isOnField() : !p?.isFainted()))) {
       // clear all queued delayed attacks (e.g. from Future Sight)
       globalScene.arena.removeTag(ArenaTagType.DELAYED_ATTACK);
 
@@ -107,7 +107,7 @@ export class VictoryPhase extends PokemonPhase {
         currentBattle.battleType = BattleType.CLEAR;
         globalScene.score += gameMode.getClearScoreBonus();
         globalScene.updateScoreText();
-        this.manager.pushPhase(GameOverPhase, true);
+        globalScene.gameOver({ isVictory: true });
       }
     }
 

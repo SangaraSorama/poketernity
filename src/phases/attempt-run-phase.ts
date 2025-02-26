@@ -1,21 +1,20 @@
-import { RunSuccessAbAttr } from "#app/data/ab-attrs/run-success-ab-attr";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
 import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import { PokemonPhase } from "#app/phases/abstract-pokemon-phase";
-import { BattleEndPhase } from "#app/phases/battle-end-phase";
-import { NewBattlePhase } from "#app/phases/new-battle-phase";
 import { NumberHolder } from "#app/utils";
 import { Stat } from "#enums/stat";
-import { StatusEffect } from "#enums/status-effect";
 import i18next from "i18next";
 import { ArenaTagType } from "#enums/arena-tag-type";
+import { AbAttrFlag } from "#enums/ab-attr-flag";
+import { PhaseId } from "#enums/phase-id";
 
 /**
  * Handles the player attempting to run away from a wild battle
  * @extends PokemonPhase
  */
 export class AttemptRunPhase extends PokemonPhase {
+  override readonly id = PhaseId.ATTEMPT_RUN;
   /** For testing purposes: this is to force the pokemon to fail to escape */
   public forceFailEscape = false; // TODO: replace with a new override
 
@@ -31,7 +30,7 @@ export class AttemptRunPhase extends PokemonPhase {
 
     this.attemptRunAway(playerField, enemyField, escapeChance);
 
-    applyAbAttrs(RunSuccessAbAttr, playerPokemon, false, escapeChance);
+    applyAbAttrs(AbAttrFlag.RUN_SUCCESS, playerPokemon, false, escapeChance);
 
     if (playerPokemon.randSeedInt(100) < escapeChance.value && !this.forceFailEscape) {
       globalScene.playSound("se/flee");
@@ -51,12 +50,10 @@ export class AttemptRunPhase extends PokemonPhase {
 
       enemyField.forEach((enemyPokemon) => {
         enemyPokemon.hideInfo().then(() => enemyPokemon.destroy());
-        enemyPokemon.hp = 0;
-        enemyPokemon.trySetStatus(StatusEffect.FAINT);
+        enemyPokemon.faint(); // TODO: why are we fainting the pokemon at all, let alone after using `.destroy()` on them?
       });
 
-      this.manager.pushPhase(BattleEndPhase, false);
-      this.manager.pushPhase(NewBattlePhase);
+      globalScene.nextBattle(false);
     } else {
       playerPokemon.turnData.failedRunAway = true;
       globalScene.queueMessage(i18next.t("battle:runAwayCannotEscape"), null, true, 500);

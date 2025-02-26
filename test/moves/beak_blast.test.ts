@@ -49,7 +49,7 @@ describe("Moves - Beak Blast", () => {
     expect(leadPokemon.getTag(BattlerTagType.BEAK_BLAST_CHARGING)).toBeDefined();
 
     await game.phaseInterceptor.to(BerryPhase, false);
-    expect(enemyPokemon.status?.effect).toBe(StatusEffect.BURN);
+    expect(enemyPokemon.getStatusEffect(true)).toBe(StatusEffect.BURN);
   });
 
   it("should still charge and burn opponents if the user is sleeping", async () => {
@@ -66,7 +66,7 @@ describe("Moves - Beak Blast", () => {
     expect(leadPokemon.getTag(BattlerTagType.BEAK_BLAST_CHARGING)).toBeDefined();
 
     await game.phaseInterceptor.to(BerryPhase, false);
-    expect(enemyPokemon.status?.effect).toBe(StatusEffect.BURN);
+    expect(enemyPokemon.getStatusEffect(true)).toBe(StatusEffect.BURN);
   });
 
   it("should not burn attackers that don't make contact", async () => {
@@ -83,13 +83,12 @@ describe("Moves - Beak Blast", () => {
     expect(leadPokemon.getTag(BattlerTagType.BEAK_BLAST_CHARGING)).toBeDefined();
 
     await game.phaseInterceptor.to(BerryPhase, false);
-    expect(enemyPokemon.status?.effect).not.toBe(StatusEffect.BURN);
+    expect(enemyPokemon.getStatusEffect(true)).not.toBe(StatusEffect.BURN);
   });
 
-  it("should only hit twice with Multi-Lens", async () => {
-    game.override.startingHeldItems([{ name: "MULTI_LENS", count: 1 }]);
-
-    await game.startBattle([Species.BLASTOISE]);
+  it("should only hit twice with Parental Bond", async () => {
+    game.override.ability(Abilities.PARENTAL_BOND);
+    await game.classicMode.startBattle([Species.BLASTOISE]);
 
     const leadPokemon = game.scene.getPlayerPokemon()!;
 

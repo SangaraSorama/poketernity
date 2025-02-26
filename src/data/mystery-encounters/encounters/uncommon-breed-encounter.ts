@@ -113,7 +113,7 @@ export const UncommonBreedEncounter: MysteryEncounter = MysteryEncounterBuilder.
             globalPhaseManager.unshiftPhase(
               StatStageChangePhase,
               pokemon.getBattlerIndex(),
-              true,
+              pokemon,
               statChangesForBattle,
               1,
             );

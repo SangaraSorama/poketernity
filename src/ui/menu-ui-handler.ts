@@ -12,7 +12,7 @@ import type { OptionSelectItem, OptionSelectModeConfig } from "#app/ui/interface
 import OptionSelectUiHandler from "#app/ui/option-select-ui-handler";
 import { addTextObject } from "#app/ui/text";
 import { addWindow } from "#app/ui/ui-theme";
-import { fixedNumber, getCookie, getEnumKeys, isBeta, isLocal } from "#app/utils";
+import { fixedNumber, getCookie, getEnumKeys, isBeta } from "#app/utils";
 import { Button } from "#enums/buttons";
 import { GameDataType } from "#enums/game-data-type";
 import i18next from "i18next";
@@ -21,6 +21,8 @@ import { UiMode } from "#enums/ui-mode";
 import { TextStyle } from "#enums/text-style";
 import { AdminMode } from "#enums/admin-mode";
 import { GAME_WIDTH, GAME_HEIGHT } from "#app/ui-constants";
+import { PhaseId } from "#enums/phase-id";
+import { type SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { globalPhaseManager } from "#app/global-phase-manager";
 
 enum MenuOptions {
@@ -58,7 +60,7 @@ export default class MenuUiHandler extends OptionSelectUiHandler {
 
     this.excludedMenus = () => [
       {
-        excluded: globalPhaseManager.getCurrentPhase()?.isSelectModifierPhase() ?? false,
+        excluded: globalPhaseManager.getCurrentPhase()?.is<SelectModifierPhase>(PhaseId.SELECT_MODIFIER) ?? false,
         options: [MenuOptions.EGG_GACHA, MenuOptions.EGG_LIST],
       },
       { excluded: bypassLogin, options: [MenuOptions.LOG_OUT] },
@@ -215,7 +217,7 @@ export default class MenuUiHandler extends OptionSelectUiHandler {
       });
     };
     // Import Session
-    if (isLocal || isBeta) {
+    if (api.isLocal || isBeta) {
       manageDataOptions.push({
         label: i18next.t("menuUiHandler:importSession"),
         handler: () => {
@@ -273,7 +275,7 @@ export default class MenuUiHandler extends OptionSelectUiHandler {
       keepOpen: true,
     });
     // Import Data
-    if (isLocal || isBeta) {
+    if (api.isLocal || isBeta) {
       manageDataOptions.push({
         label: i18next.t("menuUiHandler:importData"),
         handler: () => {
@@ -312,7 +314,7 @@ export default class MenuUiHandler extends OptionSelectUiHandler {
     );
 
     // TODO: fully remove test dialogue option and related handlers
-    if (isLocal || isBeta) {
+    if (api.isLocal || isBeta) {
       // this should make sure we don't have this option in live
       manageDataOptions.push({
         label: "Test Dialogue",
@@ -487,7 +489,6 @@ export default class MenuUiHandler extends OptionSelectUiHandler {
           });
           globalScene.ui.setOverlayMode(UiMode.OPTION_SELECT, {
             options: options,
-            delay: 0,
             yOffset: this.menuMessageBox.displayHeight + 1,
           });
           return true;

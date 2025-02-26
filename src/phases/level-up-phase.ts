@@ -4,11 +4,12 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import { PlayerPartyMemberPokemonPhase } from "#app/phases/abstract-player-party-member-pokemon-phase";
 import { EvolutionPhase } from "#app/phases/evolution-phase";
 import { LearnMovePhase } from "#app/phases/learn-move-phase";
-import { LevelAchv } from "#app/system/achv";
 import { NumberHolder } from "#app/utils";
 import { ExpNotification } from "#enums/exp-notification";
 import i18next from "i18next";
 import { settings } from "#app/system/settings/settings-manager";
+import { AchvCategory } from "#enums/achv-category";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -23,6 +24,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends PlayerPartyMemberPokemonPhase
  */
 export class LevelUpPhase extends PlayerPartyMemberPokemonPhase {
+  override readonly id = PhaseId.LEVEL_UP;
+
   protected readonly lastLevel: number;
   protected readonly level: number;
   protected readonly pokemon: PlayerPokemon = this.getPlayerPokemon();
@@ -42,7 +45,7 @@ export class LevelUpPhase extends PlayerPartyMemberPokemonPhase {
       gameData.gameStats.highestLevel = this.level;
     }
 
-    globalScene.validateAchvs(LevelAchv, new NumberHolder(this.level));
+    globalScene.validateAchvs(AchvCategory.LEVEL, new NumberHolder(this.level));
 
     const prevStats = this.pokemon.stats.slice(0);
     this.pokemon.calculateStats();
@@ -74,8 +77,8 @@ export class LevelUpPhase extends PlayerPartyMemberPokemonPhase {
     // this feels like an unnecessary optimization
     if (this.lastLevel < 100) {
       const levelMoves = this.getPokemon().getLevelMoves(this.lastLevel + 1);
-      for (const lm of levelMoves) {
-        this.manager.unshiftPhase(LearnMovePhase, this.partyMemberIndex, lm[1]);
+      for (const [, learnMoveId] of levelMoves) {
+        this.manager.unshiftPhase(LearnMovePhase, this.partyMemberIndex, learnMoveId);
       }
     }
 

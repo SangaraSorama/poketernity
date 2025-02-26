@@ -30,7 +30,7 @@ export class PostStatStageChangeStatStageChangeAbAttr extends PostStatStageChang
         globalPhaseManager.unshiftPhase(
           StatStageChangePhase,
           pokemon.getBattlerIndex(),
-          true,
+          pokemon,
           this.statsToChange,
           this.stages,
         );

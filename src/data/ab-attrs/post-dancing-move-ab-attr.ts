@@ -1,10 +1,10 @@
-import type { BattlerIndex } from "#enums/battler-index";
 import type { Pokemon } from "#app/field/pokemon";
 import type { PokemonMove } from "#app/field/pokemon-move";
-import { MovePhase } from "#app/phases/move-phase";
-import { BattlerTagType } from "#enums/battler-tag-type";
+import { SemiInvulnerableBattlerTagTypes } from "#app/utils/battler-tag-type-utils";
+import type { BattlerIndex } from "#enums/battler-index";
 import { PostMoveUsedAbAttr } from "./post-move-used-ab-attr";
 import { globalPhaseManager } from "#app/global-phase-manager";
+import { globalScene } from "#app/global-scene";
 
 /**
  * Triggers after a dance move is used either by the opponent or the player
@@ -18,26 +18,26 @@ export class PostDancingMoveAbAttr extends PostMoveUsedAbAttr {
     source: Pokemon,
     targets: BattlerIndex[],
   ): boolean {
-    // List of tags that prevent the Dancer from replicating the move
-    const forbiddenTags = [
-      BattlerTagType.FLYING,
-      BattlerTagType.UNDERWATER,
-      BattlerTagType.UNDERGROUND,
-      BattlerTagType.HIDDEN,
-    ];
     // The move to replicate cannot come from the Dancer
     if (
       source.getBattlerIndex() !== pokemon.getBattlerIndex()
-      && !pokemon.summonData.tags.some((tag) => forbiddenTags.includes(tag.tagType))
+      && !pokemon.summonData.tags.some((tag) => SemiInvulnerableBattlerTagTypes.includes(tag.tagType))
     ) {
       if (!simulated) {
         if (move.getMove().isSelfStatusMove()) {
           // If the move is a SelfStatusMove (ie. Swords Dance), the Dancer should replicate it on itself
-          globalPhaseManager.unshiftPhase(MovePhase, pokemon, [pokemon.getBattlerIndex()], move, true, true);
+          globalScene.useMove({
+            pokemon,
+            targets: [pokemon.getBattlerIndex()],
+            move,
+            followUp: true,
+            ignorePp: true,
+            when: "eager",
+          });
         } else {
           // Otherwise, the Dancer must replicate the move on the source of the Dance
           const target = this.getTarget(pokemon, source, targets);
-          globalPhaseManager.unshiftPhase(MovePhase, pokemon, target, move, true, true);
+          globalScene.useMove({ pokemon, targets: target, move, followUp: true, ignorePp: true, when: "eager" });
         }
       }
       return true;

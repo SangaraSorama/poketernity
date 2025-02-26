@@ -1,8 +1,11 @@
 import { globalScene } from "#app/global-scene";
 import { Phase } from "#app/phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 export class MessagePhase extends Phase {
+  override readonly id = PhaseId.MESSAGE;
+
   private text: string;
   private readonly callbackDelay: number | null;
   private readonly prompt: boolean | null;

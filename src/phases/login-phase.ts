@@ -13,8 +13,11 @@ import { UnavailablePhase } from "./unavailable-phase";
 import { settings } from "#app/system/settings/settings-manager";
 import type { PhaseManager } from "#app/phase-manager";
 import { PlayerGender } from "#enums/player-gender";
+import { PhaseId } from "#enums/phase-id";
 
 export class LoginPhase extends Phase {
+  override readonly id = PhaseId.LOGIN;
+
   private readonly showText: boolean;
 
   constructor(manager: PhaseManager, showText: boolean = true) {
@@ -75,7 +78,7 @@ export class LoginPhase extends Phase {
                       });
                     },
                     (): void => {
-                      this.manager.unshiftPhase(LoginPhase, false);
+                      globalScene.toLoginScreen({ showText: false, eager: true });
                       this.end();
                     },
                   ],

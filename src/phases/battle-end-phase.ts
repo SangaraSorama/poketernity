@@ -1,16 +1,17 @@
-import { PostBattleAbAttr } from "#app/data/ab-attrs/post-battle-ab-attr";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import type { LapsingPersistentModifier, LapsingPokemonHeldItemModifier } from "#app/modifier/modifier";
 import type { PhaseManager } from "#app/phase-manager";
 import { BattlePhase } from "#app/phases/abstract-battle-phase";
-import { GameOverPhase } from "#app/phases/game-over-phase";
+import { AbAttrFlag } from "#enums/ab-attr-flag";
+import { PhaseId } from "#enums/phase-id";
 
 /**
  * Handles the effects that need to trigger after a battle ends (game stats updates, reducing item turn count, etc)
  * @extends BattlePhase
  */
 export class BattleEndPhase extends BattlePhase {
+  override readonly id = PhaseId.BATTLE_END;
   /** If true, will increment battles won */
   public readonly isVictory: boolean;
 
@@ -40,8 +41,7 @@ export class BattleEndPhase extends BattlePhase {
 
     // Endless graceful end
     if (gameMode.isEndless && currentBattle.waveIndex >= 5850) {
-      this.manager.clearPhaseQueue();
-      this.manager.unshiftPhase(GameOverPhase, true);
+      globalScene.gameOver({ clearPhaseQueue: true, isVictory: true });
     }
 
     for (const pokemon of globalScene.getField()) {
@@ -51,7 +51,7 @@ export class BattleEndPhase extends BattlePhase {
     }
 
     for (const pokemon of globalScene.getPokemonAllowedInBattle()) {
-      applyAbAttrs(PostBattleAbAttr, pokemon, false, this.isVictory);
+      applyAbAttrs(AbAttrFlag.POST_BATTLE, pokemon, false, this.isVictory);
     }
 
     if (currentBattle.moneyScattered) {

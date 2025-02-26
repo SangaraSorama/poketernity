@@ -16,6 +16,9 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { SpeciesFormKey } from "#enums/species-form-key";
 import { FormChangeBasePhase } from "./abstract-form-change-base-phase";
 import { EndEvolutionPhase } from "./end-evolution-phase";
+import { EVOLVE_MOVE } from "#app/data/balance/pokemon-level-moves";
+import { LearnMovePhase } from "./learn-move-phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -24,6 +27,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends FormChangeBasePhase
  */
 export class FormChangePhase extends FormChangeBasePhase {
+  override readonly id = PhaseId.FORM_CHANGE;
+
   private readonly formChange: SpeciesFormChange;
   private readonly modal: boolean;
 
@@ -59,12 +64,11 @@ export class FormChangePhase extends FormChangeBasePhase {
 
         sprite.setPipelineData("ignoreTimeTint", true);
         sprite.setPipelineData("spriteKey", formChangedPokemon.getSpriteKey());
-        ["spriteColors", "fusionSpriteColors"].map((k) => {
-          if (formChangedPokemon.summonData?.speciesForm) {
-            k += "Base";
-          }
-          sprite.pipelineData[k] = formChangedPokemon.getSprite().pipelineData[k];
-        });
+        let key = "spriteColors";
+        if (formChangedPokemon.summonData?.speciesForm) {
+          key += "Base";
+        }
+        sprite.pipelineData[key] = formChangedPokemon.getSprite().pipelineData[key];
       });
 
       time.delayedCall(250, () => {
@@ -197,6 +201,11 @@ export class FormChangePhase extends FormChangeBasePhase {
 
   public override end(): void {
     const { ui } = globalScene;
+
+    const formChangeLearnMove = this.pokemon.getLevelMoves(EVOLVE_MOVE, true);
+    for (const [, learnMoveId] of formChangeLearnMove) {
+      globalScene.unshiftPhase(new LearnMovePhase(globalScene.getPlayerParty().indexOf(this.pokemon), learnMoveId));
+    }
 
     this.pokemon.findAndRemoveTags((t) => t.tagType === BattlerTagType.AUTOTOMIZED);
     if (this.modal) {

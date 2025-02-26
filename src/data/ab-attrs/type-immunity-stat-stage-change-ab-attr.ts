@@ -35,7 +35,7 @@ export class TypeImmunityStatStageChangeAbAttr extends TypeImmunityAbAttr {
         globalPhaseManager.unshiftPhase(
           StatStageChangePhase,
           pokemon.getBattlerIndex(),
-          true,
+          pokemon,
           [this.stat],
           this.stages,
         );

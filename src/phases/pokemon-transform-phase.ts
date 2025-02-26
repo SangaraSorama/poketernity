@@ -4,6 +4,7 @@ import { globalScene } from "#app/global-scene";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BATTLE_STATS, EFFECTIVE_STATS } from "#enums/stat";
 import { PokemonPhase } from "./abstract-pokemon-phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -13,6 +14,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends PokemonPhase
  */
 export class PokemonTransformPhase extends PokemonPhase {
+  override readonly id = PhaseId.POKEMON_TRANSFORM;
+
   protected readonly targetIndex: BattlerIndex;
   private readonly playSound: boolean;
 

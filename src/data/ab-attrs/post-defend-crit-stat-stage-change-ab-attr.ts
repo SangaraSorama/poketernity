@@ -34,7 +34,7 @@ export class PostDefendCritStatStageChangeAbAttr extends PostDefendAbAttr {
         globalPhaseManager.unshiftPhase(
           StatStageChangePhase,
           pokemon.getBattlerIndex(),
-          true,
+          pokemon,
           [this.stat],
           this.stages,
         );

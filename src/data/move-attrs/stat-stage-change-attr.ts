@@ -3,7 +3,7 @@ import { type BattleStat, Stat } from "#enums/stat";
 import type { Pokemon } from "#app/field/pokemon";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { Move } from "#app/data/move";
-import type { MoveConditionFunc } from "#app/data/move-conditions";
+import type { MoveConditionFunc } from "#app/@types/MoveConditionFunc";
 import { ChanceBasedMoveEffectAttr, type ChanceBasedMoveEffectAttrOptions } from "./chance-based-move-effect-attr";
 import { globalPhaseManager } from "#app/global-phase-manager";
 
@@ -70,7 +70,7 @@ export class StatStageChangeAttr extends ChanceBasedMoveEffectAttr {
     globalPhaseManager.unshiftPhase(
       StatStageChangePhase,
       (this.selfTarget ? user : target).getBattlerIndex(),
-      this.selfTarget,
+      user,
       this.stats,
       stages,
       { showMessage: this.showMessage },

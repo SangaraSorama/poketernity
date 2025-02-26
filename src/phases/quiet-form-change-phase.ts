@@ -5,11 +5,13 @@ import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import type { PhaseManager } from "#app/phase-manager";
 import { BattlerTagType } from "#enums/battler-tag-type";
+import { PhaseId } from "#enums/phase-id";
 import { BattlePhase } from "./abstract-battle-phase";
 import type { MovePhase } from "./move-phase";
-import { PokemonHealPhase } from "./pokemon-heal-phase";
 
 export class QuietFormChangePhase extends BattlePhase {
+  override readonly id = PhaseId.QUIET_FORM_CHANGE;
+
   protected readonly pokemon: Pokemon;
   protected readonly formChange: SpeciesFormChange;
 
@@ -67,12 +69,11 @@ export class QuietFormChangePhase extends BattlePhase {
         teraColor: getTypeRgb(this.pokemon.getTeraType()),
       });
 
-      ["spriteColors", "fusionSpriteColors"].map((k) => {
-        if (this.pokemon.summonData?.speciesForm) {
-          k += "Base";
-        }
-        sprite.pipelineData[k] = this.pokemon.getSprite().pipelineData[k];
-      });
+      let key = "spriteColors";
+      if (this.pokemon.summonData?.speciesForm) {
+        key += "Base";
+      }
+      sprite.pipelineData[key] = this.pokemon.getSprite().pipelineData[key];
 
       field.add(sprite);
       return sprite;
@@ -159,7 +160,7 @@ export class QuietFormChangePhase extends BattlePhase {
 
     if (globalScene?.currentBattle.isClassicFinalBoss && this.pokemon.isEnemy()) {
       globalScene.playBgm();
-      this.manager.unshiftPhase(PokemonHealPhase, this.pokemon.getBattlerIndex(), this.pokemon.getMaxHp(), {
+      globalScene.queuePokemonHeal(true, this.pokemon.getBattlerIndex(), this.pokemon.getMaxHp(), {
         showFullHpMessage: false,
         healStatus: true,
       });
@@ -170,7 +171,9 @@ export class QuietFormChangePhase extends BattlePhase {
       this.pokemon.initBattleInfo();
       this.pokemon.cry();
 
-      const movePhase = this.manager.findPhase<MovePhase>((p) => p.isMovePhase() && p.pokemon === this.pokemon);
+      const movePhase = this.manager.findPhase<MovePhase>(
+        (p) => p.is<MovePhase>(PhaseId.MOVE) && p.pokemon === this.pokemon,
+      );
       if (movePhase) {
         movePhase.cancel();
       }

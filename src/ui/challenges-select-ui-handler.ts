@@ -6,12 +6,10 @@ import { addWindow } from "./ui-theme";
 import { Button } from "#enums/buttons";
 import i18next from "i18next";
 import type { Challenge } from "#app/data/challenge";
-import { getLocalizedSpriteKey } from "#app/utils";
 import { Challenges } from "#enums/challenges";
 import type BBCodeText from "phaser3-rex-plugins/plugins/bbcodetext";
-import { Color, ShadowColor } from "#enums/color";
+import { CommonColor, ShadowColor } from "#enums/color";
 import { SelectStarterPhase } from "#app/phases/select-starter-phase";
-import { TitlePhase } from "#app/phases/title-phase";
 import { globalScene } from "#app/global-scene";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
 import { globalPhaseManager } from "#app/global-phase-manager";
@@ -35,7 +33,7 @@ export default class GameChallengesUiHandler extends UiHandler {
     leftArrow: Phaser.GameObjects.Image;
     rightArrow: Phaser.GameObjects.Image;
   }>;
-  private monoTypeValue: Phaser.GameObjects.Sprite;
+  private monoTypeIcon: Phaser.GameObjects.Sprite;
 
   private cursorObj: Phaser.GameObjects.NineSlice | null;
 
@@ -175,11 +173,11 @@ export default class GameChallengesUiHandler extends UiHandler {
       };
     }
 
-    this.monoTypeValue = globalScene.add.sprite(8, 98, getLocalizedSpriteKey("types"));
-    this.monoTypeValue.setName("challenge-value-monotype-sprite");
-    this.monoTypeValue.setScale(0.86);
-    this.monoTypeValue.setVisible(false);
-    this.valuesContainer.add(this.monoTypeValue);
+    this.monoTypeIcon = globalScene.add.sprite(8, 98, "type_icons");
+    this.monoTypeIcon.setName("challenge-value-monotype-sprite");
+    this.monoTypeIcon.setScale(0.86);
+    this.monoTypeIcon.setVisible(false);
+    this.valuesContainer.add(this.monoTypeIcon);
 
     this.challengesContainer.add(headerBg);
     this.challengesContainer.add(headerText);
@@ -207,7 +205,7 @@ export default class GameChallengesUiHandler extends UiHandler {
    * @param text text to set to the BBCode description
    */
   setDescription(text: string): void {
-    this.descriptionText.setText(`[color=${Color.ORANGE}][shadow=${ShadowColor.ORANGE}]${text}`);
+    this.descriptionText.setText(`[color=${CommonColor.SOFT_ORANGE}][shadow=${ShadowColor.ORANGE}]${text}`);
   }
 
   /**
@@ -255,7 +253,7 @@ export default class GameChallengesUiHandler extends UiHandler {
       challengeLabel.leftArrow.setVisible(challenge.value !== 0);
       challengeLabel.rightArrow.setPositionRelative(
         challengeLabel.leftArrow,
-        Math.max(this.monoTypeValue.width, this.widestTextBox)
+        Math.max(this.monoTypeIcon.width, this.widestTextBox)
           + challengeLabel.leftArrow.displayWidth
           + 2 * this.arrowSpacing,
         0,
@@ -276,10 +274,10 @@ export default class GameChallengesUiHandler extends UiHandler {
         (challengeLabel.leftArrow.x + challengeLabel.rightArrow.x + challengeLabel.leftArrow.displayWidth) / 2,
       );
       if (challenge.id === Challenges.SINGLE_TYPE) {
-        this.monoTypeValue.setX(xLocation);
-        this.monoTypeValue.setY(challengeLabel.label.y + 8);
-        this.monoTypeValue.setFrame(challenge.getValue());
-        this.monoTypeValue.setVisible(true);
+        this.monoTypeIcon.setX(xLocation);
+        this.monoTypeIcon.setY(challengeLabel.label.y + 8);
+        this.monoTypeIcon.setFrame(challenge.getValue());
+        this.monoTypeIcon.setVisible(true);
         challengeLabel.value.setVisible(false);
         monoTypeVisible = true;
       } else {
@@ -290,7 +288,7 @@ export default class GameChallengesUiHandler extends UiHandler {
       }
     }
     if (!monoTypeVisible) {
-      this.monoTypeValue.setVisible(false);
+      this.monoTypeIcon.setVisible(false);
     }
 
     // This checks if a challenge has been selected by the user and updates the text/its opacity accordingly.
@@ -365,8 +363,7 @@ export default class GameChallengesUiHandler extends UiHandler {
         this.cursorObj?.setVisible(true);
         this.updateChallengeArrows(this.startCursor.visible);
       } else {
-        globalPhaseManager.clearPhaseQueue();
-        globalPhaseManager.pushPhase(TitlePhase);
+        globalScene.toTitleScreen({ clearPhaseQueue: true });
         globalPhaseManager.getCurrentPhase()?.end();
       }
       success = true;

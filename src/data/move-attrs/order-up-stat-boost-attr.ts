@@ -1,9 +1,10 @@
 import { type EffectiveStat, Stat } from "#enums/stat";
 import type { Pokemon } from "#app/field/pokemon";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
-import { CommandedTag } from "#app/data/battler-tags";
+import { type CommandedTag } from "#app/data/battler-tags";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
+import { BattlerTagType } from "#enums/battler-tag-type";
 import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
@@ -30,7 +31,7 @@ export class OrderUpStatBoostAttr extends MoveEffectAttr {
    * matching form, this boosts the user's Attack by default.
    */
   override applyEffect(user: Pokemon, _target: Pokemon, _move: Move): boolean {
-    const commandedTag = user.getTag(CommandedTag);
+    const commandedTag = user.getTag<CommandedTag>(BattlerTagType.COMMANDED);
     if (!commandedTag) {
       return false;
     }
@@ -48,7 +49,7 @@ export class OrderUpStatBoostAttr extends MoveEffectAttr {
         break;
     }
 
-    globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), this.selfTarget, [increasedStat], 1);
+    globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), user, [increasedStat], 1);
     return true;
   }
 }

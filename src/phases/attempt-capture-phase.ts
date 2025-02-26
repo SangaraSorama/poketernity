@@ -1,6 +1,6 @@
 import { BattlerIndex } from "#enums/battler-index";
 import { PLAYER_PARTY_MAX_SIZE } from "#app/constants";
-import { SubstituteTag } from "#app/data/battler-tags";
+import { type SubstituteTag } from "#app/data/battler-tags";
 import {
   doPokeballBounceAnim,
   getCriticalCaptureChance,
@@ -23,6 +23,8 @@ import { type PokeballType } from "#enums/pokeball";
 import { StatusEffect } from "#enums/status-effect";
 import i18next from "i18next";
 import { globalScene } from "#app/global-scene";
+import { BattlerTagType } from "#enums/battler-tag-type";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -30,6 +32,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends PokemonPhase
  */
 export class AttemptCapturePhase extends PokemonPhase {
+  override readonly id = PhaseId.ATTEMPT_CAPTURE;
+
   private readonly pokeballType: PokeballType;
   private pokeball: Phaser.GameObjects.Sprite;
   private originalY: number;
@@ -51,7 +55,7 @@ export class AttemptCapturePhase extends PokemonPhase {
       return this.end();
     }
 
-    const substitute = pokemon.getTag(SubstituteTag);
+    const substitute = pokemon.getTag<SubstituteTag>(BattlerTagType.SUBSTITUTE);
     if (substitute) {
       substitute.sprite.setVisible(false);
     }
@@ -64,7 +68,9 @@ export class AttemptCapturePhase extends PokemonPhase {
     const _2h = 2 * pokemon.hp;
     const catchRate = pokemon.species.catchRate;
     const pokeballMultiplier = getPokeballCatchMultiplier(this.pokeballType);
-    const statusMultiplier = pokemon.status ? getStatusEffectCatchRateMultiplier(pokemon.status.effect) : 1;
+    const statusMultiplier = pokemon.hasNonVolatileStatusEffect(false, true)
+      ? getStatusEffectCatchRateMultiplier(pokemon.getStatusEffect(true))
+      : 1;
     const modifiedCatchRate = Math.round((((_3m - _2h) * catchRate * pokeballMultiplier) / _3m) * statusMultiplier);
     const shakeProbability = Math.round(65536 / Math.pow(255 / modifiedCatchRate, 0.1875)); // Formula taken from gen 6
     const criticalCaptureChance = getCriticalCaptureChance(modifiedCatchRate);
@@ -196,14 +202,14 @@ export class AttemptCapturePhase extends PokemonPhase {
 
     globalScene.playSound("se/pb_rel");
     pokemon.setY(this.originalY);
-    if (pokemon.status?.effect !== StatusEffect.SLEEP) {
+    if (!pokemon.hasStatusEffect(StatusEffect.SLEEP, false, true)) {
       pokemon.cry(pokemon.getHpRatio() > 0.25 ? undefined : { rate: 0.85 });
     }
     pokemon.tint(getPokeballTintColor(this.pokeballType));
     pokemon.setVisible(true);
     pokemon.untint(250, "Sine.easeOut");
 
-    const substitute = pokemon.getTag(SubstituteTag);
+    const substitute = pokemon.getTag<SubstituteTag>(BattlerTagType.SUBSTITUTE);
     if (substitute) {
       substitute.sprite.setVisible(true);
     }
@@ -229,13 +235,9 @@ export class AttemptCapturePhase extends PokemonPhase {
 
     const pokemon = this.getPokemon() as EnemyPokemon;
 
-    const speciesForm = !pokemon.fusionSpecies ? pokemon.getSpeciesForm() : pokemon.getFusionSpeciesForm();
+    const speciesForm = pokemon.getSpeciesForm();
 
-    if (
-      speciesForm.abilityHidden
-      && (pokemon.fusionSpecies ? pokemon.fusionAbilityIndex : pokemon.abilityIndex)
-        === speciesForm.getAbilityCount() - 1
-    ) {
+    if (speciesForm.abilityHidden && pokemon.abilityIndex === speciesForm.getAbilityCount() - 1) {
       globalScene.validateAchv(achvs.HIDDEN_ABILITY);
     }
 
@@ -271,8 +273,8 @@ export class AttemptCapturePhase extends PokemonPhase {
             .getPlayerField()
             .filter((p) => p.isActive(true))
             .forEach((playerPokemon) => playerPokemon.removeTagsBySourceId(pokemon.id));
-          pokemon.hp = 0;
-          pokemon.trySetStatus(StatusEffect.FAINT);
+          // TODO: this isn't right, is it?
+          pokemon.faint();
           globalScene.clearEnemyHeldItemModifiers();
           globalScene.field.remove(pokemon, true);
         };

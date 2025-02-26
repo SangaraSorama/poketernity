@@ -88,7 +88,7 @@ export const FightOrFlightEncounter: MysteryEncounter = MysteryEncounterBuilder.
             globalPhaseManager.unshiftPhase(
               StatStageChangePhase,
               pokemon.getBattlerIndex(),
-              true,
+              pokemon,
               [randSeedInt(4, 1)],
               2,
             );

@@ -5,6 +5,7 @@ import { NumberHolder } from "#app/utils";
 import i18next from "i18next";
 import { PlayerPartyMemberPokemonPhase } from "./abstract-player-party-member-pokemon-phase";
 import { LevelUpPhase } from "./level-up-phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -12,6 +13,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends PlayerPartyMemberPokemonPhase
  */
 export class ExpPhase extends PlayerPartyMemberPokemonPhase {
+  override readonly id = PhaseId.EXP;
+
   private readonly expValue: number;
 
   constructor(manager: PhaseManager, partyMemberIndex: number, expValue: number) {

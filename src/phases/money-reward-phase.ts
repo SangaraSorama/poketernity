@@ -4,6 +4,7 @@ import { NumberHolder } from "#app/utils";
 import { ArenaTagType } from "#enums/arena-tag-type";
 import i18next from "i18next";
 import { BattlePhase } from "./abstract-battle-phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -11,6 +12,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends BattlePhase
  */
 export class MoneyRewardPhase extends BattlePhase {
+  override readonly id = PhaseId.MONEY_REWARD;
+
   private readonly moneyMultiplier: number;
 
   constructor(manager: PhaseManager, moneyMultiplier: number) {

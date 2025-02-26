@@ -44,7 +44,7 @@ export class PostDefendHpGatedStatStageChangeAbAttr extends PostDefendAbAttr {
         globalPhaseManager.unshiftPhase(
           StatStageChangePhase,
           (this.selfTarget ? pokemon : attacker).getBattlerIndex(),
-          true,
+          pokemon,
           this.stats,
           this.stages,
         );

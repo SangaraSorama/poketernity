@@ -16,6 +16,7 @@ import SoundFade from "phaser3-rex-plugins/plugins/soundfade";
 import type { EggLapsePhase } from "./egg-lapse-phase";
 import type { EggHatchData } from "#app/data/egg-hatch-data";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -23,6 +24,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends Phase
  */
 export class EggHatchPhase extends Phase {
+  override readonly id = PhaseId.EGG_HATCH;
+
   /** The egg that is hatching */
   private readonly egg: Egg;
   /** The new EggHatchData for the egg/pokemon that hatches */
@@ -73,6 +76,7 @@ export class EggHatchPhase extends Phase {
 
   constructor(manager: PhaseManager, hatchScene: EggLapsePhase, egg: Egg, eggsToHatchCount: number) {
     super(manager);
+
     this.eggLapsePhase = hatchScene;
     this.egg = egg;
     this.eggsToHatchCount = eggsToHatchCount;
@@ -158,12 +162,7 @@ export class EggHatchPhase extends Phase {
 
       this.eggHatchContainer.add(this.infoContainer);
 
-      // The game will try to unfuse any Pokemon even though eggs should not generate fused Pokemon in the first place
       const pokemon = this.generatePokemon();
-      if (pokemon.fusionSpecies) {
-        console.warn("Egg generated fused pokemon!");
-        pokemon.clearFusionSpecies();
-      }
 
       this.pokemonSprite.setVisible(false);
 

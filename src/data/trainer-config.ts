@@ -1,8 +1,8 @@
 import { globalScene } from "#app/global-scene";
 import type { ModifierTypeFunc } from "#app/modifier/modifier-type";
-import { modifierTypes } from "#app/modifier/modifier-type";
+import { modifierTypes } from "#app/modifier/modifier-types";
 import type { EnemyPokemon } from "#app/field/pokemon";
-import { toReadableString, randSeedItem, randInt } from "#app/utils";
+import { toReadableString, randSeedItem, randItem } from "#app/utils";
 import type { PokemonSpeciesFilter } from "#app/@types/PokemonSpeciesFilter";
 import type PokemonSpecies from "#app/data/pokemon-species";
 import { getPokemonSpecies } from "#app/utils/pokemon-species-utils";
@@ -17,6 +17,7 @@ import { TrainerType } from "#enums/trainer-type";
 import Overrides from "#app/overrides";
 import { TrainerPoolTier } from "#enums/trainer-pool-tier";
 import { TrainerSlot } from "#enums/trainer-slot";
+import { ImagesFolder } from "#enums/images-folders";
 
 /** Minimum BST for Pokemon generated onto the Elite Four's teams */
 const ELITE_FOUR_MINIMUM_BST = 460;
@@ -271,7 +272,6 @@ export class TrainerConfig {
   public isBoss: boolean = false;
   public hasStaticParty: boolean = false;
   public useSameSeedForAllMembers: boolean = false;
-  public mixedBattleBgm: string;
   public battleBgm: string;
   public encounterBgm: string;
   public femaleEncounterBgm: string;
@@ -304,7 +304,6 @@ export class TrainerConfig {
     this.trainerType = trainerType;
     this.name = toReadableString(TrainerType[this.getDerivedType()]);
     this.battleBgm = "battle_trainer";
-    this.mixedBattleBgm = "battle_trainer";
     this.victoryBgm = "victory_trainer";
     this.partyTemplates = [trainerPartyTemplates.TWO_AVG];
     this.speciesFilter = (species) => (allowLegendaries || !species.isLegendLike()) && !species.isTrainerForbidden();
@@ -583,11 +582,6 @@ export class TrainerConfig {
 
   setUseSameSeedForAllMembers(): TrainerConfig {
     this.useSameSeedForAllMembers = true;
-    return this;
-  }
-
-  setMixedBattleBgm(mixedBattleBgm: string): TrainerConfig {
-    this.mixedBattleBgm = mixedBattleBgm;
     return this;
   }
 
@@ -1088,7 +1082,6 @@ export class TrainerConfig {
     this.setMoneyMultiplier(1.5);
     this.setBoss();
     this.setStaticParty();
-    this.setBattleBgm("battle_plasma_boss");
     this.setVictoryBgm("victory_team_plasma");
 
     return this;
@@ -1128,8 +1121,7 @@ export class TrainerConfig {
     this.setBoss();
     this.setStaticParty();
 
-    // TODO: replace with more suitable music?
-    this.setBattleBgm("battle_trainer");
+    // TODO: replace battle music with more suitable music? (currently using basic trainer battle music)
     this.setVictoryBgm("victory_trainer");
 
     return this;
@@ -1140,10 +1132,10 @@ export class TrainerConfig {
    * @param title the string representation of the evil team leader's title
    * @param name the string representation of the evil team leader's name
    * @param rematch Whether or not this is the rematch fight
-   * @param mixedBattleBgm the string representation of the mixed battle bgm
+   * @param battleBgm the string representation of the battle bgm
    * @returns The updated TrainerConfig instance.
    * **/
-  initForEvilTeamLeader(title: string, name: string, rematch: boolean = false, mixedBattleBgm: string): TrainerConfig {
+  initForEvilTeamLeader(title: string, name: string, rematch: boolean = false, battleBgm: string): TrainerConfig {
     if (!getIsInitialized()) {
       initI18n();
     }
@@ -1159,8 +1151,7 @@ export class TrainerConfig {
     this.setBoss();
     this.setStaticParty();
     this.setHasVoucher(true);
-    this.setBattleBgm("battle_plasma_boss");
-    this.setMixedBattleBgm(mixedBattleBgm);
+    this.setBattleBgm(battleBgm);
     this.setVictoryBgm("victory_team_plasma");
 
     return this;
@@ -1225,15 +1216,33 @@ export class TrainerConfig {
     this.setBoss();
     this.setStaticParty();
     this.setHasVoucher(true);
-    this.setBattleBgm("battle_unova_gym");
     this.setVictoryBgm("victory_gym");
+
+    return this;
+  }
+
+  /**
+   * Function for generating Paldea gym leaders
+   *
+   * See {@linkcode initForGymLeader}
+   *
+   * The only difference is they will always tera their ace (final slot) Pokemon
+   * to their specialty type
+   *
+   * @param signatureSpecies The signature species for the Gym Leader.
+   * @param specialtyTypes The specialty types for the Gym Leader.
+   * @param isMale Whether the Gym Leader is Male or Not (for localization of the title).
+   * @returns The updated TrainerConfig instance.
+   */
+  initForPaldeaGymLeader(
+    signatureSpecies: (Species | Species[])[],
+    isMale: boolean,
+    ...specialtyTypes: ElementalType[]
+  ): TrainerConfig {
+    this.initForGymLeader(signatureSpecies, isMale, ...specialtyTypes);
+    this.setBattleBgm("battle_paldea_gym");
     this.setGenModifiersFunc((party) => {
-      const waveIndex = globalScene.currentBattle.waveIndex;
-      return getRandomTeraModifiers(
-        party,
-        waveIndex >= 100 ? 1 : 0,
-        specialtyTypes.length ? specialtyTypes : undefined,
-      );
+      return getSpecificTeraModifier(party, party.length - 1, specialtyTypes[0]);
     });
 
     return this;
@@ -1292,7 +1301,6 @@ export class TrainerConfig {
     this.setBoss();
     this.setStaticParty();
     this.setHasVoucher(true);
-    this.setBattleBgm("battle_unova_elite");
     this.setVictoryBgm("victory_gym");
     this.setGenModifiersFunc((party) =>
       getRandomTeraModifiers(party, 2, specialtyTypes.length ? specialtyTypes : undefined),
@@ -1304,28 +1312,17 @@ export class TrainerConfig {
   /**
    * Initializes the trainer configuration for a Champion.
    * @param variant The {@linkcode TrainerVariant} of the Champion (used for localization of the title).
-   * @param battleBgm String representing the battle music
-   * @param mixedBattleBgm []String array representing the mixed battle music. If more then one are in the array a random one will be choosen on game init
+   * @param battleBgm Array of strings representing the battle music. One is chosen at random.
    * @returns The updated TrainerConfig instance.
    **/
-  initForChampion(variant: TrainerVariant, battleBgm: string[], mixedBattleBgm: string[]): TrainerConfig {
+  initForChampion(variant: TrainerVariant, battleBgm: string[]): TrainerConfig {
     // Check if the internationalization (i18n) system is initialized.
     if (!getIsInitialized()) {
       initI18n();
     }
 
-    let battleBgmToSet = battleBgm[0];
-    if (battleBgm.length > 1) {
-      battleBgmToSet = battleBgm[randInt(battleBgm.length, 0)];
-    }
-
-    let mixedBattleBgmToSet = mixedBattleBgm[0];
-    if (mixedBattleBgm.length > 1) {
-      mixedBattleBgmToSet = mixedBattleBgm[randInt(mixedBattleBgm.length, 0)];
-    }
-
-    this.setBattleBgm(battleBgmToSet);
-    this.setMixedBattleBgm(mixedBattleBgmToSet);
+    // TODO: make this seeded
+    this.setBattleBgm(randItem(battleBgm));
 
     // Set the party templates for the Champion.
     let partyTemplate = trainerPartyTemplates.CHAMPION;
@@ -1432,9 +1429,9 @@ export class TrainerConfig {
       const isDouble = variant === TrainerVariant.DOUBLE;
       const trainerKey = this.getSpriteKey(variant === TrainerVariant.FEMALE, false);
       const partnerTrainerKey = this.getSpriteKey(true, true);
-      globalScene.loadAtlas(trainerKey, "trainer");
+      globalScene.loadAtlas(trainerKey, ImagesFolder.TRAINER);
       if (isDouble) {
-        globalScene.loadAtlas(partnerTrainerKey, "trainer");
+        globalScene.loadAtlas(partnerTrainerKey, ImagesFolder.TRAINER);
       }
       globalScene.load.once(Phaser.Loader.Events.COMPLETE, () => {
         const originalWarn = console.warn;
@@ -1649,6 +1646,38 @@ export function getSpeciesFilterRandomPartyMemberFunc(
   };
 }
 
+/**
+ * Function to create a {@linkcode PersistentModifier} of applying a single tera on a specific trainer's party
+ * Only used in {@linkcode initForPaldeaGymLeader} right now
+ *
+ * @param party the party
+ * @param partySlot the party slot to apply the tera on (currently only the last slot)
+ * @param teraType the type that the Pokemon will be tera'd into
+ * @returns a PersistentModifier
+ */
+function getSpecificTeraModifier(
+  party: EnemyPokemon[],
+  partySlot: number,
+  teraType: ElementalType,
+): PersistentModifier[] {
+  const ret: PersistentModifier[] = [];
+  ret.push(
+    modifierTypes
+      .TERA_SHARD()
+      .generateType([], [teraType])!
+      .withIdFromFunc(modifierTypes.TERA_SHARD)
+      .newModifier(party[partySlot]) as PersistentModifier,
+  );
+  return ret;
+}
+
+/**
+ * Function to create a {@linkcode PersistentModifier} of applying random tera types to a trainer's team
+ * @param party the party
+ * @param count how many random teras will be applied
+ * @param types an array of possible ElementalTypes to apply the tera
+ * @returns a PersistentModifier
+ */
 function getRandomTeraModifiers(party: EnemyPokemon[], count: number, types?: ElementalType[]): PersistentModifier[] {
   const ret: PersistentModifier[] = [];
   const partyMemberIndexes = new Array(party.length).fill(null).map((_, i) => i);

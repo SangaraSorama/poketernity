@@ -1,6 +1,5 @@
 import { addTextObject } from "./text";
 import { TextStyle } from "#enums/text-style";
-import PartyUiHandler from "./party-ui-handler";
 import { PartyUiMode } from "#enums/party-ui-mode";
 import { UiMode } from "#enums/ui-mode";
 import UiHandler from "./ui-handler";
@@ -10,6 +9,7 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import { CommandPhase } from "#app/phases/command-phase";
 import { globalScene } from "#app/global-scene";
 import { BattleCommand } from "#enums/battle-command";
+import { PartyFilterNonFainted } from "#app/utils/party-ui-utils";
 import { globalPhaseManager } from "#app/global-phase-manager";
 
 export default class CommandUiHandler extends UiHandler {
@@ -104,7 +104,7 @@ export default class CommandUiHandler extends UiHandler {
               PartyUiMode.SWITCH,
               (globalPhaseManager.getCurrentPhase() as CommandPhase).getPokemon().getFieldIndex(),
               null,
-              PartyUiHandler.FilterNonFainted,
+              PartyFilterNonFainted,
             );
             success = true;
             break;

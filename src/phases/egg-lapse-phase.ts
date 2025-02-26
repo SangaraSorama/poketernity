@@ -13,6 +13,7 @@ import { UiMode } from "#enums/ui-mode";
 import i18next from "i18next";
 import { EggHatchPhase } from "./egg-hatch-phase";
 import { EggSummaryPhase } from "./egg-summary-phase";
+import { PhaseId } from "#enums/phase-id";
 
 /**
  * Phase that handles updating eggs, and hatching any ready eggs.
@@ -21,6 +22,8 @@ import { EggSummaryPhase } from "./egg-summary-phase";
  * @extends Phase
  */
 export class EggLapsePhase extends Phase {
+  override readonly id = PhaseId.EGG_LAPSE;
+
   private eggHatchData: EggHatchData[] = [];
   private readonly minEggsToSkip: number = 2;
 
@@ -116,9 +119,6 @@ export class EggLapsePhase extends Phase {
 
     const data = this.generatePokemon(egg);
     const pokemon = data.pokemon;
-    if (pokemon.fusionSpecies) {
-      pokemon.clearFusionSpecies();
-    }
 
     if (pokemon.species.isLegendLike()) {
       if (pokemon.species.isSubLegendary()) {

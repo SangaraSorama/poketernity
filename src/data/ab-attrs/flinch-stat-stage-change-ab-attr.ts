@@ -17,7 +17,7 @@ export class FlinchStatStageChangeAbAttr extends FlinchEffectAbAttr {
 
   override apply(pokemon: Pokemon, simulated: boolean): boolean {
     if (!simulated) {
-      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, this.stats, this.stages);
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), pokemon, this.stats, this.stages);
     }
     return true;
   }

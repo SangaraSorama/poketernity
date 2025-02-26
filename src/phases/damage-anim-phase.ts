@@ -5,6 +5,7 @@ import { globalScene } from "#app/global-scene";
 import { PokemonPhase } from "#app/phases/abstract-pokemon-phase";
 import { fixedNumber } from "#app/utils";
 import { settings } from "#app/system/settings/settings-manager";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -12,6 +13,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends PokemonPhase
  */
 export class DamageAnimPhase extends PokemonPhase {
+  override readonly id = PhaseId.DAMAGE_ANIM;
+
   private amount: number;
   private readonly damageResult: DamageResult;
   private readonly critical: boolean;

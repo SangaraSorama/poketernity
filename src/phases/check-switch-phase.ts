@@ -10,6 +10,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { SwitchType } from "#enums/switch-type";
 import { settings } from "#app/system/settings/settings-manager";
 import i18next from "i18next";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -17,6 +18,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends BattlePhase
  */
 export class CheckSwitchPhase extends BattlePhase {
+  override readonly id = PhaseId.CHECK_SWITCH;
+
   protected readonly fieldIndex: number;
   /** Whether to use the pokemon's name or "Pokemon" when displaying the dialog box */
   protected readonly useName: boolean;

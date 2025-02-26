@@ -1,13 +1,9 @@
-import { FusionSpeciesFormEvolution, pokemonEvolutions } from "#app/data/balance/pokemon-evolutions";
+import { pokemonEvolutions } from "#app/data/balance/pokemon-evolutions";
 import { getBerryEffectFunc, getBerryPredicate } from "#app/data/berry";
 import { getLevelTotalExp } from "#app/data/exp";
-import { allMoves } from "#app/data/all-moves";
 import { MAX_PER_TYPE_POKEBALLS } from "#app/data/pokeball";
-import {
-  SpeciesFormChangeItemTrigger,
-  SpeciesFormChangeLapseTeraTrigger,
-  SpeciesFormChangeTeraTrigger,
-} from "#app/data/pokemon-forms";
+import { SpeciesFormChangeLapseTeraTrigger, SpeciesFormChangeTeraTrigger } from "#app/data/pokemon-forms";
+import { SpeciesFormChangeItemTrigger } from "#app/data/species-form-change-triggers/species-form-change-item-trigger";
 import { type FormChangeItem } from "#enums/form-change-item";
 import { type Pokemon, type PlayerPokemon } from "#app/field/pokemon";
 import { getPokemonNameWithAffix } from "#app/messages";
@@ -16,15 +12,12 @@ import { EvolutionPhase } from "#app/phases/evolution-phase";
 import { LearnMovePhase } from "#app/phases/learn-move-phase";
 import { LearnMoveType } from "#enums/learn-move-type";
 import { LevelUpPhase } from "#app/phases/level-up-phase";
-import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
 import { achvs } from "#app/system/achv";
 import type { VoucherType } from "#enums/voucher-type";
-import { BattleCommand } from "#enums/battle-command";
 import { addTextObject } from "#app/ui/text";
 import { TextStyle } from "#enums/text-style";
 import { BooleanHolder, hslToHex, isNullOrUndefined, NumberHolder, toDmgValue } from "#app/utils";
 import { BerryType } from "#enums/berry-type";
-import type { MoveId } from "#enums/move-id";
 import type { Nature } from "#enums/nature";
 import type { PokeballType } from "#enums/pokeball";
 import { Species } from "#enums/species";
@@ -42,21 +35,18 @@ import {
   type PokemonBaseStatTotalModifierType,
   type PokemonExpBoosterModifierType,
   type PokemonFriendshipBoosterModifierType,
-  type PokemonMoveAccuracyBoosterModifierType,
-  type PokemonMultiHitModifierType,
   type TerastallizeModifierType,
   type TmModifierType,
-  getModifierType,
-  ModifierTypeGenerator,
-  modifierTypes,
-  PokemonHeldItemModifierType,
 } from "./modifier-type";
+import { getModifierType } from "#app/utils/modifier-type-utils";
+import { modifierTypes } from "./modifier-types";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
-import { Color, ShadowColor } from "#enums/color";
+import { CommonColor, ShadowColor } from "#enums/color";
 import { FRIENDSHIP_GAIN_FROM_RARE_CANDY } from "#app/data/balance/starters";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
-import { CommanderAbAttr } from "#app/data/ab-attrs/commander-ab-attr";
 import { globalScene } from "#app/global-scene";
+import { BattlerTagType } from "#enums/battler-tag-type";
+import { AbAttrFlag } from "#enums/ab-attr-flag";
 import { globalPhaseManager } from "#app/global-phase-manager";
 
 const iconOverflowIndex = 24;
@@ -230,10 +220,6 @@ export abstract class Modifier {
     return false;
   }
 
-  isPokemonMultiHitModifier(): this is PokemonMultiHitModifier {
-    return false;
-  }
-
   isLapsingPokemonHeldItemModifier(): this is LapsingPokemonHeldItemModifier {
     return false;
   }
@@ -251,6 +237,26 @@ export abstract class Modifier {
   }
 
   isHealShopCostModifier(): this is HealShopCostModifier {
+    return false;
+  }
+
+  isDamageMoneyRewardModifier(): this is DamageMoneyRewardModifier {
+    return false;
+  }
+
+  isMoneyMultiplierModifier(): this is MoneyMultiplierModifier {
+    return false;
+  }
+
+  isExtraModifierModifier(): this is ExtraModifierModifier {
+    return false;
+  }
+
+  isTempExtraModifierModifier(): this is TempExtraModifierModifier {
+    return false;
+  }
+
+  isTurnHeldItemTransferModifier(): this is TurnHeldItemTransferModifier {
     return false;
   }
 }
@@ -891,10 +897,10 @@ export abstract class LapsingPokemonHeldItemModifier extends PokemonHeldItemModi
     if (this.getPokemon()?.isPlayer()) {
       const battleCountText = addTextObject(27, 0, this.battlesLeft.toString(), TextStyle.PARTY, {
         fontSize: "66px",
-        color: Color.PINK,
+        color: CommonColor.SOFT_PINK,
       });
       battleCountText.setShadow(0, 0);
-      battleCountText.setStroke(ShadowColor.RED, 16);
+      battleCountText.setStroke(ShadowColor.DEEP_RED, 16);
       battleCountText.setOrigin(1, 0);
       container.add(battleCountText);
     }
@@ -1421,26 +1427,15 @@ export class EvolutionStatBoosterModifier extends StatBoosterModifier {
   }
 
   /**
-   * Boosts the incoming stat value by a {@linkcode EvolutionStatBoosterModifier.multiplier} if the holder
-   * can evolve. Note that, if the holder is a fusion, they will receive
-   * only half of the boost if either of the fused members are fully
-   * evolved. However, if they are both unevolved, the full boost
-   * will apply.
+   * Boosts the incoming stat value by a {@linkcode EvolutionStatBoosterModifier.multiplier} if the holder can evolve.
    * @param pokemon {@linkcode Pokemon} that holds the item
-   * @param _stat {@linkcode Stat} The {@linkcode Stat} to be boosted
-   * @param statValue{@linkcode NumberHolder} that holds the resulting value of the stat
+   * @param stat {@linkcode Stat} The {@linkcode Stat} to be boosted
+   * @param statValue {@linkcode NumberHolder} that holds the resulting value of the stat
    * @returns `true` if the stat boost applies successfully, false otherwise
    * @see shouldApply
    */
   override apply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
-    const isUnevolved = pokemon.getSpeciesForm(true).speciesId in pokemonEvolutions;
-
-    if (pokemon.isFusion() && pokemon.getFusionSpeciesForm(true).speciesId in pokemonEvolutions !== isUnevolved) {
-      // Half boost applied if pokemon is fused and either part of fusion is fully evolved
-      statValue.value *= 1 + (this.multiplier - 1) / 2;
-      return true;
-    } else if (isUnevolved) {
-      // Full boost applied if holder is unfused and unevolved or, if fused, both parts of fusion are unevolved
+    if (pokemon.getSpeciesForm(true).speciesId in pokemonEvolutions) {
       return super.apply(pokemon, stat, statValue);
     }
 
@@ -1498,19 +1493,14 @@ export class SpeciesStatBoosterModifier extends StatBoosterModifier {
   }
 
   /**
-   * Checks if the incoming stat is listed in {@linkcode stats} and if the holder's {@linkcode Species}
-   * (or its fused species) is listed in {@linkcode species}.
+   * Checks if the incoming stat is listed in {@linkcode stats} and if the holder's {@linkcode Species}.
    * @param pokemon {@linkcode Pokemon} that holds the item
    * @param stat {@linkcode Stat} being checked at the time
    * @param statValue {@linkcode NumberHolder} that holds the resulting value of the stat
    * @returns `true` if the stat could be boosted, false otherwise
    */
   override shouldApply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
-    return (
-      super.shouldApply(pokemon, stat, statValue)
-      && (this.species.includes(pokemon.getSpeciesForm(true).speciesId)
-        || (pokemon.isFusion() && this.species.includes(pokemon.getFusionSpeciesForm(true).speciesId)))
-    );
+    return super.shouldApply(pokemon, stat, statValue) && this.species.includes(pokemon.getSpeciesForm(true).speciesId);
   }
 
   /**
@@ -1521,103 +1511,6 @@ export class SpeciesStatBoosterModifier extends StatBoosterModifier {
    */
   contains(speciesId: Species, stat: Stat): boolean {
     return this.species.includes(speciesId) && this.stats.includes(stat);
-  }
-}
-
-/**
- * Modifier used for held items that apply critical-hit stage boost(s).
- * @extends PokemonHeldItemModifier
- * @see {@linkcode apply}
- */
-export class CritBoosterModifier extends PokemonHeldItemModifier {
-  /** The amount of stages by which the held item increases the current critical-hit stage value */
-  protected stageIncrement: number;
-
-  constructor(type: ModifierType, pokemonId: number, stageIncrement: number, stackCount?: number) {
-    super(type, pokemonId, stackCount);
-
-    this.stageIncrement = stageIncrement;
-  }
-
-  clone() {
-    return new CritBoosterModifier(this.type, this.pokemonId, this.stageIncrement, this.stackCount);
-  }
-
-  override getArgs(): any[] {
-    return super.getArgs().concat(this.stageIncrement);
-  }
-
-  matchType(modifier: Modifier): boolean {
-    if (modifier instanceof CritBoosterModifier) {
-      return (modifier as CritBoosterModifier).stageIncrement === this.stageIncrement;
-    }
-
-    return false;
-  }
-
-  /**
-   * Increases the current critical-hit stage value by {@linkcode stageIncrement}.
-   * @param _pokemon {@linkcode Pokemon} N/A
-   * @param critStage {@linkcode NumberHolder} that holds the resulting critical-hit level
-   * @returns always `true`
-   */
-  override apply(_pokemon: Pokemon, critStage: NumberHolder): boolean {
-    critStage.value += this.stageIncrement;
-    return true;
-  }
-
-  getMaxHeldItemCount(_pokemon: Pokemon): number {
-    return 1;
-  }
-}
-
-/**
- * Modifier used for held items that apply critical-hit stage boost(s)
- * if the holder is of a specific {@linkcode Species}.
- * @extends CritBoosterModifier
- * @see {@linkcode shouldApply}
- */
-export class SpeciesCritBoosterModifier extends CritBoosterModifier {
-  /** The species that the held item's critical-hit stage boost applies to */
-  private species: Species[];
-
-  constructor(type: ModifierType, pokemonId: number, stageIncrement: number, species: Species[], stackCount?: number) {
-    super(type, pokemonId, stageIncrement, stackCount);
-
-    this.species = species;
-  }
-
-  override clone() {
-    return new SpeciesCritBoosterModifier(
-      this.type,
-      this.pokemonId,
-      this.stageIncrement,
-      this.species,
-      this.stackCount,
-    );
-  }
-
-  override getArgs(): any[] {
-    return [...super.getArgs(), this.species];
-  }
-
-  override matchType(modifier: Modifier): boolean {
-    return modifier instanceof SpeciesCritBoosterModifier;
-  }
-
-  /**
-   * Checks if the holder's {@linkcode Species} (or its fused species) is listed
-   * in {@linkcode species}.
-   * @param pokemon {@linkcode Pokemon} that holds the held item
-   * @param critStage {@linkcode NumberHolder} that holds the resulting critical-hit level
-   * @returns `true` if the critical-hit level can be incremented, false otherwise
-   */
-  override shouldApply(pokemon: Pokemon, critStage: NumberHolder): boolean {
-    return (
-      super.shouldApply(pokemon, critStage)
-      && (this.species.includes(pokemon.getSpeciesForm(true).speciesId)
-        || (pokemon.isFusion() && this.species.includes(pokemon.getFusionSpeciesForm(true).speciesId)))
-    );
   }
 }
 
@@ -1778,29 +1671,15 @@ export class BypassSpeedChanceModifier extends PokemonHeldItemModifier {
   }
 
   /**
-   * Checks if {@linkcode BypassSpeedChanceModifier} should be applied
-   * @param pokemon the {@linkcode Pokemon} that holds the item
-   * @param doBypassSpeed {@linkcode BooleanHolder} that is `true` if speed should be bypassed
-   * @returns `true` if {@linkcode BypassSpeedChanceModifier} should be applied
-   */
-  override shouldApply(pokemon?: Pokemon, doBypassSpeed?: BooleanHolder): boolean {
-    return super.shouldApply(pokemon, doBypassSpeed) && !!doBypassSpeed;
-  }
-
-  /**
    * Applies {@linkcode BypassSpeedChanceModifier}
    * @param pokemon the {@linkcode Pokemon} that holds the item
-   * @param doBypassSpeed {@linkcode BooleanHolder} that is `true` if speed should be bypassed
    * @returns `true` if {@linkcode BypassSpeedChanceModifier} has been applied
    */
-  override apply(pokemon: Pokemon, doBypassSpeed: BooleanHolder): boolean {
-    if (!doBypassSpeed.value && pokemon.randSeedInt(10) < this.getStackCount()) {
-      doBypassSpeed.value = true;
-      const isCommandFight =
-        globalScene.currentBattle.turnCommands[pokemon.getBattlerIndex()]?.command === BattleCommand.FIGHT;
-      const hasQuickClaw = this.type instanceof PokemonHeldItemModifierType && this.type.id === "QUICK_CLAW";
+  override apply(pokemon: Pokemon): boolean {
+    if (pokemon.randSeedInt(10) < this.getStackCount() && pokemon.addTag(BattlerTagType.BYPASS_SPEED)) {
+      const hasQuickClaw = this.type.isPokemonHeldItemModifierType() && this.type.id === "QUICK_CLAW";
 
-      if (isCommandFight && hasQuickClaw) {
+      if (hasQuickClaw) {
         globalScene.queueMessage(
           i18next.t("modifier:bypassSpeedChanceApply", {
             pokemonName: getPokemonNameWithAffix(pokemon),
@@ -1890,8 +1769,8 @@ export class TurnHealModifier extends PokemonHeldItemModifier {
    */
   override apply(pokemon: Pokemon): boolean {
     if (!pokemon.isFullHp()) {
-      globalPhaseManager.unshiftPhase(
-        PokemonHealPhase,
+      globalScene.queuePokemonHeal(
+        true,
         pokemon.getBattlerIndex(),
         toDmgValue(pokemon.getMaxHp() / 16) * this.stackCount,
         {
@@ -1995,8 +1874,8 @@ export class HitHealModifier extends PokemonHeldItemModifier {
    */
   override apply(pokemon: Pokemon): boolean {
     if (pokemon.turnData.totalDamageDealt && !pokemon.isFullHp()) {
-      globalPhaseManager.unshiftPhase(
-        PokemonHealPhase,
+      globalScene.queuePokemonHeal(
+        true,
         pokemon.getBattlerIndex(),
         toDmgValue(pokemon.turnData.totalDamageDealt / 8) * this.stackCount,
         {
@@ -2185,7 +2064,7 @@ export class PokemonInstantReviveModifier extends PokemonHeldItemModifier {
    */
   override apply(pokemon: Pokemon): boolean {
     // Restore the Pokemon to half HP
-    globalPhaseManager.unshiftPhase(PokemonHealPhase, pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 2), {
+    globalScene.queuePokemonHeal(true, pokemon.getBattlerIndex(), toDmgValue(pokemon.getMaxHp() / 2), {
       message: i18next.t("modifier:pokemonInstantReviveApply", {
         pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
         typeName: this.type.name,
@@ -2194,12 +2073,12 @@ export class PokemonInstantReviveModifier extends PokemonHeldItemModifier {
       revive: true,
     });
 
-    // Remove the Pokemon's FAINT status
-    pokemon.resetStatus(true, false, true);
+    // Remove any status the Pokemon had before fainting
+    pokemon.resetStatus(false, true);
 
     // Reapply Commander on the Pokemon's side of the field, if applicable
     const field = pokemon.getField();
-    field.forEach((p) => applyAbAttrs(CommanderAbAttr, p, false));
+    field.forEach((p) => applyAbAttrs(AbAttrFlag.COMMANDER, p, false));
     return true;
   }
 
@@ -2338,7 +2217,7 @@ export class PokemonHpRestoreModifier extends ConsumablePokemonModifier {
         restorePoints = Math.floor(restorePoints * multiplier);
       }
       if (this.fainted || this.healStatus) {
-        pokemon.resetStatus(true, true);
+        pokemon.resetStatus(true);
       }
       pokemon.hp = Math.min(
         pokemon.hp
@@ -2365,7 +2244,7 @@ export class PokemonStatusHealModifier extends ConsumablePokemonModifier {
    * @returns always `true`
    */
   override apply(playerPokemon: PlayerPokemon): boolean {
-    playerPokemon.resetStatus(true, true);
+    playerPokemon.resetStatus(true);
     return true;
   }
 }
@@ -2574,7 +2453,7 @@ export class EvolutionItemModifier extends ConsumablePokemonModifier {
    * @returns `true` if the evolution was successful
    */
   override apply(playerPokemon: PlayerPokemon): boolean {
-    let matchingEvolution = pokemonEvolutions.hasOwnProperty(playerPokemon.species.speciesId)
+    const matchingEvolution = pokemonEvolutions.hasOwnProperty(playerPokemon.species.speciesId)
       ? pokemonEvolutions[playerPokemon.species.speciesId].find(
           (e) =>
             e.item === this.type.evolutionItem
@@ -2583,57 +2462,12 @@ export class EvolutionItemModifier extends ConsumablePokemonModifier {
         )
       : null;
 
-    if (!matchingEvolution && playerPokemon.isFusion()) {
-      matchingEvolution = pokemonEvolutions[playerPokemon.fusionSpecies!.speciesId].find(
-        (e) =>
-          e.item === this.type.evolutionItem // TODO: is the bang correct?
-          && (e.evoFormKey === null || (e.preFormKey || "") === playerPokemon.getFusionFormKey())
-          && (!e.condition || e.condition.predicate(playerPokemon)),
-      );
-      if (matchingEvolution) {
-        matchingEvolution = new FusionSpeciesFormEvolution(playerPokemon.species.speciesId, matchingEvolution);
-      }
-    }
-
     if (matchingEvolution) {
       globalPhaseManager.unshiftPhase(EvolutionPhase, playerPokemon, matchingEvolution, playerPokemon.level - 1);
       return true;
     }
 
     return false;
-  }
-}
-
-export class FusePokemonModifier extends ConsumablePokemonModifier {
-  public fusePokemonId: number;
-
-  constructor(type: ModifierType, pokemonId: number, fusePokemonId: number) {
-    super(type, pokemonId);
-
-    this.fusePokemonId = fusePokemonId;
-  }
-
-  /**
-   * Checks if {@linkcode FusePokemonModifier} should be applied
-   * @param playerPokemon {@linkcode PlayerPokemon} that should be fused
-   * @param playerPokemon2 {@linkcode PlayerPokemon} that should be fused with {@linkcode playerPokemon}
-   * @returns `true` if {@linkcode FusePokemonModifier} should be applied
-   */
-  override shouldApply(playerPokemon?: PlayerPokemon, playerPokemon2?: PlayerPokemon): boolean {
-    return (
-      super.shouldApply(playerPokemon, playerPokemon2) && !!playerPokemon2 && this.fusePokemonId === playerPokemon2.id
-    );
-  }
-
-  /**
-   * Applies {@linkcode FusePokemonModifier}
-   * @param playerPokemon {@linkcode PlayerPokemon} that should be fused
-   * @param playerPokemon2 {@linkcode PlayerPokemon} that should be fused with {@linkcode playerPokemon}
-   * @returns always Promise<true>
-   */
-  override apply(playerPokemon: PlayerPokemon, playerPokemon2: PlayerPokemon): boolean {
-    playerPokemon.fuse(playerPokemon2);
-    return true;
   }
 }
 
@@ -2911,145 +2745,6 @@ export class PokemonNatureWeightModifier extends PokemonHeldItemModifier {
   }
 }
 
-export class PokemonMoveAccuracyBoosterModifier extends PokemonHeldItemModifier {
-  public override type: PokemonMoveAccuracyBoosterModifierType;
-  private accuracyAmount: number;
-
-  constructor(type: PokemonMoveAccuracyBoosterModifierType, pokemonId: number, accuracy: number, stackCount?: number) {
-    super(type, pokemonId, stackCount);
-    this.accuracyAmount = accuracy;
-  }
-
-  matchType(modifier: Modifier): boolean {
-    if (modifier instanceof PokemonMoveAccuracyBoosterModifier) {
-      const pokemonAccuracyBoosterModifier = modifier as PokemonMoveAccuracyBoosterModifier;
-      return pokemonAccuracyBoosterModifier.accuracyAmount === this.accuracyAmount;
-    }
-    return false;
-  }
-
-  clone(): PersistentModifier {
-    return new PokemonMoveAccuracyBoosterModifier(this.type, this.pokemonId, this.accuracyAmount, this.stackCount);
-  }
-
-  override getArgs(): any[] {
-    return super.getArgs().concat(this.accuracyAmount);
-  }
-
-  /**
-   * Checks if {@linkcode PokemonMoveAccuracyBoosterModifier} should be applied
-   * @param pokemon The {@linkcode Pokemon} to apply the move accuracy boost to
-   * @param moveAccuracy {@linkcode NumberHolder} holding the move accuracy boost
-   * @returns `true` if {@linkcode PokemonMoveAccuracyBoosterModifier} should be applied
-   */
-  override shouldApply(pokemon?: Pokemon, moveAccuracy?: NumberHolder): boolean {
-    return super.shouldApply(pokemon, moveAccuracy) && !!moveAccuracy;
-  }
-
-  /**
-   * Applies {@linkcode PokemonMoveAccuracyBoosterModifier}
-   * @param _pokemon The {@linkcode Pokemon} to apply the move accuracy boost to
-   * @param moveAccuracy {@linkcode NumberHolder} holding the move accuracy boost
-   * @returns always `true`
-   */
-  override apply(_pokemon: Pokemon, moveAccuracy: NumberHolder): boolean {
-    moveAccuracy.value = Math.min(moveAccuracy.value + this.accuracyAmount * this.getStackCount(), 100);
-
-    return true;
-  }
-
-  getMaxHeldItemCount(_pokemon: Pokemon): number {
-    return 3;
-  }
-}
-
-export class PokemonMultiHitModifier extends PokemonHeldItemModifier {
-  public override type: PokemonMultiHitModifierType;
-
-  constructor(type: PokemonMultiHitModifierType, pokemonId: number, stackCount?: number) {
-    super(type, pokemonId, stackCount);
-  }
-
-  matchType(modifier: Modifier): boolean {
-    return modifier.isPokemonMultiHitModifier();
-  }
-
-  clone(): PersistentModifier {
-    return new PokemonMultiHitModifier(this.type, this.pokemonId, this.stackCount);
-  }
-
-  /**
-   * For each stack, converts 25 percent of attack damage into an additional strike.
-   * @param pokemon The {@linkcode Pokemon} using the move
-   * @param moveId The {@linkcode MoveId | identifier} for the move being used
-   * @param count {@linkcode NumberHolder} holding the move's hit count for this turn
-   * @param damageMultiplier {@linkcode NumberHolder} holding a damage multiplier applied to a strike of this move
-   * @returns always `true`
-   */
-  override apply(
-    pokemon: Pokemon,
-    moveId: MoveId,
-    count: NumberHolder | null = null,
-    damageMultiplier: NumberHolder | null = null,
-  ): boolean {
-    const move = allMoves[moveId];
-    /**
-     * The move must meet Parental Bond's restrictions for this item
-     * to apply. This means
-     * - Only attacks are boosted
-     * - Multi-strike moves, charge moves, and self-sacrificial moves are not boosted
-     *   (though Multi-Lens can still affect moves boosted by Parental Bond)
-     * - Multi-target moves are not boosted *unless* they can only hit a single Pokemon
-     * - Fling, Uproar, Rollout, Ice Ball, and Endeavor are not boosted
-     */
-    if (!move.canBeMultiStrikeEnhanced(pokemon)) {
-      return false;
-    }
-
-    if (!isNullOrUndefined(count)) {
-      return this.applyHitCountBoost(count);
-    } else if (!isNullOrUndefined(damageMultiplier)) {
-      return this.applyDamageModifier(pokemon, damageMultiplier);
-    }
-
-    return false;
-  }
-
-  /** Adds strikes to a move equal to the number of stacked Multi-Lenses */
-  private applyHitCountBoost(count: NumberHolder): boolean {
-    count.value += this.getStackCount();
-    return true;
-  }
-
-  /**
-   * If applied to the first hit of a move, sets the damage multiplier
-   * equal to (1 - the number of stacked Multi-Lenses).
-   * Additional strikes beyond that are given a 0.25x damage multiplier
-   */
-  private applyDamageModifier(pokemon: Pokemon, damageMultiplier: NumberHolder): boolean {
-    if (pokemon.turnData.hitsLeft === pokemon.turnData.hitCount) {
-      // Reduce first hit by 25% for each stack count
-      damageMultiplier.value *= 1 - 0.25 * this.getStackCount();
-      return true;
-    } else if (pokemon.turnData.hitCount - pokemon.turnData.hitsLeft !== this.getStackCount() + 1) {
-      // Deal 25% damage for each remaining Multi Lens hit
-      damageMultiplier.value *= 0.25;
-      return true;
-    } else {
-      // An extra hit not caused by Multi Lens -- assume it is Parental Bond
-      return false;
-    }
-  }
-
-  getMaxHeldItemCount(_pokemon: Pokemon): number {
-    return 2;
-  }
-
-  override isPokemonMultiHitModifier(): this is this {
-    return true;
-  }
-}
-
 export class PokemonFormChangeItemModifier extends PokemonHeldItemModifier {
   public override type: FormChangeItemModifierType;
   public formChangeItem: FormChangeItem;
@@ -3138,7 +2833,7 @@ export class MoneyRewardModifier extends ConsumableModifier {
     globalScene.addMoney(moneyAmount.value);
 
     globalScene.getPlayerParty().map((p) => {
-      if (p.species?.speciesId === Species.GIMMIGHOUL || p.fusionSpecies?.speciesId === Species.GIMMIGHOUL) {
+      if (p.species?.speciesId === Species.GIMMIGHOUL) {
         p.evoCounter
           ? (p.evoCounter += Math.min(Math.floor(this.moneyMultiplier), 3))
           : (p.evoCounter = Math.min(Math.floor(this.moneyMultiplier), 3));
@@ -3180,6 +2875,10 @@ export class MoneyMultiplierModifier extends PersistentModifier {
   getMaxStackCount(): number {
     return 5;
   }
+
+  override isMoneyMultiplierModifier(): this is this {
+    return true;
+  }
 }
 
 export class DamageMoneyRewardModifier extends PokemonHeldItemModifier {
@@ -3211,6 +2910,10 @@ export class DamageMoneyRewardModifier extends PokemonHeldItemModifier {
 
   getMaxHeldItemCount(_pokemon: Pokemon): number {
     return 5;
+  }
+
+  override isDamageMoneyRewardModifier(): this is this {
+    return true;
   }
 }
 
@@ -3601,6 +3304,10 @@ export class TurnHeldItemTransferModifier extends HeldItemTransferModifier {
   setTransferrableFalse(): void {
     this.isTransferable = false;
   }
+
+  override isTurnHeldItemTransferModifier(): this is this {
+    return true;
+  }
 }
 
 /**
@@ -3711,6 +3418,10 @@ export class ExtraModifierModifier extends PersistentModifier {
   getMaxStackCount(): number {
     return 3;
   }
+
+  override isExtraModifierModifier(): this is this {
+    return true;
+  }
 }
 
 /**
@@ -3764,6 +3475,10 @@ export class TempExtraModifierModifier extends LapsingPersistentModifier {
     count.value += this.getStackCount();
     return true;
   }
+
+  override isTempExtraModifierModifier(): this is this {
+    return true;
+  }
 }
 
 /**
@@ -3789,7 +3504,7 @@ export function overrideModifiers(isPlayer: boolean = true): void {
     const modifierFunc = modifierTypes[item.name];
     let modifierType: ModifierType | null = modifierFunc();
 
-    if (modifierType instanceof ModifierTypeGenerator) {
+    if (modifierType?.isModifierTypeGenerator()) {
       const pregenArgs = "type" in item && item.type !== null ? [item.type] : undefined;
       modifierType = modifierType.generateType([], pregenArgs);
     }
@@ -3831,7 +3546,7 @@ export function overrideHeldItems(pokemon: Pokemon, isPlayer: boolean = true): v
     let modifierType: ModifierType | null = modifierFunc();
     const qty = item.count || 1;
 
-    if (modifierType instanceof ModifierTypeGenerator) {
+    if (modifierType?.isModifierTypeGenerator()) {
       const pregenArgs = "type" in item && item.type !== null ? [item.type] : undefined;
       modifierType = modifierType.generateType([], pregenArgs);
     }

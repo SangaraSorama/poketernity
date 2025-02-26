@@ -27,7 +27,7 @@ import {
   MoneyMultiplierModifier,
 } from "#app/modifier/modifier";
 import type { PokemonHeldItemModifierType } from "#app/modifier/modifier-type";
-import { modifierTypes } from "#app/modifier/modifier-type";
+import { modifierTypes } from "#app/modifier/modifier-types";
 import { ModifierRewardPhase } from "#app/phases/modifier-reward-phase";
 import i18next from "#app/plugins/i18n";
 import type { OptionSelectItem } from "#app/ui/interfaces/option-select-config";
@@ -43,7 +43,7 @@ const namespace = "mysteryEncounters/delibirdy";
 /** Berries only */
 const OPTION_2_ALLOWED_MODIFIERS = ["BerryModifier", "PokemonInstantReviveModifier"];
 
-/** Disallowed items are berries, Reviver Seeds, and Vitamins (form change items and fusion items are not PokemonHeldItemModifiers) */
+/** Disallowed items are berries, Reviver Seeds, Vitamins, and non-transferable held items (checked elsewhere) */
 const OPTION_3_DISALLOWED_MODIFIERS = [
   "BerryModifier",
   "PokemonInstantReviveModifier",
@@ -119,11 +119,11 @@ export const DelibirdyEncounter: MysteryEncounter = MysteryEncounterBuilder.with
     const encounter = globalScene.currentBattle.mysteryEncounter!;
     encounter.setDialogueToken("delibirdName", getPokemonSpecies(Species.DELIBIRD).getName());
 
-    globalScene.loadBgm("mystery_encounter_delibirdy", "mystery_encounter_delibirdy.mp3");
+    globalScene.loadBgm("mystery_encounter_fun_and_games", "mystery_encounter_fun_and_games.mp3");
     return true;
   })
   .withOnVisualsStart(() => {
-    globalScene.fadeAndSwitchBgm("mystery_encounter_delibirdy");
+    globalScene.fadeAndSwitchBgm("mystery_encounter_fun_and_games");
     return true;
   })
   .withOption(

@@ -1,14 +1,18 @@
-import { SubstituteTag } from "#app/data/battler-tags";
-import type { Pokemon } from "#app/field/pokemon";
+import { type SubstituteTag } from "#app/data/battler-tags";
+import { type Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import type { PhaseManager } from "#app/phase-manager";
 import { BattlePhase } from "#app/phases/abstract-battle-phase";
 import { isNullOrUndefined } from "#app/utils";
+import { BattlerTagType } from "#enums/battler-tag-type";
+import { PhaseId } from "#enums/phase-id";
 import { PokemonAnimType } from "#enums/pokemon-anim-type";
 import { Species } from "#enums/species";
 
 // TODO: This should probably be made into an abstract base class
 export class PokemonAnimPhase extends BattlePhase {
+  override readonly id = PhaseId.POKEMON_ANIM;
+
   /** The type of animation to play in this phase */
   protected readonly key: PokemonAnimType;
   /** The Pokemon to which this animation applies */
@@ -59,7 +63,7 @@ export class PokemonAnimPhase extends BattlePhase {
   private doSubstituteAddAnim(): void {
     const { field, tweens } = globalScene;
 
-    const substitute = this.pokemon.getTag(SubstituteTag);
+    const substitute = this.pokemon.getTag<SubstituteTag>(BattlerTagType.SUBSTITUTE);
     if (isNullOrUndefined(substitute)) {
       return this.end();
     }
@@ -276,9 +280,7 @@ export class PokemonAnimPhase extends BattlePhase {
         this.pokemon.getSprite()!.frame.name,
         true,
       );
-      ["spriteColors", "fusionSpriteColors"].map(
-        (k) => (sprite.pipelineData[k] = this.pokemon.getSprite().pipelineData[k]),
-      );
+      sprite.pipelineData["spriteColors"] = this.pokemon.getSprite().pipelineData["spriteColors"];
       sprite.setPipelineData("spriteKey", this.pokemon.getBattleSpriteKey());
       sprite.setPipelineData("ignoreFieldPos", true);
       sprite.setOrigin(0.5, 1);
@@ -347,10 +349,7 @@ export class PokemonAnimPhase extends BattlePhase {
       true,
     );
 
-    ["spriteColors", "fusionSpriteColors"].map(
-      (k) => (tatsuSprite.pipelineData[k] = tatsugiri.getSprite().pipelineData[k]),
-    );
-
+    tatsuSprite.pipelineData["spriteColors"] = tatsugiri.getSprite().pipelineData["spriteColors"];
     tatsuSprite.setPipelineData("spriteKey", tatsugiri.getBattleSpriteKey());
     tatsuSprite.setPipelineData("ignoreFieldPos", true);
     this.pokemon.getSprite().on("animationupdate", (_anim, frame) => tatsuSprite.setFrame(frame.textureFrame));

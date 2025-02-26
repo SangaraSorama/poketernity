@@ -1,7 +1,6 @@
 import type { Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
-import type { MovePhase } from "#app/phases/move-phase";
 import type { BooleanHolder } from "#app/utils";
 import i18next from "i18next";
 import type { Move } from "#app/data/move";
@@ -26,34 +25,30 @@ export class AwaitCombinedPledgeAttr extends OverrideMoveEffectAttr {
       return false;
     }
 
-    const allyMovePhase = globalPhaseManager.findPhase<MovePhase>(
-      (phase) => phase.isMovePhase() && phase.pokemon.isPlayer() === user.isPlayer(),
-    );
-    if (allyMovePhase) {
-      const allyMove = allyMovePhase.move.getMove();
-      if (allyMove !== move && allyMove.hasAttr(AwaitCombinedPledgeAttr)) {
-        [user, allyMovePhase.pokemon].forEach((p) => (p.turnData.combiningPledge = move.id));
+    const { turnManager } = globalScene.currentBattle;
 
-        // "{userPokemonName} is waiting for {allyPokemonName}'s move..."
-        globalScene.queueMessage(
-          i18next.t("moveTriggers:awaitingPledge", {
-            userPokemonName: getPokemonNameWithAffix(user),
-            allyPokemonName: getPokemonNameWithAffix(allyMovePhase.pokemon),
-          }),
-        );
-
-        // Move the ally's MovePhase (if needed) so that the ally moves next
-        const allyMovePhaseIndex = globalScene.phaseQueue.indexOf(allyMovePhase);
-        const firstMovePhaseIndex = globalScene.phaseQueue.findIndex((phase) => phase.isMovePhase());
-        if (allyMovePhaseIndex > firstMovePhaseIndex) {
-          globalPhaseManager.phaseQueue.splice(allyMovePhaseIndex, 1);
-          globalPhaseManager.phaseQueue.splice(firstMovePhaseIndex, 0, allyMovePhase);
-        }
-
-        overridden.value = true;
-        return true;
+    const ret = turnManager.preemptFightCommand((tc) => {
+      const { pokemon, turnMove } = tc;
+      if (!turnMove || pokemon.isPlayer() !== user.isPlayer()) {
+        return false;
       }
+      const allyMove = turnMove.move;
+      return allyMove !== move && allyMove.hasAttr(AwaitCombinedPledgeAttr);
+    });
+
+    if (ret) {
+      const ally = user.getAlly();
+      // "{userPokemonName} is waiting for {allyPokemonName}'s move..."
+      globalScene.queueMessage(
+        i18next.t("moveTriggers:awaitingPledge", {
+          userPokemonName: getPokemonNameWithAffix(user),
+          allyPokemonName: getPokemonNameWithAffix(ally),
+        }),
+      );
+      ally.turnData.combiningPledge = move.id;
+      overridden.value = true;
     }
-    return false;
+
+    return ret;
   }
 }

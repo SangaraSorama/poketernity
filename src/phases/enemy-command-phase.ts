@@ -3,12 +3,12 @@
 import type { EnemyPokemon, Pokemon } from "#app/field/pokemon";
 // -- end tsdoc imports --
 
-import { BattlerIndex } from "#enums/battler-index";
 import { globalScene } from "#app/global-scene";
 import { BattleCommand } from "#enums/battle-command";
 import { Abilities } from "#enums/abilities";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { FieldPhase } from "./abstract-field-phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -24,20 +24,22 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends FieldPhase
  */
 export class EnemyCommandPhase extends FieldPhase {
+  override readonly id = PhaseId.ENEMY_COMMAND;
+
   protected readonly fieldIndex: number;
-  protected skipTurn: boolean = false;
 
   constructor(manager: PhaseManager, fieldIndex: number) {
     super(manager);
 
     this.fieldIndex = fieldIndex;
-    if (globalScene.currentBattle.mysteryEncounter?.skipEnemyBattleTurns) {
-      this.skipTurn = true;
-    }
   }
 
   public override start(): void {
     super.start();
+
+    if (globalScene.currentBattle.mysteryEncounter?.skipEnemyBattleTurns) {
+      return this.end();
+    }
 
     const enemyPokemon = globalScene.getEnemyField()[this.fieldIndex];
 
@@ -50,7 +52,7 @@ export class EnemyCommandPhase extends FieldPhase {
       && enemyPokemon.hasAbility(Abilities.COMMANDER)
       && enemyPokemon.getAlly().getTag(BattlerTagType.COMMANDED)
     ) {
-      this.skipTurn = true;
+      return this.end();
     }
 
     /**
@@ -79,12 +81,12 @@ export class EnemyCommandPhase extends FieldPhase {
           if (sortedPartyMemberScores[0][1] * switchMultiplier >= matchupScore * (trainer.config.isBoss ? 2 : 3)) {
             const index = trainer.getNextSummonIndex(enemyPokemon.trainerSlot, partyMemberScores);
 
-            battle.turnCommands[this.fieldIndex + BattlerIndex.ENEMY] = {
+            battle.turnManager.addCommand({
+              pokemon: enemyPokemon,
               command: BattleCommand.POKEMON,
               cursor: index,
               args: [false],
-              skip: this.skipTurn,
-            };
+            });
 
             battle.enemySwitchCounter++;
 
@@ -97,11 +99,11 @@ export class EnemyCommandPhase extends FieldPhase {
     /** Select a move to use (and a target to use it against, if applicable) */
     const nextMove = enemyPokemon.getNextMove();
 
-    battle.turnCommands[this.fieldIndex + BattlerIndex.ENEMY] = {
+    battle.turnManager.addCommand({
+      pokemon: enemyPokemon,
       command: BattleCommand.FIGHT,
-      move: nextMove,
-      skip: this.skipTurn,
-    };
+      turnMove: nextMove,
+    });
 
     battle.enemySwitchCounter = Math.max(battle.enemySwitchCounter - 1, 0);
 

@@ -1,5 +1,5 @@
 import type { BattlerIndex } from "#enums/battler-index";
-import { CommonBattleAnim } from "#app/data/battle-anims";
+import { CommonBattleAnim } from "#app/data/battle-anims/common-battle-anim";
 import { CommonAnim } from "#enums/common-anim";
 import { getStatusEffectObtainText, getStatusEffectOverlapText } from "#app/data/status-effect";
 import type { Pokemon } from "#app/field/pokemon";
@@ -7,6 +7,7 @@ import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { StatusEffect } from "#enums/status-effect";
 import { PokemonPhase } from "./abstract-pokemon-phase";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 /**
@@ -14,6 +15,8 @@ import type { PhaseManager } from "#app/phase-manager";
  * @extends PokemonPhase
  */
 export class ObtainStatusEffectPhase extends PokemonPhase {
+  override readonly id = PhaseId.OBTAIN_STATUS_EFFECT;
+
   private readonly statusEffect: StatusEffect;
   private readonly turnsRemaining?: number;
   private readonly sourceText?: string | null;
@@ -51,7 +54,7 @@ export class ObtainStatusEffectPhase extends PokemonPhase {
         });
         return;
       }
-    } else if (pokemon.status?.effect === this.statusEffect) {
+    } else if (pokemon.getStatusEffect(true) === this.statusEffect) {
       globalScene.queueMessage(
         getStatusEffectOverlapText(this.statusEffect ?? StatusEffect.NONE, getPokemonNameWithAffix(pokemon)),
       );

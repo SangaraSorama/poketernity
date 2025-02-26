@@ -8,7 +8,7 @@ export class SpeedBoostAbAttr extends PostTurnAbAttr {
   override apply(pokemon: Pokemon, simulated: boolean): boolean {
     if (!simulated) {
       if (!pokemon.turnData.switchedInThisTurn && !pokemon.turnData.failedRunAway) {
-        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), true, [Stat.SPD], 1);
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), pokemon, [Stat.SPD], 1);
       } else {
         return false;
       }

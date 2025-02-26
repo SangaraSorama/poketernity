@@ -1,19 +1,21 @@
-import { applyChallenges } from "#app/data/challenge";
+import { applyChallenges } from "#app/utils/challenge-utils";
 import { ChallengeType } from "#enums/challenge-type";
-import { SpeciesFormChangeMoveLearnedTrigger } from "#app/data/pokemon-forms";
+import { SpeciesFormChangeMoveLearnedTrigger } from "#app/data/species-form-change-triggers/species-form-change-move-learned-trigger";
 import { getPokemonSpecies } from "#app/utils/pokemon-species-utils";
 import { globalScene } from "#app/global-scene";
 import { overrideHeldItems, overrideModifiers } from "#app/modifier/modifier";
 import Overrides from "#app/overrides";
 import { Phase } from "#app/phase";
-import { TitlePhase } from "#app/phases/title-phase";
 import { SaveSlotUiMode } from "#enums/save-slot-ui-mode";
 import type { Starter } from "#app/ui/starter-select-ui-handler";
 import { UiMode } from "#enums/ui-mode";
 import { Gender } from "#enums/gender";
 import SoundFade from "phaser3-rex-plugins/plugins/soundfade";
+import { PhaseId } from "#enums/phase-id";
 
 export class SelectStarterPhase extends Phase {
+  override readonly id = PhaseId.SELECT_STARTER;
+
   public override start(): void {
     super.start();
 
@@ -23,8 +25,7 @@ export class SelectStarterPhase extends Phase {
       globalScene.ui.clearText();
       globalScene.ui.setMode(UiMode.SAVE_SLOT, SaveSlotUiMode.SAVE, (slotId: number) => {
         if (slotId === -1) {
-          this.manager.clearPhaseQueue();
-          this.manager.pushPhase(TitlePhase);
+          globalScene.toTitleScreen({ clearPhaseQueue: true });
           return this.end();
         }
         globalScene.sessionSlotId = slotId;
@@ -40,7 +41,7 @@ export class SelectStarterPhase extends Phase {
   public initBattle(starters: Starter[]): void {
     const { arena, gameMode, gameData, sound, time } = globalScene;
     const { dexData, gameStats } = gameData;
-    const { isClassic, isSplicedOnly } = gameMode;
+    const { isClassic } = gameMode;
 
     const party = globalScene.getPlayerParty();
     const loadPokemonAssets: Promise<void>[] = [];
@@ -96,10 +97,6 @@ export class SelectStarterPhase extends Phase {
 
       if (nickname) {
         starterPokemon.nickname = nickname;
-      }
-
-      if (isSplicedOnly || Overrides.STARTER_FUSION_OVERRIDE) {
-        starterPokemon.generateFusionSpecies(true);
       }
 
       starterPokemon.setVisible(false);

@@ -4,9 +4,11 @@ import { getUnlockableName } from "#app/system/unlockables";
 import { type Unlockables } from "#enums/unlockables";
 import { UiMode } from "#enums/ui-mode";
 import i18next from "i18next";
+import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
 
 export class UnlockPhase extends Phase {
+  override readonly id = PhaseId.UNLOCK;
   private readonly unlockable: Unlockables;
 
   constructor(manager: PhaseManager, unlockable: Unlockables) {

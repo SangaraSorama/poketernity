@@ -39,8 +39,8 @@ export class CurseAttr extends MoveEffectAttr {
       target.addTag(BattlerTagType.CURSED, 0, move.id, user.id);
       return true;
     } else {
-      globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), true, [Stat.ATK, Stat.DEF], 1);
-      globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), true, [Stat.SPD], -1);
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), user, [Stat.ATK, Stat.DEF], 1);
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, user.getBattlerIndex(), user, [Stat.SPD], -1);
       return true;
     }
   }
