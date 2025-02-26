@@ -4,7 +4,7 @@ import { toDmgValue } from "#app/utils";
 import type { StatusEffect } from "#enums/status-effect";
 import i18next from "i18next";
 import { PostTurnAbAttr } from "./post-turn-ab-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
+import { globalScene } from "#app/global-scene";
 
 /**
  * This attribute will heal 1/8th HP if the ability pokemon has the correct status.

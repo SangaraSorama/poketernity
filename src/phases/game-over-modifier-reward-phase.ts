@@ -1,5 +1,4 @@
 import { globalScene } from "#app/global-scene";
-import type { ModifierTypeFunc } from "#app/modifier/modifier-type";
 import { UiMode } from "#enums/ui-mode";
 import i18next from "i18next";
 import { ModifierRewardPhase } from "./modifier-reward-phase";
@@ -11,10 +10,6 @@ import { PhaseId } from "#enums/phase-id";
  */
 export class GameOverModifierRewardPhase extends ModifierRewardPhase {
   override readonly id = PhaseId.GAME_OVER_MODIFIER_REWARD;
-
-  constructor(modifierTypeFunc: ModifierTypeFunc) {
-    super(modifierTypeFunc);
-  }
 
   public override doReward(): Promise<void> {
     const { arenaBg, time, ui } = globalScene;

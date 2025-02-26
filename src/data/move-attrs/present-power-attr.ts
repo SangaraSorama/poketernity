@@ -4,7 +4,7 @@ import { type NumberHolder, toDmgValue } from "#app/utils";
 import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { VariablePowerAttr } from "#app/data/move-attrs/variable-power-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
+import { globalScene } from "#app/global-scene";
 
 /**
  * Attribute to set move power based on one of four random outcomes (listed below).

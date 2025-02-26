@@ -1,6 +1,7 @@
+import type { PhaseId } from "#enums/phase-id";
 import type { PhaseConstructorParams } from "./@types/PhaseConstructorParams";
 import type { Phase } from "./phase";
-import type { AbstractConstructor, Constructor } from "./utils";
+import type { Constructor } from "./utils";
 
 export class PhaseManager {
   /** PhaseQueue: dequeue/remove the first element to get the next phase */
@@ -21,8 +22,8 @@ export class PhaseManager {
     this.defaultPhase = defaultPhase;
   }
 
-  public getCurrentPhase(): Phase | null {
-    return this.currentPhase;
+  public getCurrentPhase<P extends Phase = Phase>(): P | null {
+    return this.currentPhase as P;
   }
 
   public getStandbyPhase(): Phase | null {
@@ -146,6 +147,16 @@ export class PhaseManager {
     return this.phaseQueue.find(phaseFilter) as P;
   }
 
+  /**
+   * Checks if the phase queue contains a phase that matches the filter function
+   *
+   * @param phaseFilter filter function to use to check the expected phase
+   * @returns `true` if the phase exists, `false` otherwise
+   */
+  hasPhase<P extends Phase = Phase>(phaseFilter: (phase: P) => boolean): boolean {
+    return this.phaseQueue.some(phaseFilter);
+  }
+
   public tryReplacePhase<P extends Constructor<Phase>>(
     phaseFilter: (phase: Phase) => boolean,
     PhaseType: P,
@@ -182,11 +193,11 @@ export class PhaseManager {
   }
 
   public prependToPhase<P extends Constructor<Phase>>(
-    targetPhase: AbstractConstructor<Phase>,
+    targetPhaseId: PhaseId,
     PhaseType: P,
     ...params: PhaseConstructorParams<P>
   ): boolean {
-    const targetIndex = this.phaseQueue.findIndex((ph) => ph instanceof targetPhase);
+    const targetIndex = this.phaseQueue.findIndex((ph) => ph.id === targetPhaseId);
 
     if (targetIndex !== -1) {
       this.phaseQueue.splice(targetIndex, 0, new PhaseType(this, ...params));
@@ -198,11 +209,11 @@ export class PhaseManager {
   }
 
   public appendToPhase<P extends Constructor<Phase>>(
-    targetPhase: AbstractConstructor<Phase>,
+    targetPhaseId: PhaseId,
     PhaseType: P,
     ...params: PhaseConstructorParams<P>
   ): boolean {
-    const targetIndex = this.phaseQueue.findIndex((ph) => ph instanceof targetPhase);
+    const targetIndex = this.phaseQueue.findIndex((ph) => ph.id === targetPhaseId);
 
     if (targetIndex !== -1 && this.phaseQueue.length > targetIndex) {
       this.phaseQueue.splice(targetIndex + 1, 0, new PhaseType(this, ...params));

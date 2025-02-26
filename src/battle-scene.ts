@@ -57,7 +57,7 @@ import { NewBattlePhase } from "#app/phases/new-battle-phase";
 import { NewBiomeEncounterPhase } from "#app/phases/new-biome-encounter-phase";
 import { NextEncounterPhase } from "#app/phases/next-encounter-phase";
 import { PokemonAnimPhase } from "#app/phases/pokemon-anim-phase";
-import { PokemonHealPhase, type PokemonHealPhaseOptions } from "#app/phases/pokemon-heal-phase";
+import { PokemonHealPhase } from "#app/phases/pokemon-heal-phase";
 import { QuietFormChangePhase } from "#app/phases/quiet-form-change-phase";
 import { ReturnPhase } from "#app/phases/return-phase";
 import { SelectBiomePhase } from "#app/phases/select-biome-phase";
@@ -96,6 +96,7 @@ import { updateWindowStyle } from "#app/ui/ui-theme";
 import {
   type AbstractConstructor,
   BooleanHolder,
+  type Constructor,
   fixedNumber,
   formatMoney,
   getEnumValues,
@@ -113,7 +114,6 @@ import { BattleType } from "#enums/battle-type";
 import type { BattlerIndex } from "#enums/battler-index";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { Biome } from "#enums/biome";
-import type { ChargeAnim } from "#enums/charge-anim";
 import { CommonColor, ShadowColor } from "#enums/color";
 import { ElementalType } from "#enums/elemental-type";
 import { FormChangeItem } from "#enums/form-change-item";
@@ -188,6 +188,7 @@ import { getModifierType } from "./utils/modifier-type-utils";
 import { loadMoveAnimAssets } from "./utils/move-anim-utils";
 import { getPokemonSpecies } from "./utils/pokemon-species-utils";
 import { globalPhaseManager } from "./global-phase-manager";
+import type { PhaseConstructorParams } from "./@types/PhaseConstructorParams";
 
 //#region Types
 
@@ -1530,7 +1531,8 @@ export default class BattleScene extends SceneBase {
     }
 
     const isEggPhase: boolean =
-      !!this.getCurrentPhase()?.is(PhaseId.EGG_HATCH) || !!this.getCurrentPhase()?.is(PhaseId.EGG_LAPSE);
+      !!globalPhaseManager.getCurrentPhase()?.is(PhaseId.EGG_HATCH)
+      || !!globalPhaseManager.getCurrentPhase()?.is(PhaseId.EGG_LAPSE);
 
     switch (species.speciesId) {
       case Species.UNOWN:
@@ -3390,15 +3392,15 @@ export default class BattleScene extends SceneBase {
   }
 
   nextBattle(isVictory: boolean): void {
-    this.pushPhase(new BattleEndPhase(isVictory));
-    this.pushPhase(new NewBattlePhase());
+    globalPhaseManager.pushPhase(BattleEndPhase, isVictory);
+    globalPhaseManager.pushPhase(NewBattlePhase);
   }
 
   gameOver({ isVictory, clearPhaseQueue }: GameOverInit = {}): void {
     if (clearPhaseQueue) {
-      this.clearPhaseQueue();
+      globalPhaseManager.clearPhaseQueue();
     }
-    this.pushPhase(new GameOverPhase(isVictory));
+    globalPhaseManager.pushPhase(GameOverPhase, isVictory);
   }
 
   /**
@@ -3417,8 +3419,8 @@ export default class BattleScene extends SceneBase {
     battlerIndex: BattlerIndex,
     { preventEndure = false, destinyTag = null, grudgeTag = null, source }: PokemonFaintInit,
   ): void {
-    this.setPhaseQueueSplice();
-    this.unshiftPhase(new FaintPhase(battlerIndex, preventEndure, destinyTag, grudgeTag, source));
+    globalPhaseManager.setPhaseQueueSplice();
+    globalPhaseManager.unshiftPhase(FaintPhase, battlerIndex, preventEndure, destinyTag, grudgeTag, source);
   }
 
   /**
@@ -3428,13 +3430,11 @@ export default class BattleScene extends SceneBase {
    * @param hp The amount of HP to heal
    * @param options Optional {@linkcode PokemonHealPhaseOptions}
    */
-  queuePokemonHeal(eager: boolean, battlerIndex: BattlerIndex, hp: number, options?: PokemonHealPhaseOptions) {
-    const pokemonHealPhase = new PokemonHealPhase(battlerIndex, hp, options);
-
+  queuePokemonHeal(eager: boolean, ...params: PhaseConstructorParams<typeof PokemonHealPhase>) {
     if (eager) {
-      this.unshiftPhase(pokemonHealPhase);
+      globalPhaseManager.unshiftPhase(PokemonHealPhase, ...params);
     } else {
-      this.pushPhase(pokemonHealPhase, true);
+      globalPhaseManager.deferPhase(PokemonHealPhase, ...params);
     }
   }
 
@@ -3444,13 +3444,13 @@ export default class BattleScene extends SceneBase {
    */
   toTitleScreen({ eager, clearPhaseQueue }: ToTitleScreenInit = {}): void {
     if (clearPhaseQueue) {
-      this.clearPhaseQueue();
+      globalPhaseManager.clearPhaseQueue();
     }
 
     if (eager) {
-      this.unshiftPhase(new TitlePhase());
+      globalPhaseManager.unshiftPhase(TitlePhase);
     } else {
-      this.pushPhase(new TitlePhase());
+      globalPhaseManager.pushPhase(TitlePhase);
     }
   }
 
@@ -3460,8 +3460,8 @@ export default class BattleScene extends SceneBase {
    * @param targets The targets {@linkcode BattlerIndex}
    * @param move The {@linkcode PokemonMove} being used
    */
-  chargeMove(battlerIndex: BattlerIndex, targets: BattlerIndex[], move: PokemonMove): void {
-    this.unshiftPhase(new MoveChargePhase(battlerIndex, targets, move));
+  chargeMove(...params: PhaseConstructorParams<typeof MoveChargePhase>): void {
+    globalPhaseManager.unshiftPhase(MoveChargePhase, ...params);
   }
 
   /**
@@ -3469,12 +3469,10 @@ export default class BattleScene extends SceneBase {
    * @param showText Whether to show text
    */
   toLoginScreen({ eager, showText = true }: ToLoginScreenInit = {}): void {
-    const loginPhase = new LoginPhase(showText);
-
     if (eager) {
-      this.unshiftPhase(loginPhase);
+      globalPhaseManager.unshiftPhase(LoginPhase, showText);
     } else {
-      this.pushPhase(loginPhase);
+      globalPhaseManager.pushPhase(LoginPhase, showText);
     }
   }
 
@@ -3482,16 +3480,16 @@ export default class BattleScene extends SceneBase {
    * Inserts a new {@linkcode SelectTargetPhase} to the phase queue.
    * @param battlerIndex The selected targets {@linkcode BattlerIndex}
    */
-  selectTarget(battlerIndex: BattlerIndex): void {
-    this.unshiftPhase(new SelectTargetPhase(battlerIndex));
+  selectTarget(...params: PhaseConstructorParams<typeof SelectTargetPhase>): void {
+    globalPhaseManager.unshiftPhase(SelectTargetPhase, ...params);
   }
 
-  queueMoveChargeAnimation(chargeAnim: ChargeAnim, moveId: MoveId, user: Pokemon) {
-    this.unshiftPhase(new MoveAnimPhase(new MoveChargeAnim(chargeAnim, moveId, user)));
+  queueMoveChargeAnimation(...animParams: ConstructorParameters<typeof MoveChargeAnim>) {
+    globalPhaseManager.unshiftPhase(MoveAnimPhase, new MoveChargeAnim(...animParams));
   }
 
   useMove({ pokemon, targets, move, followUp = false, ignorePp = false, when, phaseId }: UseMoveInit) {
-    const movePhase = new MovePhase(pokemon, targets, move, followUp, ignorePp);
+    const movePhaseParams: PhaseConstructorParams<typeof MovePhase> = [pokemon, targets, move, followUp, ignorePp];
 
     if ((when === "before" || when === "after") && !phaseId) {
       throw new Error("phaseId is required for useMove.when === 'before' or 'after'");
@@ -3499,16 +3497,16 @@ export default class BattleScene extends SceneBase {
 
     switch (when) {
       case "eager":
-        this.unshiftPhase(movePhase);
+        globalPhaseManager.unshiftPhase(MovePhase, ...movePhaseParams);
         break;
       case "defer":
-        this.pushPhase(movePhase);
+        globalPhaseManager.pushPhase(MovePhase, ...movePhaseParams);
         break;
       case "before":
-        this.prependToPhase(movePhase, phaseId!);
+        globalPhaseManager.prependToPhase(phaseId!, MovePhase, ...movePhaseParams);
         break;
       case "after":
-        this.appendToPhase(movePhase, phaseId!);
+        globalPhaseManager.appendToPhase(phaseId!, MovePhase, ...movePhaseParams);
         break;
       default:
         throw new Error(`Unknown useMove.when: ${when}`);

@@ -6,6 +6,7 @@ import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
 import { AbAttrFlag } from "#enums/ab-attr-flag";
+import { globalScene } from "#app/global-scene";
 
 /**
  * Heals user as a side effect of a move that hits a target.

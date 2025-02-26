@@ -16,6 +16,7 @@ import type { BooleanHolder } from "#app/utils";
 import type { BattlerIndex } from "#enums/battler-index";
 import type { MoveId } from "#enums/move-id";
 import { MoveTarget } from "#enums/move-target";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute used to call a different move.
@@ -50,7 +51,7 @@ export abstract class CallMoveAttr extends OverrideMoveEffectAttr {
     }
 
     user.getMoveQueue().push({ move: move, targets, virtual: true, ignorePP: true, type: user.getMoveType(move) });
-    globalScene.unshiftPhase(new LoadMoveAnimPhase(move.id));
+    globalPhaseManager.unshiftPhase(LoadMoveAnimPhase, move.id);
     globalScene.useMove({
       pokemon: user,
       targets,

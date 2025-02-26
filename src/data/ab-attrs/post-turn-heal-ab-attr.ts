@@ -3,7 +3,7 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import { toDmgValue } from "#app/utils";
 import i18next from "i18next";
 import { PostTurnAbAttr } from "./post-turn-ab-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
+import { globalScene } from "#app/global-scene";
 
 export class PostTurnHealAbAttr extends PostTurnAbAttr {
   override apply(pokemon: Pokemon, simulated: boolean): boolean {

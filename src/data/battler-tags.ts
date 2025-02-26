@@ -482,7 +482,7 @@ export class RageTag extends BattlerTag {
       const lastAttackReceived = pokemon.turnData.attacksReceived[pokemon.turnData.attacksReceived.length - 1];
       const damageReceived = lastAttackReceived?.damage ?? 0;
       if (damageReceived > 0) {
-        globalScene.unshiftPhase(new StatStageChangePhase(pokemon.getBattlerIndex(), pokemon, [Stat.ATK], 1));
+        globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), pokemon, [Stat.ATK], 1);
       }
       pokemon.addTag(BattlerTagType.RAGE, undefined, MoveId.RAGE, pokemon.id);
       return true;
@@ -2160,7 +2160,9 @@ export class SkyDropTag extends BattlerTag {
         if (this.sourceId === pokemon.id) {
           globalScene.currentBattle.turnManager.tryRemoveCommand((tc) => tc.pokemon === pokemon);
           if (
-            globalPhaseManager.tryRemovePhase((phase) => phase.is<MovePhase>(PhaseId.MOVE) && phase.pokemon.id === pokemon.id)
+            globalPhaseManager.tryRemovePhase(
+              (phase) => phase.is<MovePhase>(PhaseId.MOVE) && phase.pokemon.id === pokemon.id,
+            )
           ) {
             // Just in case we removed a queued `MovePhase`, queue the next `MovePhase`.
             const { turnManager } = globalScene.currentBattle;
@@ -3380,9 +3382,9 @@ export class SyrupBombTag extends BattlerTag {
     globalScene.queueMessage(
       i18next.t("battlerTags:syrupBombLapse", { pokemonNameWithAffix: getPokemonNameWithAffix(pokemon) }),
     );
-    globalPhaseManager.unshiftPhase(
-      StatStageChangePhase, pokemon.getBattlerIndex(), null, [Stat.SPD], -1, { bypassReflect: true }
-    );
+    globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), null, [Stat.SPD], -1, {
+      bypassReflect: true,
+    });
     return --this.turnCount > 0;
   }
 }

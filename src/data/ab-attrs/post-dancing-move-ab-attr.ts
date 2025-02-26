@@ -3,7 +3,6 @@ import type { PokemonMove } from "#app/field/pokemon-move";
 import { SemiInvulnerableBattlerTagTypes } from "#app/utils/battler-tag-type-utils";
 import type { BattlerIndex } from "#enums/battler-index";
 import { PostMoveUsedAbAttr } from "./post-move-used-ab-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
 import { globalScene } from "#app/global-scene";
 
 /**

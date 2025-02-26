@@ -20,6 +20,7 @@ import { EVOLVE_MOVE } from "#app/data/balance/pokemon-level-moves";
 import { LearnMovePhase } from "./learn-move-phase";
 import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * A phase for handling Pokemon form changes, this does not cover evolutions
@@ -204,7 +205,7 @@ export class FormChangePhase extends FormChangeBasePhase {
 
     const formChangeLearnMove = this.pokemon.getLevelMoves(EVOLVE_MOVE, true);
     for (const [, learnMoveId] of formChangeLearnMove) {
-      globalScene.unshiftPhase(new LearnMovePhase(globalScene.getPlayerParty().indexOf(this.pokemon), learnMoveId));
+      globalPhaseManager.unshiftPhase(LearnMovePhase, globalScene.getPlayerParty().indexOf(this.pokemon), learnMoveId);
     }
 
     this.pokemon.findAndRemoveTags((t) => t.tagType === BattlerTagType.AUTOTOMIZED);

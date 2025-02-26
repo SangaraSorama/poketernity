@@ -1,5 +1,5 @@
 import type { Pokemon } from "#app/field/pokemon";
-import { globalScene } from "#app/global-scene";
+import { globalPhaseManager } from "#app/global-phase-manager";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import type { BooleanHolder } from "#app/utils";
 import { AbAttrFlag } from "#enums/ab-attr-flag";
@@ -49,9 +49,9 @@ export class ReflectStatStageChangeAbAttr extends AbAttr {
     }
 
     if (!simulated && source) {
-      globalScene.unshiftPhase(
-        new StatStageChangePhase(source.id, pokemon, reflectedStats, stages, { bypassReflect: true }),
-      );
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, source.id, pokemon, reflectedStats, stages, {
+        bypassReflect: true,
+      });
     }
     reflected.value = true;
     return true;

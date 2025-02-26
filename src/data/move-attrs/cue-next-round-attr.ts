@@ -3,7 +3,6 @@ import type { Pokemon } from "#app/field/pokemon";
 import { globalScene } from "#app/global-scene";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute for the "combo" effect of {@link https://bulbapedia.bulbagarden.net/wiki/Round_(move) | Round}.

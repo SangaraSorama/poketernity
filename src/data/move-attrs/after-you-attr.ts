@@ -4,7 +4,6 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import i18next from "i18next";
 import type { Move } from "#app/data/move";
 import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute to allow the target to move immediately after the user

@@ -7,6 +7,7 @@ import { MoveEffectAttr } from "#app/data/move-attrs/move-effect-attr";
 import { applyAbAttrs } from "#app/data/apply-ab-attrs";
 import { NumberHolder } from "#app/utils";
 import { AbAttrFlag } from "#enums/ab-attr-flag";
+import { globalScene } from "#app/global-scene";
 
 /**
  * Heals the user or target by {@linkcode healRatio} depending on the value of {@linkcode selfTarget}

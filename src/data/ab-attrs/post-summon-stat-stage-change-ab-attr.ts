@@ -31,7 +31,13 @@ export class PostSummonStatStageChangeAbAttr extends PostSummonAbAttr {
     if (this.selfTarget) {
       // we unshift the StatStageChangePhase to put it right after the showAbility and not at the end of the
       // phase list (which could be after CommandPhase for example)
-      globalPhaseManager.unshiftPhase(StatStageChangePhase, pokemon.getBattlerIndex(), pokemon, this.stats, this.stages);
+      globalPhaseManager.unshiftPhase(
+        StatStageChangePhase,
+        pokemon.getBattlerIndex(),
+        pokemon,
+        this.stats,
+        this.stages,
+      );
       return true;
     }
     for (const opponent of pokemon.getOpponents()) {

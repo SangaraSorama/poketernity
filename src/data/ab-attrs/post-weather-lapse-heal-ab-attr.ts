@@ -5,7 +5,7 @@ import { toDmgValue } from "#app/utils";
 import type { WeatherType } from "#enums/weather-type";
 import i18next from "i18next";
 import { PostWeatherLapseAbAttr } from "./post-weather-lapse-ab-attr";
-import { globalPhaseManager } from "#app/global-phase-manager";
+import { globalScene } from "#app/global-scene";
 
 /**
  * Heals the ability holder by a specified amount during ability-specific weather conditions

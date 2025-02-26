@@ -7,6 +7,7 @@ import i18next from "i18next";
 import type { Move } from "../move";
 import { MoveEffectAttr } from "./move-effect-attr";
 import { getPokemonNameWithAffix } from "#app/messages";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Attribute used for captivate where all opponents that do not have the {@linkcode Abilities.OBLIVIOUS} ability
@@ -16,7 +17,7 @@ export class CaptivateAttr extends MoveEffectAttr {
   override applyEffect(user: Pokemon, target: Pokemon, _move: Move): boolean {
     // TODO: Should show oblivious ability flyout if target has oblivious
     if (!target.hasAbility(Abilities.OBLIVIOUS) && target.isOppositeGender(user)) {
-      globalScene.unshiftPhase(new StatStageChangePhase(target.getBattlerIndex(), user, [Stat.SPATK], -2));
+      globalPhaseManager.unshiftPhase(StatStageChangePhase, target.getBattlerIndex(), user, [Stat.SPATK], -2);
       return true;
     }
     // It doesn't affect pokemonNameWithAffix!
