@@ -101,7 +101,7 @@ describe("SelectModifierPhase", () => {
     await game.phaseInterceptor.to("SelectModifierPhase");
 
     // TODO: nagivate the ui to reroll somehow
-    //const smphase = scene.getCurrentPhase() as SelectModifierPhase;
+    //const smphase = globalPhaseManager.getCurrentPhase() as SelectModifierPhase;
     expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
     const modifierSelectHandler = scene.ui.handlers.find(
       (h) => h instanceof ModifierSelectUiHandler,

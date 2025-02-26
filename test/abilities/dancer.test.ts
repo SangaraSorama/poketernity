@@ -1,11 +1,12 @@
 import { BattlerIndex } from "#enums/battler-index";
-import { type MovePhase } from "#app/phases/move-phase";
+import type { MovePhase } from "#app/phases/move-phase";
 import { Abilities } from "#enums/abilities";
 import { MoveId } from "#enums/move-id";
 import { Species } from "#enums/species";
 import { GameManager } from "#test/testUtils/gameManager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Abilities - Dancer", () => {
   let phaserGame: Phaser.Game;
@@ -44,7 +45,7 @@ describe("Abilities - Dancer", () => {
     await game.phaseInterceptor.to("MovePhase");
     // immediately copies ally move Feather Dance, and uses it on opponent
     await game.phaseInterceptor.to("MovePhase", false);
-    let currentPhase = game.scene.getCurrentPhase() as MovePhase;
+    let currentPhase = globalPhaseManager.getCurrentPhase<MovePhase>()!;
     expect(currentPhase.pokemon).toBe(oricorio);
     expect(currentPhase.targets).toEqual([BattlerIndex.ENEMY]);
     expect(currentPhase.move.moveId).toBe(MoveId.FEATHER_DANCE);
@@ -52,7 +53,7 @@ describe("Abilities - Dancer", () => {
     await game.phaseInterceptor.to("MovePhase");
     // immediately copies enemy move Victory Dance, and uses it on itself
     await game.phaseInterceptor.to("MovePhase", false);
-    currentPhase = game.scene.getCurrentPhase() as MovePhase;
+    currentPhase = globalPhaseManager.getCurrentPhase<MovePhase>()!;
     expect(currentPhase.pokemon).toBe(oricorio);
     expect(currentPhase.targets).toEqual([BattlerIndex.PLAYER]);
     expect(currentPhase.move.moveId).toBe(MoveId.VICTORY_DANCE);

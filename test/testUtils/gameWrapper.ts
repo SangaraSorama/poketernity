@@ -18,11 +18,11 @@ import GamepadPlugin = Phaser.Input.Gamepad.GamepadPlugin;
 import EventEmitter = Phaser.Events.EventEmitter;
 import UpdateList = Phaser.GameObjects.UpdateList;
 import { MockConsole } from "#test/testUtils/mocks/mockConsole";
-import { globalScene } from "#app/global-scene";
 import type { MoveEffectPhase } from "#app/phases/move-effect-phase";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { MoveId } from "#enums/move-id";
 import { PhaseId } from "#enums/phase-id";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 export class GameWrapper {
   public game: Phaser.Game;
@@ -53,7 +53,7 @@ export class GameWrapper {
 
       const side = pokemon.isPlayer() ? "Player" : "Enemy";
       const lowHpMoves = [MoveId.FALSE_SWIPE, MoveId.HARD_PRESS];
-      const currentPhase = globalScene.getCurrentPhase();
+      const currentPhase = globalPhaseManager.getCurrentPhase();
       let moveName = "N/A";
       let moveId = MoveId.NONE;
       if (currentPhase?.is<MoveEffectPhase>(PhaseId.MOVE_EFFECT)) {

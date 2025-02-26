@@ -6,6 +6,7 @@ import { UiMode } from "#enums/ui-mode";
 import { GameManager } from "#test/testUtils/gameManager";
 import Phase from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Items - Lock Capsule", () => {
   let phaserGame: Phaser.Game;
@@ -34,17 +35,15 @@ describe("Items - Lock Capsule", () => {
 
   it("doesn't set the cost of common tier items to 0", async () => {
     await game.classicMode.startBattle();
-    game.scene.overridePhase(
-      new SelectModifierPhase({
-        customModifierSettings: {
-          guaranteedModifierTiers: [ModifierTier.COMMON, ModifierTier.COMMON, ModifierTier.COMMON],
-          fillRemaining: false,
-        },
-      }),
-    );
+    globalPhaseManager.overridePhase(SelectModifierPhase, {
+      customModifierSettings: {
+        guaranteedModifierTiers: [ModifierTier.COMMON, ModifierTier.COMMON, ModifierTier.COMMON],
+        fillRemaining: false,
+      },
+    });
 
     game.onNextPrompt("SelectModifierPhase", UiMode.MODIFIER_SELECT, () => {
-      const selectModifierPhase = game.scene.getCurrentPhase() as SelectModifierPhase;
+      const selectModifierPhase = globalPhaseManager.getCurrentPhase() as SelectModifierPhase;
       const rerollCost = selectModifierPhase.getRerollCost(true);
       expect(rerollCost).toBe(150);
     });

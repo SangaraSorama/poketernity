@@ -161,7 +161,7 @@ export class GameManager {
    * Ends the current phase.
    */
   endPhase() {
-    this.scene.getCurrentPhase()?.end();
+    this.globalPhaseManager.getCurrentPhase()?.end();
   }
 
   /**
@@ -324,7 +324,7 @@ export class GameManager {
       UiMode.TARGET_SELECT,
       () => {
         const handler = this.scene.ui.getHandler() as TargetSelectUiHandler;
-        const move = (this.scene.getCurrentPhase() as SelectTargetPhase)
+        const move = (this.globalPhaseManager.getCurrentPhase() as SelectTargetPhase)
           .getPokemon()
           .getMoveset()
           [movePosition].getMove();
@@ -394,7 +394,8 @@ export class GameManager {
   async forceEnemyMove(moveId: MoveId, target?: BattlerIndex) {
     // Wait for the next EnemyCommandPhase to start
     await this.phaseInterceptor.to(EnemyCommandPhase, false);
-    const enemy = this.scene.getEnemyField()[(this.scene.getCurrentPhase() as EnemyCommandPhase).getFieldIndex()];
+    const enemy =
+      this.scene.getEnemyField()[(this.globalPhaseManager.getCurrentPhase() as EnemyCommandPhase).getFieldIndex()];
     const legalTargets = getMoveTargets(enemy, moveId);
 
     vi.spyOn(enemy, "getNextMove").mockReturnValueOnce({
@@ -468,7 +469,7 @@ export class GameManager {
    */
   isCurrentPhase(phaseTarget) {
     const targetName = typeof phaseTarget === "string" ? phaseTarget : phaseTarget.name;
-    return this.scene.getCurrentPhase()?.constructor.name === targetName;
+    return this.globalPhaseManager.getCurrentPhase()?.constructor.name === targetName;
   }
 
   /**

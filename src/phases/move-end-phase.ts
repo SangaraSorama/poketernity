@@ -26,7 +26,7 @@ export class MoveEndPhase extends PokemonPhase {
 
     globalScene.arena.setIgnoreAbilities(false);
 
-    if (!globalScene.findPhase((phase) => phase.is<MovePhase>(PhaseId.MOVE))) {
+    if (!this.manager.findPhase((phase) => phase.is<MovePhase>(PhaseId.MOVE))) {
       const { turnManager } = globalScene.currentBattle;
 
       // Reset turn order in case the last move affected Speed

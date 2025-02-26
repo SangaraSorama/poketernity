@@ -15,6 +15,7 @@ import { isNullOrUndefined } from "#app/utils";
 import { Button } from "#enums/buttons";
 import type { GameManager } from "#test/testUtils/gameManager";
 import { expect, vi } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Runs a {@linkcode MysteryEncounter} to either the start of a battle, or to the {@linkcode MysteryEncounterRewardsPhase}, depending on the option selected
@@ -66,9 +67,9 @@ export async function runMysteryEncounterToEnd(
 
     // If a battle is started, fast forward to end of the battle
     game.onNextPrompt("CommandPhase", UiMode.COMMAND, () => {
-      game.scene.clearPhaseQueue();
-      game.scene.clearPhaseQueueSplice();
-      game.scene.unshiftPhase(new VictoryPhase(0));
+      globalPhaseManager.clearPhaseQueue();
+      globalPhaseManager.clearPhaseQueueSplice();
+      globalPhaseManager.unshiftPhase(VictoryPhase, 0);
       game.endPhase();
     });
 
@@ -193,13 +194,13 @@ async function handleSecondaryOptionSelect(game: GameManager, pokemonNo: number,
  * @param runRewardsPhase
  */
 export async function skipBattleRunMysteryEncounterRewardsPhase(game: GameManager, runRewardsPhase: boolean = true) {
-  game.scene.clearPhaseQueue();
-  game.scene.clearPhaseQueueSplice();
+  globalPhaseManager.clearPhaseQueue();
+  globalPhaseManager.clearPhaseQueueSplice();
   game.scene.getEnemyParty().forEach((p) => {
     p.faint();
     game.scene.field.remove(p);
   });
-  game.scene.pushPhase(new VictoryPhase(0));
+  globalPhaseManager.pushPhase(VictoryPhase, 0);
   game.phaseInterceptor.superEndPhase();
   game.setMode(UiMode.MESSAGE);
   await game.phaseInterceptor.to(MysteryEncounterRewardsPhase, runRewardsPhase);

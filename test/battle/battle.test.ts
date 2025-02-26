@@ -29,6 +29,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { Biome } from "#enums/biome";
 import { EVERYTHING_SAVE_FILE_PATH } from "#test/testUtils/testUtils";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Test Battle Phase", () => {
   let phaserGame: Phaser.Game;
@@ -90,7 +91,7 @@ describe("Test Battle Phase", () => {
   it("newGame one-liner", async () => {
     await game.startBattle();
     expect(game.scene.ui?.getMode()).toBe(UiMode.COMMAND);
-    expect(game.scene.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
+    expect(globalPhaseManager.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
   }, 20000);
 
   it("do attack wave 3 - single battle - regular - OHKO", async () => {
@@ -198,8 +199,8 @@ describe("Test Battle Phase", () => {
     game.onNextPrompt("TitlePhase", UiMode.TITLE, () => {
       game.scene.gameMode = getGameMode(GameModes.CLASSIC);
       const starters = generateStarter(game.scene);
-      const selectStarterPhase = new SelectStarterPhase();
-      game.scene.pushPhase(new EncounterPhase(false));
+      const selectStarterPhase = new SelectStarterPhase(globalPhaseManager);
+      globalPhaseManager.pushPhase(EncounterPhase, false);
       selectStarterPhase.initBattle(starters);
     });
     await game.phaseInterceptor.runFrom(SelectGenderPhase).to(SummonPhase);
@@ -212,7 +213,7 @@ describe("Test Battle Phase", () => {
     game.override.ability(Abilities.HYDRATION);
     await game.startBattle([Species.BLASTOISE, Species.CHARIZARD]);
     expect(game.scene.ui?.getMode()).toBe(UiMode.COMMAND);
-    expect(game.scene.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
+    expect(globalPhaseManager.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
   }, 20000);
 
   it("1vs1", async () => {
@@ -222,7 +223,7 @@ describe("Test Battle Phase", () => {
     game.override.ability(Abilities.HYDRATION);
     await game.startBattle([Species.BLASTOISE]);
     expect(game.scene.ui?.getMode()).toBe(UiMode.COMMAND);
-    expect(game.scene.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
+    expect(globalPhaseManager.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
   }, 20000);
 
   it("2vs2", async () => {
@@ -233,7 +234,7 @@ describe("Test Battle Phase", () => {
     game.override.startingWave(3);
     await game.startBattle([Species.BLASTOISE, Species.CHARIZARD]);
     expect(game.scene.ui?.getMode()).toBe(UiMode.COMMAND);
-    expect(game.scene.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
+    expect(globalPhaseManager.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
   }, 20000);
 
   it("4vs2", async () => {
@@ -244,7 +245,7 @@ describe("Test Battle Phase", () => {
     game.override.startingWave(3);
     await game.startBattle([Species.BLASTOISE, Species.CHARIZARD, Species.DARKRAI, Species.GABITE]);
     expect(game.scene.ui?.getMode()).toBe(UiMode.COMMAND);
-    expect(game.scene.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
+    expect(globalPhaseManager.getCurrentPhase()!.constructor.name).toBe(CommandPhase.name);
   }, 20000);
 
   it("kill opponent pokemon", async () => {

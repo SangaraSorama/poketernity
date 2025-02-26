@@ -8,6 +8,7 @@ import { Species } from "#enums/species";
 import { GameManager } from "#test/testUtils/gameManager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, it, expect, vi } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Abilities - No Guard", () => {
   let phaserGame: Phaser.Game;
@@ -45,7 +46,7 @@ describe("Abilities - No Guard", () => {
 
     await game.phaseInterceptor.to(MoveEffectPhase, false);
 
-    const moveEffectPhase = game.scene.getCurrentPhase() as MoveEffectPhase;
+    const moveEffectPhase = globalPhaseManager.getCurrentPhase<MoveEffectPhase>()!;
     vi.spyOn(moveEffectPhase, "hitCheck");
 
     await game.phaseInterceptor.to(MoveEndPhase);

@@ -14,6 +14,7 @@ import { applyAbAttrs } from "./data/apply-ab-attrs";
 import { MoveHeaderAttr } from "./data/move-attrs/move-header-attr";
 import type { Pokemon } from "./field/pokemon";
 import { PokemonMove } from "./field/pokemon-move";
+import { globalPhaseManager } from "./global-phase-manager";
 import { globalScene } from "./global-scene";
 import { BypassSpeedChanceModifier } from "./modifier/modifier";
 import { AttemptCapturePhase } from "./phases/attempt-capture-phase";
@@ -225,9 +226,14 @@ export class TurnCommandManager {
         pokemon.getMoveset().find((m) => m.moveId === turnMove.move.id && m.ppUsed < m.getMovePp())
         ?? new PokemonMove(turnMove.move.id);
 
-      globalScene.appendToPhase(
-        new MovePhase(pokemon, targets ?? turnMove.targets, move, false, cursor !== -1 && turnMove.ignorePP),
+      globalPhaseManager.appendToPhase(
         PhaseId.MOVE_END,
+        MovePhase,
+        pokemon,
+        targets ?? turnMove.targets,
+        move,
+        false,
+        cursor !== -1 && turnMove.ignorePP,
       );
 
       return true;
@@ -367,8 +373,13 @@ export class TurnCommandManager {
       pokemon.getMoveset().find((m) => m.moveId === turnMove.move.id && m.ppUsed < m.getMovePp())
       ?? new PokemonMove(turnMove.move.id);
 
-    globalScene.unshiftPhase(
-      new MovePhase(pokemon, targets ?? turnMove.targets, move, false, cursor !== -1 && turnMove.ignorePP),
+    globalPhaseManager.unshiftPhase(
+      MovePhase,
+      pokemon,
+      targets ?? turnMove.targets,
+      move,
+      false,
+      cursor !== -1 && turnMove.ignorePP,
     );
     return true;
   }
@@ -382,7 +393,7 @@ export class TurnCommandManager {
       return false;
     }
 
-    globalScene.unshiftPhase(new AttemptCapturePhase(targets[0] % 2, cursor));
+    globalPhaseManager.unshiftPhase(AttemptCapturePhase, targets[0] % 2, cursor);
     return true;
   }
 
@@ -395,8 +406,13 @@ export class TurnCommandManager {
     }
 
     const switchType = turnCommand.args?.[0] ? SwitchType.BATON_PASS : SwitchType.SWITCH;
-    globalScene.unshiftPhase(
-      new SwitchSummonPhase(switchType, pokemon.getFieldIndex(), cursor, true, pokemon.isPlayer()),
+    globalPhaseManager.unshiftPhase(
+      SwitchSummonPhase,
+      switchType,
+      pokemon.getFieldIndex(),
+      cursor,
+      true,
+      pokemon.isPlayer(),
     );
     return true;
   }
@@ -413,7 +429,7 @@ export class TurnCommandManager {
         runningPokemon = hasRunAway ?? fasterPokemon;
       }
     }
-    globalScene.unshiftPhase(new AttemptRunPhase(runningPokemon.getFieldIndex()));
+    globalPhaseManager.unshiftPhase(AttemptRunPhase, runningPokemon.getFieldIndex());
     return true;
   }
 
@@ -469,7 +485,7 @@ export class TurnCommandManager {
         pokemon.getMoveset().find((mv) => mv.moveId === turnMove.move.id) ?? new PokemonMove(turnMove.move.id);
 
       if (pokemonMove.getMove().hasAttr(MoveHeaderAttr)) {
-        globalScene.unshiftPhase(new MoveHeaderPhase(pokemon, pokemonMove));
+        globalPhaseManager.unshiftPhase(MoveHeaderPhase, pokemon, pokemonMove);
       }
     });
   }

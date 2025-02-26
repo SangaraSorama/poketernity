@@ -20,6 +20,7 @@ import { CommandPhase } from "#app/phases/command-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { PartyHealPhase } from "#app/phases/party-heal-phase";
 import { TrainerType } from "#enums/trainer-type";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/aTrainersTest";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -107,7 +108,7 @@ describe("A Trainer's Test - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(scene.currentBattle.trainer).toBeDefined();
       expect([TrainerType.BUCK, TrainerType.CHERYL, TrainerType.MARLEY, TrainerType.MIRA, TrainerType.RILEY]).toContain(
@@ -126,7 +127,7 @@ describe("A Trainer's Test - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1, undefined, true);
       await skipBattleRunMysteryEncounterRewardsPhase(game);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
 
       const eggsAfter = scene.gameData.eggs;
       expect(eggsAfter).toBeDefined();
@@ -156,7 +157,7 @@ describe("A Trainer's Test - Mystery Encounter", () => {
     });
 
     it("Should fully heal the party", async () => {
-      const phaseSpy = vi.spyOn(scene, "unshiftPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "unshiftPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.A_TRAINERS_TEST, defaultParty);
       await runMysteryEncounterToEnd(game, 2);
@@ -174,7 +175,7 @@ describe("A Trainer's Test - Mystery Encounter", () => {
 
       await runMysteryEncounterToEnd(game, 2);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
 
       const eggsAfter = scene.gameData.eggs;
       expect(eggsAfter).toBeDefined();

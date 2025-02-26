@@ -7,6 +7,7 @@ import { Stat } from "#enums/stat";
 import { StatusEffect } from "#enums/status-effect";
 import { GameManager } from "#test/testUtils/gameManager";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Abilities - Disguise", () => {
   let phaserGame: Phaser.Game;
@@ -201,7 +202,7 @@ describe("Abilities - Disguise", () => {
     game.move.select(MoveId.SHADOW_SNEAK);
     await game.toNextWave();
 
-    expect(game.scene.getCurrentPhase()?.constructor.name).toBe("CommandPhase");
+    expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe("CommandPhase");
     expect(game.scene.currentBattle.waveIndex).toBe(2);
   });
 

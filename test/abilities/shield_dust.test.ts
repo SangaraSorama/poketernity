@@ -10,6 +10,7 @@ import { GameManager } from "#test/testUtils/gameManager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { AbAttrFlag } from "#enums/ab-attr-flag";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Abilities - Shield Dust", () => {
   let phaserGame: Phaser.Game;
@@ -47,7 +48,7 @@ describe("Abilities - Shield Dust", () => {
     await game.phaseInterceptor.to(MoveEffectPhase, false);
 
     // Shield Dust negates secondary effect
-    const phase = game.scene.getCurrentPhase() as MoveEffectPhase;
+    const phase = globalPhaseManager.getCurrentPhase<MoveEffectPhase>()!;
     const move = phase.move.getMove();
     expect(move.id).toBe(MoveId.AIR_SLASH);
 

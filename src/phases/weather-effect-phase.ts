@@ -10,7 +10,6 @@ import { WeatherType } from "#enums/weather-type";
 import { CommonAnimPhase } from "./common-anim-phase";
 import { AbAttrFlag } from "#enums/ab-attr-flag";
 import { PhaseId } from "#enums/phase-id";
-import type { PhaseManager } from "#app/phase-manager";
 
 export class WeatherEffectPhase extends CommonAnimPhase {
   override readonly id = PhaseId.WEATHER_EFFECT;

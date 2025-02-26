@@ -19,6 +19,7 @@ import { MoveResult } from "#enums/move-result";
 import { BattlerIndex } from "#enums/battler-index";
 import { ArenaTagSide } from "#enums/arena-tag-side";
 import { TrappedBattlerTagTypes } from "#app/utils/battler-tag-type-utils";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Moves - Substitute", () => {
   let phaserGame: Phaser.Game;
@@ -401,7 +402,7 @@ describe("Moves - Substitute", () => {
 
     // Simulate a Baton switch for the player this turn
     game.onNextPrompt("CommandPhase", UiMode.COMMAND, () => {
-      (game.scene.getCurrentPhase() as CommandPhase).handleCommand(BattleCommand.POKEMON, 1, true);
+      (globalPhaseManager.getCurrentPhase() as CommandPhase).handleCommand(BattleCommand.POKEMON, 1, true);
     });
 
     await game.phaseInterceptor.to("MovePhase", false);

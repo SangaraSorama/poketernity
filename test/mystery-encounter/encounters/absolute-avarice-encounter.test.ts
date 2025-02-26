@@ -17,10 +17,9 @@ import { BerryType } from "#enums/berry-type";
 import { AbsoluteAvariceEncounter } from "#app/data/mystery-encounters/encounters/absolute-avarice-encounter";
 import { MoveId } from "#enums/move-id";
 import { CommandPhase } from "#app/phases/command-phase";
-import { type MovePhase } from "#app/phases/move-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import i18next from "i18next";
-import { PhaseId } from "#enums/phase-id";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/absoluteAvarice";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -128,22 +127,22 @@ describe("Absolute Avarice - Mystery Encounter", () => {
     });
 
     it("should start battle against Greedent", async () => {
-      const phaseSpy = vi.spyOn(scene, "pushPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.ABSOLUTE_AVARICE, defaultParty);
       await runMysteryEncounterToEnd(game, 1, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(enemyField[0].species.speciesId).toBe(Species.GREEDENT);
       const moveset = enemyField[0].moveset.map((m) => m.moveId);
       expect(moveset?.length).toBe(4);
       expect(moveset).toEqual([MoveId.THRASH, MoveId.BODY_PRESS, MoveId.STUFF_CHEEKS, MoveId.CRUNCH]);
 
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].is<MovePhase>(PhaseId.MOVE)).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase").map((p) => p[0]);
       expect(movePhases.length).toBe(1);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.STUFF_CHEEKS).length).toBe(1); // Stuff Cheeks used before battle
+      expect(movePhases.filter((p) => p[1]["move"].moveId === MoveId.STUFF_CHEEKS).length).toBe(1); // Stuff Cheeks used before battle
     });
 
     it("should give reviver seed to each pokemon after battle", async () => {
@@ -151,7 +150,7 @@ describe("Absolute Avarice - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1, undefined, true);
       await skipBattleRunMysteryEncounterRewardsPhase(game);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
 
       for (const partyPokemon of scene.getPlayerParty()) {
         const pokemonId = partyPokemon.id;

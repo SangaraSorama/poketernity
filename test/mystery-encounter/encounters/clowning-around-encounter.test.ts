@@ -38,7 +38,7 @@ import { CommandPhase } from "#app/phases/command-phase";
 import { type MovePhase } from "#app/phases/move-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { NewBattlePhase } from "#app/phases/new-battle-phase";
-import { PhaseId } from "#enums/phase-id";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/clowningAround";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -169,13 +169,13 @@ describe("Clowning Around - Mystery Encounter", () => {
     });
 
     it("should start double battle against the clown", async () => {
-      const phaseSpy = vi.spyOn(scene, "pushPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.CLOWNING_AROUND, defaultParty);
       await runMysteryEncounterToEnd(game, 1, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(2);
       expect(enemyField[0].species.speciesId).toBe(Species.MR_MIME);
       expect(enemyField[0].moveset).toEqual([
@@ -193,9 +193,9 @@ describe("Clowning Around - Mystery Encounter", () => {
       ]);
 
       // Should have used moves pre-battle
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].is<MovePhase>(PhaseId.MOVE)).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase");
       expect(movePhases.length).toBe(3);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.ROLE_PLAY).length).toBe(1);
+      expect(movePhases.filter((p) => p[1]["move"].moveId === MoveId.ROLE_PLAY).length).toBe(1);
       expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.TAUNT).length).toBe(2);
     });
 
@@ -204,7 +204,7 @@ describe("Clowning Around - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1, undefined, true);
       await skipBattleRunMysteryEncounterRewardsPhase(game);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
       const abilityToTrain = scene.currentBattle.mysteryEncounter?.misc.ability;
 
@@ -219,7 +219,7 @@ describe("Clowning Around - Mystery Encounter", () => {
       vi.spyOn(partyUiHandler, "show");
       game.endPhase();
       await game.phaseInterceptor.to(PostMysteryEncounterPhase);
-      expect(scene.getCurrentPhase()?.constructor.name).toBe(PostMysteryEncounterPhase.name);
+      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(PostMysteryEncounterPhase.name);
 
       // Wait for Yes/No confirmation to appear
       await vi.waitFor(() => expect(confirmUiHandler.show).toHaveBeenCalled());

@@ -9,6 +9,7 @@ import { DamageAnimPhase } from "#app/phases/damage-anim-phase";
 import { allMoves } from "#app/data/data-lists";
 import type { Move } from "#app/data/move";
 import { BattlerIndex } from "#enums/battler-index";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Moves - Flail", () => {
   let phaserGame: Phaser.Game;
@@ -63,7 +64,7 @@ describe("Moves - Flail", () => {
     game.setTurnOrder([BattlerIndex.PLAYER, BattlerIndex.ENEMY]);
 
     await game.phaseInterceptor.to(MoveEffectPhase, false);
-    expect((game.scene.getCurrentPhase() as MoveEffectPhase).move.moveId).toBe(flail.id);
+    expect((globalPhaseManager.getCurrentPhase() as MoveEffectPhase).move.moveId).toBe(flail.id);
     await game.phaseInterceptor.to(DamageAnimPhase, false);
     expect(flail.calculateBattlePower).toHaveLastReturnedWith(expectedBp);
   });
