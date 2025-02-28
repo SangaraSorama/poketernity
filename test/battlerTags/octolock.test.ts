@@ -5,7 +5,6 @@ import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { Stat } from "#enums/stat";
 import { GameManager } from "#test/testUtils/gameManager";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("BattlerTag - OctolockTag", () => {
   describe("lapse behavior", () => {
@@ -30,7 +29,7 @@ describe("BattlerTag - OctolockTag", () => {
 
       const subject = new OctolockTag(1);
 
-      vi.spyOn(globalPhaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
+      vi.spyOn(game.phaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
         expect(PhaseType).toBeInstanceOf(typeof StatStageChangePhase);
         expect(params["stages"]).toEqual(-1);
         expect(params["stats"]).toEqual([Stat.DEF, Stat.SPDEF]);
@@ -38,7 +37,7 @@ describe("BattlerTag - OctolockTag", () => {
 
       subject.lapse(mockPokemon, BattlerTagLapseType.TURN_END);
 
-      expect(globalPhaseManager.unshiftPhase).toBeCalledTimes(1);
+      expect(game.phaseManager.unshiftPhase).toBeCalledTimes(1);
     });
   });
 

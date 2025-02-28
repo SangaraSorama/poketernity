@@ -60,7 +60,8 @@ import { GameOverModifierRewardPhase } from "#app/phases/game-over-modifier-rewa
 import { UnlockPhase } from "#app/phases/unlock-phase";
 import { PostGameOverPhase } from "#app/phases/post-game-over-phase";
 import { RevivalBlessingPhase } from "#app/phases/revival-blessing-phase";
-import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseManager } from "#app/phase-manager";
+import type BattleScene from "#app/battle-scene";
 
 export interface PromptHandler {
   phaseTarget?: string;
@@ -193,7 +194,8 @@ type PhaseString =
 type PhaseInterceptorPhase = PhaseClass | PhaseString;
 
 export class PhaseInterceptor {
-  public scene;
+  public scene: BattleScene;
+  public phaseManager: PhaseManager;
   public phases = {};
   public log: string[];
   private onHold;
@@ -286,10 +288,12 @@ export class PhaseInterceptor {
 
   /**
    * Constructor to initialize the scene and properties, and to start the phase handling.
-   * @param scene - The scene to be managed.
+   * @param scene - The {@linkcode BattleScene} to manage
+   * @param phaseManager - The {@linkcode PhaseManager} to intercept
    */
-  constructor(scene) {
+  constructor(scene: BattleScene, phaseManager: PhaseManager) {
     this.scene = scene;
+    this.phaseManager = phaseManager;
     this.onHold = [];
     this.prompts = [];
     this.clearLogs();
@@ -368,7 +372,6 @@ export class PhaseInterceptor {
    */
   run(phaseTarget: PhaseInterceptorPhase, skipFn?: (className: PhaseClass) => boolean): Promise<void> {
     const targetName = typeof phaseTarget === "string" ? phaseTarget : phaseTarget.name;
-    this.scene.moveAnimations = null; // Mandatory to avoid crash
     return new Promise(async (resolve, reject) => {
       ErrorInterceptor.getInstance().add(this);
       const interval = setInterval(async () => {
@@ -402,7 +405,6 @@ export class PhaseInterceptor {
 
   whenAboutToRun(phaseTarget: PhaseInterceptorPhase, _skipFn?: (className: PhaseClass) => boolean): Promise<void> {
     const targetName = typeof phaseTarget === "string" ? phaseTarget : phaseTarget.name;
-    this.scene.moveAnimations = null; // Mandatory to avoid crash
     return new Promise(async (resolve, _reject) => {
       ErrorInterceptor.getInstance().add(this);
       const interval = setInterval(async () => {
@@ -417,7 +419,7 @@ export class PhaseInterceptor {
 
   pop() {
     this.onHold.pop();
-    this.scene.shiftPhase();
+    this.phaseManager.shiftPhase();
   }
 
   /**
@@ -432,7 +434,7 @@ export class PhaseInterceptor {
   shift(shouldRun: boolean = false): void {
     this.onHold.shift();
     if (shouldRun) {
-      this.scene.shiftPhase();
+      this.phaseManager.shiftPhase();
     }
   }
 
@@ -460,7 +462,7 @@ export class PhaseInterceptor {
    */
   startPhase(phase: PhaseClass) {
     this.log.push(phase.name);
-    const instance = globalPhaseManager.getCurrentPhase();
+    const instance = this.phaseManager.getCurrentPhase();
     this.onHold.push({
       name: phase.name,
       call: () => {
@@ -479,7 +481,7 @@ export class PhaseInterceptor {
    * @param phase - The phase to start.
    */
   superEndPhase() {
-    const instance = globalPhaseManager.getCurrentPhase();
+    const instance = this.phaseManager.getCurrentPhase();
     this.originalSuperEnd.apply(instance);
     this.inProgress?.callback();
     this.inProgress = undefined;
@@ -491,7 +493,7 @@ export class PhaseInterceptor {
    * @param args - Additional arguments to pass to the original method.
    */
   setMode(mode: UiMode, ...args: unknown[]): Promise<void> {
-    const currentPhase = globalPhaseManager.getCurrentPhase()!;
+    const currentPhase = this.phaseManager.getCurrentPhase()!;
     const instance = this.scene.ui;
     console.log("setMode", `${UiMode[mode]} (=${mode})`, args);
     const ret = this.originalSetMode.apply(instance, [mode, ...args]);
@@ -516,7 +518,7 @@ export class PhaseInterceptor {
         const actionForNextPrompt = this.prompts[0];
         const expireFn = actionForNextPrompt.expireFn && actionForNextPrompt.expireFn();
         const currentMode = this.scene.ui.getMode();
-        const currentPhase = globalPhaseManager.getCurrentPhase()?.constructor.name;
+        const currentPhase = this.phaseManager.getCurrentPhase()?.constructor.name;
         const currentHandler = this.scene.ui.getHandler();
         if (expireFn) {
           this.prompts.shift();
@@ -524,8 +526,7 @@ export class PhaseInterceptor {
           currentMode === actionForNextPrompt.mode
           && currentPhase === actionForNextPrompt.phaseTarget
           && currentHandler.active
-          && (!actionForNextPrompt.awaitingActionInput
-            || (actionForNextPrompt.awaitingActionInput && currentHandler.awaitingActionInput))
+          && !actionForNextPrompt.awaitingActionInput
         ) {
           const prompt = this.prompts.shift();
           if (prompt?.callback) {

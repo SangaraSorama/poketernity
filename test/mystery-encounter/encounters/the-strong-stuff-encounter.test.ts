@@ -30,7 +30,6 @@ import { CommandPhase } from "#app/phases/command-phase";
 import { type MovePhase } from "#app/phases/move-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { Abilities } from "#enums/abilities";
-import { globalPhaseManager } from "#app/global-phase-manager";
 import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/theStrongStuff";
@@ -192,13 +191,13 @@ describe("The Strong Stuff - Mystery Encounter", () => {
     });
 
     it("should start battle against Shuckle", async () => {
-      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
+      const phaseSpy = vi.spyOn(game.phaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.THE_STRONG_STUFF, defaultParty);
       await runMysteryEncounterToEnd(game, 2, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(enemyField[0].species.speciesId).toBe(Species.SHUCKLE);
       expect(enemyField[0].summonData.statStages).toEqual([0, 2, 0, 2, 0, 0, 0]);
@@ -236,7 +235,7 @@ describe("The Strong Stuff - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 2, undefined, true);
       await skipBattleRunMysteryEncounterRewardsPhase(game);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);

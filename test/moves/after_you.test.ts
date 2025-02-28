@@ -7,7 +7,6 @@ import { Species } from "#enums/species";
 import { GameManager } from "#test/testUtils/gameManager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Moves - After You", () => {
   let phaserGame: Phaser.Game;
@@ -43,7 +42,7 @@ describe("Moves - After You", () => {
 
     await game.phaseInterceptor.to("MoveEffectPhase");
     await game.phaseInterceptor.to(MovePhase, false);
-    const phase = globalPhaseManager.getCurrentPhase() as MovePhase;
+    const phase = game.phaseManager.getCurrentPhase() as MovePhase;
     expect(phase.pokemon).toBe(game.scene.getPlayerField()[1]);
     await game.phaseInterceptor.to("MoveEndPhase");
   });

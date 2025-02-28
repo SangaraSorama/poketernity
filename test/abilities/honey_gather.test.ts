@@ -6,7 +6,6 @@ import { Species } from "#enums/species";
 import { GameManager } from "#test/testUtils/gameManager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Abilities - Honey Gather", () => {
   let phaserGame: Phaser.Game;
@@ -65,7 +64,7 @@ describe("Abilities - Honey Gather", () => {
     const enemy = game.scene.getEnemyPokemon()!;
     vi.spyOn(enemy, "scene", "get").mockReturnValue(game.scene);
 
-    const commandPhase = globalPhaseManager.getCurrentPhase<CommandPhase>()!;
+    const commandPhase = game.phaseManager.getCurrentPhase<CommandPhase>()!;
     commandPhase.handleCommand(BattleCommand.RUN, 0);
     await game.toNextTurn();
 

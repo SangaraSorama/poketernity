@@ -20,7 +20,6 @@ import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { CommandPhase } from "#app/phases/command-phase";
 import { ModifierTier } from "#enums/modifier-tier";
 import { Button } from "#enums/buttons";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/weirdDream";
 const defaultParty = [Species.MAGBY, Species.HAUNTER, Species.ABRA];
@@ -127,7 +126,7 @@ describe("Weird Dream - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1);
       clearInterval(pressCancelInterval);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
 
       const pokemonAfter = scene.getPlayerParty();
       const bstsAfter = pokemonAfter.map((pokemon) => pokemon.getSpeciesForm().getBaseStatTotal());
@@ -150,7 +149,7 @@ describe("Weird Dream - Mystery Encounter", () => {
       await game.runToMysteryEncounter(MysteryEncounterType.WEIRD_DREAM, defaultParty);
       await runMysteryEncounterToEnd(game, 1);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
@@ -195,7 +194,7 @@ describe("Weird Dream - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 2, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(scene.getEnemyParty().length).toBe(scene.getPlayerParty().length);
     });
@@ -205,7 +204,7 @@ describe("Weird Dream - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 2, undefined, true);
       await skipBattleRunMysteryEncounterRewardsPhase(game);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);

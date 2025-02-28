@@ -25,7 +25,6 @@ import { ModifierTier } from "#enums/modifier-tier";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { CommandPhase } from "#app/phases/command-phase";
 import { type MovePhase } from "#app/phases/move-phase";
-import { globalPhaseManager } from "#app/global-phase-manager";
 import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/trashToTreasure";
@@ -128,7 +127,7 @@ describe("Trash to Treasure - Mystery Encounter", () => {
       await game.runToMysteryEncounter(MysteryEncounterType.TRASH_TO_TREASURE, defaultParty);
       await runMysteryEncounterToEnd(game, 1);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
 
       const leftovers = scene.findModifier((m) => m.isTurnHealModifier());
       expect(leftovers).toBeDefined();
@@ -170,13 +169,13 @@ describe("Trash to Treasure - Mystery Encounter", () => {
     });
 
     it("should start battle against Garbodor", async () => {
-      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
+      const phaseSpy = vi.spyOn(game.phaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.TRASH_TO_TREASURE, defaultParty);
       await runMysteryEncounterToEnd(game, 2, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(enemyField[0].species.speciesId).toBe(Species.GARBODOR);
       expect(enemyField[0].moveset).toEqual([
@@ -204,7 +203,7 @@ describe("Trash to Treasure - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 2, undefined, true);
       await skipBattleRunMysteryEncounterRewardsPhase(game);
       await game.phaseInterceptor.to(SelectModifierPhase, false);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);

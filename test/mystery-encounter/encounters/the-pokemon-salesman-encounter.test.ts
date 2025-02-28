@@ -22,7 +22,6 @@ import { initSceneWithoutEncounterPhase } from "#test/testUtils/gameManagerUtils
 import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/mystery-encounter-phase";
 import { getSpecialSpeciesList } from "#app/utils/pokemon-species-utils";
 import { SpeciesGroups } from "#enums/pokemon-species-groups";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/thePokemonSalesman";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -178,7 +177,7 @@ describe("The Pokemon Salesman - Mystery Encounter", () => {
       await game.runToMysteryEncounter(MysteryEncounterType.THE_POKEMON_SALESMAN, defaultParty);
       await game.phaseInterceptor.to(MysteryEncounterPhase, false);
 
-      const encounterPhase = globalPhaseManager.getCurrentPhase();
+      const encounterPhase = game.phaseManager.getCurrentPhase();
       expect(encounterPhase?.constructor.name).toBe(MysteryEncounterPhase.name);
       const mysteryEncounterPhase = encounterPhase as MysteryEncounterPhase;
       vi.spyOn(mysteryEncounterPhase, "continueEncounter");
@@ -187,7 +186,7 @@ describe("The Pokemon Salesman - Mystery Encounter", () => {
 
       await runSelectMysteryEncounterOption(game, 1);
 
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
       expect(scene.ui.playError).not.toHaveBeenCalled(); // No error sfx, option is disabled
       expect(mysteryEncounterPhase.handleOptionSelect).not.toHaveBeenCalled();
       expect(mysteryEncounterPhase.continueEncounter).not.toHaveBeenCalled();

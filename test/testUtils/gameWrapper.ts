@@ -22,7 +22,7 @@ import type { MoveEffectPhase } from "#app/phases/move-effect-phase";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { MoveId } from "#enums/move-id";
 import { PhaseId } from "#enums/phase-id";
-import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseManager } from "#app/phase-manager";
 
 export class GameWrapper {
   public game: Phaser.Game;
@@ -30,7 +30,7 @@ export class GameWrapper {
 
   private static originalDamage = Pokemon.prototype.damage;
 
-  constructor(phaserGame: Phaser.Game, bypassLoginMockTrue: boolean) {
+  constructor(phaserGame: Phaser.Game, bypassLoginMockTrue: boolean, phaseManager: PhaseManager) {
     Phaser.Math.RND.sow(["test"]);
     // vi.spyOn(Utils, "apiFetch", "get").mockReturnValue(fetch);
     if (bypassLoginMockTrue) {
@@ -53,7 +53,7 @@ export class GameWrapper {
 
       const side = pokemon.isPlayer() ? "Player" : "Enemy";
       const lowHpMoves = [MoveId.FALSE_SWIPE, MoveId.HARD_PRESS];
-      const currentPhase = globalPhaseManager.getCurrentPhase();
+      const currentPhase = phaseManager.getCurrentPhase();
       let moveName = "N/A";
       let moveId = MoveId.NONE;
       if (currentPhase?.is<MoveEffectPhase>(PhaseId.MOVE_EFFECT)) {

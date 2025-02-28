@@ -7,7 +7,6 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { Button } from "#enums/buttons";
 import { type EvolutionPhase } from "#app/phases/evolution-phase";
 import { UiMode } from "#enums/ui-mode";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Evolution Phase", () => {
   let phaserGame: Phaser.Game;
@@ -99,7 +98,7 @@ describe("Evolution Phase", () => {
     await game.phaseInterceptor.to("EvolutionPhase", false);
 
     // Cancel the evolution
-    (globalPhaseManager.getCurrentPhase() as EvolutionPhase).cancelEvolution();
+    (game.phaseManager.getCurrentPhase() as EvolutionPhase).cancelEvolution();
 
     // Say yes to pausing the evolution
     game.onNextPrompt("EvolutionPhase", UiMode.CONFIRM, () => game.scene.ui.processInput(Button.ACTION));

@@ -19,7 +19,6 @@ import { GameManager } from "#test/testUtils/gameManager";
 import { initSceneWithoutEncounterPhase } from "#test/testUtils/gameManagerUtils";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("SelectModifierPhase", () => {
   let phaserGame: Phaser.Game;
@@ -51,7 +50,7 @@ describe("SelectModifierPhase", () => {
 
   it("should start a select modifier phase", async () => {
     initSceneWithoutEncounterPhase(scene, [Species.ABRA, Species.VOLCARONA]);
-    globalPhaseManager.unshiftPhase(SelectModifierPhase);
+    game.phaseManager.unshiftPhase(SelectModifierPhase);
     await game.phaseInterceptor.to(SelectModifierPhase);
 
     expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
@@ -77,10 +76,10 @@ describe("SelectModifierPhase", () => {
       new ModifierTypeOption(modifierTypes.REVIVE(), 0, 1000),
     ];
 
-    const selectModifierPhase1 = new SelectModifierPhase(globalPhaseManager, {
+    const selectModifierPhase1 = new SelectModifierPhase(game.phaseManager, {
       customModifierSettings: { guaranteedModifierTypeOptions: options },
     });
-    const selectModifierPhase2 = new SelectModifierPhase(globalPhaseManager, {
+    const selectModifierPhase2 = new SelectModifierPhase(game.phaseManager, {
       customModifierSettings: {
         guaranteedModifierTypeOptions: options,
         rerollMultiplier: 2,
@@ -101,7 +100,7 @@ describe("SelectModifierPhase", () => {
     await game.phaseInterceptor.to("SelectModifierPhase");
 
     // TODO: nagivate the ui to reroll somehow
-    //const smphase = globalPhaseManager.getCurrentPhase() as SelectModifierPhase;
+    //const smphase = game.phaseManager.getCurrentPhase() as SelectModifierPhase;
     expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
     const modifierSelectHandler = scene.ui.handlers.find(
       (h) => h instanceof ModifierSelectUiHandler,
@@ -168,7 +167,7 @@ describe("SelectModifierPhase", () => {
         modifierTypes.GOLDEN_PUNCH,
       ],
     };
-    globalPhaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
+    game.phaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
     game.move.select(MoveId.SPLASH);
     await game.phaseInterceptor.to("SelectModifierPhase");
 
@@ -204,7 +203,7 @@ describe("SelectModifierPhase", () => {
     }
     scene.getPlayerParty().push(pokemon, pokemon, pokemon, pokemon, pokemon, pokemon);
 
-    globalPhaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
+    game.phaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
     game.move.select(MoveId.SPLASH);
     await game.phaseInterceptor.to("SelectModifierPhase");
 
@@ -242,7 +241,7 @@ describe("SelectModifierPhase", () => {
       guaranteedModifierTypeFuncs: [modifierTypes.MEMORY_MUSHROOM, modifierTypes.TM_COMMON],
       guaranteedModifierTiers: [ModifierTier.MASTER, ModifierTier.MASTER],
     };
-    globalPhaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
+    game.phaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
 
     game.move.select(MoveId.SPLASH);
     await game.phaseInterceptor.run(SelectModifierPhase);
@@ -266,7 +265,7 @@ describe("SelectModifierPhase", () => {
       guaranteedModifierTiers: [ModifierTier.MASTER],
       fillRemaining: true,
     };
-    globalPhaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
+    game.phaseManager.unshiftPhase(SelectModifierPhase, { customModifierSettings: customModifiers });
 
     game.move.select(MoveId.SPLASH);
     await game.phaseInterceptor.run(SelectModifierPhase);

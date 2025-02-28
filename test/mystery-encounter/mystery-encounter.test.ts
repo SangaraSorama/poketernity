@@ -5,7 +5,6 @@ import { Species } from "#enums/species";
 import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/mystery-encounter-phase";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import type BattleScene from "#app/battle-scene";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Mystery Encounters", () => {
   let phaserGame: Phaser.Game;
@@ -36,7 +35,7 @@ describe("Mystery Encounters", () => {
     ]);
 
     await game.phaseInterceptor.to(MysteryEncounterPhase, false);
-    expect(globalPhaseManager.getCurrentPhase()!.constructor.name).toBe(MysteryEncounterPhase.name);
+    expect(game.phaseManager.getCurrentPhase()!.constructor.name).toBe(MysteryEncounterPhase.name);
   });
 
   it("Encounters should not run below wave 10", async () => {

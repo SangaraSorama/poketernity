@@ -21,7 +21,6 @@ import {
 import * as EncounterPhaseUtils from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import { getSpecialSpeciesList } from "#app/utils/pokemon-species-utils";
 import { SpeciesGroups } from "#enums/pokemon-species-groups";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/safariZone";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -117,7 +116,7 @@ describe("Safari Zone - Mystery Encounter", () => {
       await game.runToMysteryEncounter(MysteryEncounterType.SAFARI_ZONE, defaultParty);
       await game.phaseInterceptor.to(MysteryEncounterPhase, false);
 
-      const encounterPhase = globalPhaseManager.getCurrentPhase();
+      const encounterPhase = game.phaseManager.getCurrentPhase();
       expect(encounterPhase?.constructor.name).toBe(MysteryEncounterPhase.name);
       const mysteryEncounterPhase = encounterPhase as MysteryEncounterPhase;
       vi.spyOn(mysteryEncounterPhase, "continueEncounter");
@@ -126,7 +125,7 @@ describe("Safari Zone - Mystery Encounter", () => {
 
       await runSelectMysteryEncounterOption(game, 1);
 
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
       expect(scene.ui.playError).not.toHaveBeenCalled(); // No error sfx, option is disabled
       expect(mysteryEncounterPhase.handleOptionSelect).not.toHaveBeenCalled();
       expect(mysteryEncounterPhase.continueEncounter).not.toHaveBeenCalled();

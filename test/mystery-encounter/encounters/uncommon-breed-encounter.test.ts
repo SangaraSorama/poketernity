@@ -28,7 +28,6 @@ import { Stat } from "#enums/stat";
 import type { BerryModifier } from "#app/modifier/modifier";
 import { modifierTypes } from "#app/modifier/modifier-types";
 import { Abilities } from "#enums/abilities";
-import { globalPhaseManager } from "#app/global-phase-manager";
 import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/uncommonBreed";
@@ -115,8 +114,8 @@ describe("Uncommon Breed - Mystery Encounter", () => {
     });
 
     it.skip("should start a fight against the boss below wave 50", async () => {
-      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
-      const unshiftPhaseSpy = vi.spyOn(globalPhaseManager, "unshiftPhase");
+      const phaseSpy = vi.spyOn(game.phaseManager, "pushPhase");
+      const unshiftPhaseSpy = vi.spyOn(game.phaseManager, "unshiftPhase");
       await game.runToMysteryEncounter(MysteryEncounterType.UNCOMMON_BREED, defaultParty);
 
       const config = game.scene.currentBattle.mysteryEncounter!.enemyPartyConfigs[0];
@@ -125,7 +124,7 @@ describe("Uncommon Breed - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(enemyField[0].species.speciesId).toBe(speciesToSpawn);
 
@@ -150,8 +149,8 @@ describe("Uncommon Breed - Mystery Encounter", () => {
 
     it.skip("should start a fight against the boss above wave 50", async () => {
       game.override.startingWave(57);
-      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
-      const unshiftPhaseSpy = vi.spyOn(globalPhaseManager, "unshiftPhase");
+      const phaseSpy = vi.spyOn(game.phaseManager, "pushPhase");
+      const unshiftPhaseSpy = vi.spyOn(game.phaseManager, "unshiftPhase");
       await game.runToMysteryEncounter(MysteryEncounterType.UNCOMMON_BREED, defaultParty);
 
       const config = game.scene.currentBattle.mysteryEncounter!.enemyPartyConfigs[0];
@@ -160,7 +159,7 @@ describe("Uncommon Breed - Mystery Encounter", () => {
       await runMysteryEncounterToEnd(game, 1, undefined, true);
 
       const enemyField = scene.getEnemyField();
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(CommandPhase.name);
       expect(enemyField.length).toBe(1);
       expect(enemyField[0].species.speciesId).toBe(speciesToSpawn);
 
@@ -211,7 +210,7 @@ describe("Uncommon Breed - Mystery Encounter", () => {
       await scene.updateModifiers(true);
       await game.phaseInterceptor.to(MysteryEncounterPhase, false);
 
-      const encounterPhase = globalPhaseManager.getCurrentPhase();
+      const encounterPhase = game.phaseManager.getCurrentPhase();
       expect(encounterPhase?.constructor.name).toBe(MysteryEncounterPhase.name);
       const mysteryEncounterPhase = encounterPhase as MysteryEncounterPhase;
       vi.spyOn(mysteryEncounterPhase, "continueEncounter");
@@ -220,7 +219,7 @@ describe("Uncommon Breed - Mystery Encounter", () => {
 
       await runSelectMysteryEncounterOption(game, 2);
 
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
       expect(scene.ui.playError).not.toHaveBeenCalled(); // No error sfx, option is disabled
       expect(mysteryEncounterPhase.handleOptionSelect).not.toHaveBeenCalled();
       expect(mysteryEncounterPhase.continueEncounter).not.toHaveBeenCalled();
@@ -271,7 +270,7 @@ describe("Uncommon Breed - Mystery Encounter", () => {
       scene.getPlayerParty().forEach((p) => (p.moveset = []));
       await game.phaseInterceptor.to(MysteryEncounterPhase, false);
 
-      const encounterPhase = globalPhaseManager.getCurrentPhase();
+      const encounterPhase = game.phaseManager.getCurrentPhase();
       expect(encounterPhase?.constructor.name).toBe(MysteryEncounterPhase.name);
       const mysteryEncounterPhase = encounterPhase as MysteryEncounterPhase;
       vi.spyOn(mysteryEncounterPhase, "continueEncounter");
@@ -280,7 +279,7 @@ describe("Uncommon Breed - Mystery Encounter", () => {
 
       await runSelectMysteryEncounterOption(game, 3);
 
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(MysteryEncounterPhase.name);
       expect(scene.ui.playError).not.toHaveBeenCalled(); // No error sfx, option is disabled
       expect(mysteryEncounterPhase.handleOptionSelect).not.toHaveBeenCalled();
       expect(mysteryEncounterPhase.continueEncounter).not.toHaveBeenCalled();

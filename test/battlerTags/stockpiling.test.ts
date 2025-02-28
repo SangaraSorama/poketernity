@@ -1,7 +1,6 @@
 import { StockpilingTag } from "#app/data/battler-tags";
 import type { Pokemon } from "#app/field/pokemon";
 import { PokemonSummonData } from "#app/field/pokemon-summon-data";
-import { globalPhaseManager } from "#app/global-phase-manager";
 import * as messages from "#app/messages";
 import { StatStageChangePhase } from "#app/phases/stat-stage-change-phase";
 import { Stat } from "#enums/stat";
@@ -37,7 +36,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       const subject = new StockpilingTag(1);
 
-      vi.spyOn(globalPhaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
+      vi.spyOn(game.phaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
         expect(PhaseType).toBeTypeOf(typeof StatStageChangePhase);
         expect(params["stages"]).toEqual(1);
         expect(params["stats"]).toEqual(expect.arrayContaining([Stat.DEF, Stat.SPDEF]));
@@ -45,7 +44,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       subject.onAdd(mockPokemon);
 
-      expect(globalPhaseManager.unshiftPhase).toBeCalledTimes(1);
+      expect(game.phaseManager.unshiftPhase).toBeCalledTimes(1);
     });
 
     it("unshifts a StatStageChangePhase with expected stat changes on add (one stat maxed)", async () => {
@@ -61,7 +60,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       const subject = new StockpilingTag(1);
 
-      vi.spyOn(globalPhaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
+      vi.spyOn(game.phaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
         expect(PhaseType).toBeTypeOf(typeof StatStageChangePhase);
         expect(params["stages"]).toEqual(1);
         expect(params["stats"]).toEqual(expect.arrayContaining([Stat.DEF, Stat.SPDEF]));
@@ -69,7 +68,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       subject.onAdd(mockPokemon);
 
-      expect(globalPhaseManager.unshiftPhase).toBeCalledTimes(1);
+      expect(game.phaseManager.unshiftPhase).toBeCalledTimes(1);
     });
   });
 
@@ -83,7 +82,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       const subject = new StockpilingTag(1);
 
-      vi.spyOn(globalPhaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
+      vi.spyOn(game.phaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
         expect(PhaseType).toBeTypeOf(typeof StatStageChangePhase);
         expect(params["stages"]).toEqual(1);
         expect(params["stats"]).toEqual(expect.arrayContaining([Stat.DEF, Stat.SPDEF]));
@@ -91,7 +90,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       subject.onOverlap(mockPokemon);
 
-      expect(globalPhaseManager.unshiftPhase).toBeCalledTimes(1);
+      expect(game.phaseManager.unshiftPhase).toBeCalledTimes(1);
     });
   });
 
@@ -109,7 +108,7 @@ describe("BattlerTag - StockpilingTag", () => {
 
       const subject = new StockpilingTag(1);
 
-      vi.spyOn(globalPhaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
+      vi.spyOn(game.phaseManager, "unshiftPhase").mockImplementation((PhaseType, ...params) => {
         expect(PhaseType).toBeTypeOf(typeof StatStageChangePhase);
         expect(params["stages"]).toEqual(1);
         expect(params["stats"]).toEqual(expect.arrayContaining([Stat.DEF, Stat.SPDEF]));
@@ -130,14 +129,14 @@ describe("BattlerTag - StockpilingTag", () => {
       expect(subject.statChangeCounts).toMatchObject({ [Stat.DEF]: 0, [Stat.SPDEF]: 2 });
 
       // removing tag should reverse stat changes
-      vi.spyOn(globalPhaseManager, "unshiftPhase").mockImplementationOnce((PhaseType, ...params) => {
+      vi.spyOn(game.phaseManager, "unshiftPhase").mockImplementationOnce((PhaseType, ...params) => {
         expect(PhaseType).toBeTypeOf(typeof StatStageChangePhase);
         expect(params["stages"]).toEqual(-2);
         expect(params["stats"]).toEqual(expect.arrayContaining([Stat.SPDEF]));
       });
 
       subject.onRemove(mockPokemon);
-      expect(globalPhaseManager.unshiftPhase).toHaveBeenCalledTimes(4);
+      expect(game.phaseManager.unshiftPhase).toHaveBeenCalledTimes(4);
     });
   });
 });

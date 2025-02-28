@@ -10,7 +10,6 @@ import { GameManager } from "#test/testUtils/gameManager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { PhaseId } from "#enums/phase-id";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Moves - Shell Trap", () => {
   let phaserGame: Phaser.Game;
@@ -52,7 +51,7 @@ describe("Moves - Shell Trap", () => {
 
     await game.phaseInterceptor.to(MoveEndPhase);
 
-    const movePhase = globalPhaseManager.getCurrentPhase();
+    const movePhase = game.phaseManager.getCurrentPhase();
     expect(movePhase?.is<MovePhase>(PhaseId.MOVE)).toBeTruthy();
     expect((movePhase as MovePhase).pokemon).toBe(playerPokemon[1]);
 
@@ -75,7 +74,7 @@ describe("Moves - Shell Trap", () => {
 
     await game.phaseInterceptor.to(MoveEndPhase);
 
-    const movePhase = globalPhaseManager.getCurrentPhase();
+    const movePhase = game.phaseManager.getCurrentPhase();
     expect(movePhase?.is<MovePhase>(PhaseId.MOVE)).toBeTruthy();
     expect((movePhase as MovePhase).pokemon).not.toBe(playerPokemon[1]);
 
@@ -98,7 +97,7 @@ describe("Moves - Shell Trap", () => {
 
     await game.phaseInterceptor.to(MoveEndPhase);
 
-    const movePhase = globalPhaseManager.getCurrentPhase();
+    const movePhase = game.phaseManager.getCurrentPhase();
     expect(movePhase?.is<MovePhase>(PhaseId.MOVE)).toBeTruthy();
     expect((movePhase as MovePhase).pokemon).not.toBe(playerPokemon[1]);
 
@@ -119,7 +118,7 @@ describe("Moves - Shell Trap", () => {
 
     await game.phaseInterceptor.to(MoveEndPhase);
 
-    const movePhase = globalPhaseManager.getCurrentPhase();
+    const movePhase = game.phaseManager.getCurrentPhase();
     expect(movePhase?.is<MovePhase>(PhaseId.MOVE)).toBeTruthy();
     expect((movePhase as MovePhase).pokemon).not.toBe(playerPokemon[1]);
 

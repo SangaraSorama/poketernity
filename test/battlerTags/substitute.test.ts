@@ -16,7 +16,6 @@ import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { AttackMove } from "#app/data/move";
 import { ElementalType } from "#enums/elemental-type";
 import { MoveCategory } from "#enums/move-category";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("BattlerTag - SubstituteTag", () => {
   let phaserGame: Phaser.Game;
@@ -211,7 +210,7 @@ describe("BattlerTag - SubstituteTag", () => {
         getUserPokemon: vi.fn().mockReturnValue(undefined) as MoveEffectPhase["getUserPokemon"],
       } as MoveEffectPhase;
 
-      vi.spyOn(globalPhaseManager, "getCurrentPhase").mockReturnValue(moveEffectPhase);
+      vi.spyOn(game.phaseManager, "getCurrentPhase").mockReturnValue(moveEffectPhase);
       vi.spyOn(allMoves[MoveId.TACKLE], "hitsSubstitute").mockReturnValue(true);
 
       expect(subject.lapse(mockPokemon, BattlerTagLapseType.HIT)).toBeTruthy();

@@ -1,4 +1,3 @@
-import { globalPhaseManager } from "#app/global-phase-manager";
 import { BerryPhase } from "#app/phases/berry-phase";
 import { MessagePhase } from "#app/phases/message-phase";
 import { MoveHeaderPhase } from "#app/phases/move-header-phase";
@@ -115,7 +114,7 @@ describe("Moves - Focus Punch", () => {
 
     await game.phaseInterceptor.to(TurnStartPhase);
 
-    expect(globalPhaseManager.getCurrentPhase() instanceof SwitchSummonPhase).toBeTruthy();
+    expect(game.phaseManager.getCurrentPhase() instanceof SwitchSummonPhase).toBeTruthy();
     expect(game.scene.phaseQueue.find((phase) => phase instanceof MoveHeaderPhase)).toBeDefined();
   });
 });

@@ -19,7 +19,6 @@ import { UiMode } from "#enums/ui-mode";
 import ModifierSelectUiHandler from "#app/ui/modifier-select-ui-handler";
 import { ModifierTier } from "#enums/modifier-tier";
 import * as Utils from "#app/utils";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/globalTradeSystem";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -229,7 +228,7 @@ describe("Global Trade System - Mystery Encounter", () => {
       await scene.updateModifiers(true);
 
       await runMysteryEncounterToEnd(game, 3, { pokemonNo: 1, optionNo: 1 });
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);

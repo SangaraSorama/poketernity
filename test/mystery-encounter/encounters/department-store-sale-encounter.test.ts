@@ -14,7 +14,6 @@ import { CIVILIZATION_ENCOUNTER_BIOMES } from "#app/data/mystery-encounters/myst
 import { MysteryEncounterOptionMode } from "#enums/mystery-encounter-option-mode";
 import { MysteryEncounterTier } from "#enums/mystery-encounter-tier";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/departmentStoreSale";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -96,7 +95,7 @@ describe("Department Store Sale - Mystery Encounter", () => {
     it("should have shop with only TMs", async () => {
       await game.runToMysteryEncounter(MysteryEncounterType.DEPARTMENT_STORE_SALE, defaultParty);
       await runMysteryEncounterToEnd(game, 1);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
@@ -133,7 +132,7 @@ describe("Department Store Sale - Mystery Encounter", () => {
     it("should have shop with only Vitamins", async () => {
       await game.runToMysteryEncounter(MysteryEncounterType.DEPARTMENT_STORE_SALE, defaultParty);
       await runMysteryEncounterToEnd(game, 2);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
@@ -173,7 +172,7 @@ describe("Department Store Sale - Mystery Encounter", () => {
     it("should have shop with only X Items", async () => {
       await game.runToMysteryEncounter(MysteryEncounterType.DEPARTMENT_STORE_SALE, defaultParty);
       await runMysteryEncounterToEnd(game, 3);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);
@@ -213,7 +212,7 @@ describe("Department Store Sale - Mystery Encounter", () => {
     it("should have shop with only Pokeballs", async () => {
       await game.runToMysteryEncounter(MysteryEncounterType.DEPARTMENT_STORE_SALE, defaultParty);
       await runMysteryEncounterToEnd(game, 4);
-      expect(globalPhaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
+      expect(game.phaseManager.getCurrentPhase()?.constructor.name).toBe(SelectModifierPhase.name);
       await game.phaseInterceptor.run(SelectModifierPhase);
 
       expect(scene.ui.getMode()).to.equal(UiMode.MODIFIER_SELECT);

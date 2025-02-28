@@ -8,7 +8,6 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { type CommandPhase } from "#app/phases/command-phase";
 import { BattleCommand } from "#enums/battle-command";
 import { AttemptRunPhase } from "#app/phases/attempt-run-phase";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Abilities - Speed Boost", () => {
   let phaserGame: Phaser.Game;
@@ -99,9 +98,9 @@ describe("Abilities - Speed Boost", () => {
   it("should not trigger if pokemon fails to escape", async () => {
     await game.classicMode.startBattle([Species.SHUCKLE]);
 
-    const commandPhase = globalPhaseManager.getCurrentPhase() as CommandPhase;
+    const commandPhase = game.phaseManager.getCurrentPhase() as CommandPhase;
     commandPhase.handleCommand(BattleCommand.RUN, 0);
-    const runPhase = globalPhaseManager.getCurrentPhase() as AttemptRunPhase;
+    const runPhase = game.phaseManager.getCurrentPhase() as AttemptRunPhase;
     runPhase.forceFailEscape = true;
     await game.phaseInterceptor.to(AttemptRunPhase);
     await game.toNextTurn();
