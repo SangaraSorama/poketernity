@@ -25,7 +25,8 @@ import { ModifierTier } from "#enums/modifier-tier";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { CommandPhase } from "#app/phases/command-phase";
 import { type MovePhase } from "#app/phases/move-phase";
-import { PhaseId } from "#enums/phase-id";
+import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/trashToTreasure";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -169,7 +170,7 @@ describe("Trash to Treasure - Mystery Encounter", () => {
     });
 
     it("should start battle against Garbodor", async () => {
-      const phaseSpy = vi.spyOn(scene, "pushPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.TRASH_TO_TREASURE, defaultParty);
       await runMysteryEncounterToEnd(game, 2, undefined, true);
@@ -186,10 +187,16 @@ describe("Trash to Treasure - Mystery Encounter", () => {
       ]);
 
       // Should have used moves pre-battle
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].is<MovePhase>(PhaseId.MOVE)).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase");
       expect(movePhases.length).toBe(2);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.TOXIC).length).toBe(1);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.AMNESIA).length).toBe(1);
+      expect(
+        movePhases.filter((p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.TOXIC)
+          .length,
+      ).toBe(1);
+      expect(
+        movePhases.filter((p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.AMNESIA)
+          .length,
+      ).toBe(1);
     });
 
     it("should have 2 Epic, 1 Ultra, 1 Great in rewards", async () => {

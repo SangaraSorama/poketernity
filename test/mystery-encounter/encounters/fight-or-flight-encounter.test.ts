@@ -22,6 +22,7 @@ import { FightOrFlightEncounter } from "#app/data/mystery-encounters/encounters/
 import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/mystery-encounter-phase";
 import { CommandPhase } from "#app/phases/command-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/fightOrFlight";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

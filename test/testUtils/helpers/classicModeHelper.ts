@@ -11,6 +11,7 @@ import { UiMode } from "#enums/ui-mode";
 import { generateStarter } from "#test/testUtils/gameManagerUtils";
 import { GameManagerHelper } from "#test/testUtils/helpers/gameManagerHelper";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Helper to handle classic mode specifics
@@ -31,8 +32,8 @@ export class ClassicModeHelper extends GameManagerHelper {
     this.game.onNextPrompt("TitlePhase", UiMode.TITLE, () => {
       this.game.scene.gameMode = getGameMode(GameModes.CLASSIC);
       const starters = generateStarter(this.game.scene, species);
-      const selectStarterPhase = new SelectStarterPhase();
-      this.game.scene.pushPhase(new EncounterPhase(false));
+      const selectStarterPhase = new SelectStarterPhase(globalPhaseManager);
+      globalPhaseManager.pushPhase(EncounterPhase, false);
       selectStarterPhase.initBattle(starters);
     });
 

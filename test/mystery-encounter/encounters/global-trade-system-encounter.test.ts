@@ -19,6 +19,7 @@ import { UiMode } from "#enums/ui-mode";
 import ModifierSelectUiHandler from "#app/ui/modifier-select-ui-handler";
 import { ModifierTier } from "#enums/modifier-tier";
 import * as Utils from "#app/utils";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/globalTradeSystem";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

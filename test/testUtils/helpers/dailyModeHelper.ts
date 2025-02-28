@@ -9,6 +9,7 @@ import type SaveSlotSelectUiHandler from "#app/ui/save-slot-select-ui-handler";
 import { UiMode } from "#enums/ui-mode";
 import { GameManagerHelper } from "#test/testUtils/helpers/gameManagerHelper";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Helper to handle daily mode specifics
@@ -26,7 +27,7 @@ export class DailyModeHelper extends GameManagerHelper {
     }
 
     this.game.onNextPrompt("TitlePhase", UiMode.TITLE, () => {
-      const titlePhase = new TitlePhase();
+      const titlePhase = new TitlePhase(globalPhaseManager);
       titlePhase.initDailyRun();
     });
 

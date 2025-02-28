@@ -21,6 +21,7 @@ import {
 import * as EncounterPhaseUtils from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import { getSpecialSpeciesList } from "#app/utils/pokemon-species-utils";
 import { SpeciesGroups } from "#enums/pokemon-species-groups";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/safariZone";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

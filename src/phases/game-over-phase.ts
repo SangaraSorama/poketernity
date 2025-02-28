@@ -183,6 +183,7 @@ export class GameOverPhase extends BattlePhase {
             const dialogueKey = "miscDialogue:ending";
             const displayEndCard = (): void => {
               this.manager.unshiftPhase(EndCardPhase);
+              const endCardPhase = this.manager.findPhase<EndCardPhase>((phase) => phase.id === PhaseId.END_CARD);
               clear(endCardPhase);
             };
 

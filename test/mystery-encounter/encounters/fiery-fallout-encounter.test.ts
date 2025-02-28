@@ -31,7 +31,8 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { Abilities } from "#enums/abilities";
 import i18next from "i18next";
 import { StatusEffect } from "#enums/status-effect";
-import { PhaseId } from "#enums/phase-id";
+import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/fieryFallout";
 /** Arcanine and Ninetails for 2 Fire types. Lapras, Gengar, Abra for burnable mon. */
@@ -159,7 +160,7 @@ describe("Fiery Fallout - Mystery Encounter", () => {
     });
 
     it("should start battle against 2 Volcarona", async () => {
-      const phaseSpy = vi.spyOn(scene, "pushPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.FIERY_FALLOUT, defaultParty);
       await runMysteryEncounterToEnd(game, 1, undefined, true);
@@ -171,9 +172,12 @@ describe("Fiery Fallout - Mystery Encounter", () => {
       expect(enemyField[1].species.speciesId).toBe(Species.VOLCARONA);
       expect(enemyField[0].gender).not.toEqual(enemyField[1].gender); // Should be opposite gender
 
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].is<MovePhase>(PhaseId.MOVE)).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase");
       expect(movePhases.length).toBe(2);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.FIRE_SPIN).length).toBe(2); // Fire spin used twice before battle
+      expect(
+        movePhases.filter((p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.FIRE_SPIN)
+          .length,
+      ).toBe(2); // Fire spin used twice before battle
     });
 
     it("should give attack type boosting item to lead pokemon", async () => {

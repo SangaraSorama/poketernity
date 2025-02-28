@@ -14,6 +14,7 @@ import { CIVILIZATION_ENCOUNTER_BIOMES } from "#app/data/mystery-encounters/myst
 import { MysteryEncounterOptionMode } from "#enums/mystery-encounter-option-mode";
 import { MysteryEncounterTier } from "#enums/mystery-encounter-tier";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/departmentStoreSale";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

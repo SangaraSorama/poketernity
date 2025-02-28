@@ -7,6 +7,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { Button } from "#enums/buttons";
 import { type EvolutionPhase } from "#app/phases/evolution-phase";
 import { UiMode } from "#enums/ui-mode";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Evolution Phase", () => {
   let phaserGame: Phaser.Game;

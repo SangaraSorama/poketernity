@@ -23,6 +23,7 @@ import ModifierSelectUiHandler from "#app/ui/modifier-select-ui-handler";
 import MysteryEncounter from "#app/data/mystery-encounters/mystery-encounter";
 import { CommandPhase } from "#app/phases/command-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/mysteriousChallengers";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

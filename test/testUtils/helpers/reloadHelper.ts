@@ -8,6 +8,7 @@ import type { SessionSaveData } from "#app/@types/SessionData";
 import type { GameManager } from "#test/testUtils/gameManager";
 import { GameManagerHelper } from "#test/testUtils/helpers/gameManagerHelper";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Helper to allow reloading sessions in unit tests.
@@ -34,9 +35,10 @@ export class ReloadHelper extends GameManagerHelper {
    */
   async reloadSession(): Promise<void> {
     const scene = this.game.scene;
-    const titlePhase = new TitlePhase();
 
-    scene.clearPhaseQueue();
+    globalPhaseManager.clearPhaseQueue();
+
+    const titlePhase = new TitlePhase(globalPhaseManager);
 
     // Set the last saved session to the desired session data
     vi.spyOn(scene.gameData, "getSession").mockReturnValue(
@@ -44,7 +46,7 @@ export class ReloadHelper extends GameManagerHelper {
         resolve(this.sessionData);
       }),
     );
-    scene.unshiftPhase(titlePhase);
+    globalPhaseManager.phaseQueue.push(titlePhase);
     this.game.endPhase(); // End the currently ongoing battle
 
     titlePhase.loadSaveSlot(-1); // Load the desired session data

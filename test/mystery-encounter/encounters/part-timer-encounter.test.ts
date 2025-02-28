@@ -17,6 +17,7 @@ import { PartTimerEncounter } from "#app/data/mystery-encounters/encounters/part
 import { PokemonMove } from "#app/field/pokemon-move";
 import { MoveId } from "#enums/move-id";
 import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/mystery-encounter-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/partTimer";
 // Pyukumuku for lowest speed, Regieleki for highest speed, Feebas for lowest "bulk", Melmetal for highest "bulk"

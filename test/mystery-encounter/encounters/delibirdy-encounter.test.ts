@@ -27,6 +27,7 @@ import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/myst
 import { generateModifierType } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import { modifierTypes } from "#app/modifier/modifier-types";
 import { BerryType } from "#enums/berry-type";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/delibirdy";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

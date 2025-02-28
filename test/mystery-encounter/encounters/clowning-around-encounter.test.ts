@@ -35,10 +35,11 @@ import { BerryType } from "#enums/berry-type";
 import type { PokemonHeldItemModifier } from "#app/modifier/modifier";
 import { ElementalType } from "#enums/elemental-type";
 import { CommandPhase } from "#app/phases/command-phase";
-import { type MovePhase } from "#app/phases/move-phase";
+import type { MovePhase } from "#app/phases/move-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { NewBattlePhase } from "#app/phases/new-battle-phase";
 import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/clowningAround";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -195,8 +196,14 @@ describe("Clowning Around - Mystery Encounter", () => {
       // Should have used moves pre-battle
       const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase");
       expect(movePhases.length).toBe(3);
-      expect(movePhases.filter((p) => p[1]["move"].moveId === MoveId.ROLE_PLAY).length).toBe(1);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.TAUNT).length).toBe(2);
+      expect(
+        movePhases.filter((p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.ROLE_PLAY)
+          .length,
+      ).toBe(1);
+      expect(
+        movePhases.filter((p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.TAUNT)
+          .length,
+      ).toBe(2);
     });
 
     it("should let the player gain the ability after battle completion", async () => {

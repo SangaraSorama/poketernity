@@ -22,8 +22,9 @@ import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/myst
 import { CommandPhase } from "#app/phases/command-phase";
 import { type MovePhase } from "#app/phases/move-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
-import { LearnMovePhase } from "#app/phases/learn-move-phase";
-import { PhaseId } from "#enums/phase-id";
+import type { LearnMovePhase } from "#app/phases/learn-move-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/dancingLessons";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -99,7 +100,7 @@ describe("Dancing Lessons - Mystery Encounter", () => {
     });
 
     it("should start battle against Oricorio", async () => {
-      const phaseSpy = vi.spyOn(scene, "pushPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.DANCING_LESSONS, defaultParty);
       // Make party lead's level arbitrarily high to not get KOed by move
@@ -116,9 +117,13 @@ describe("Dancing Lessons - Mystery Encounter", () => {
       const moveset = enemyField[0].moveset.map((m) => m.moveId);
       expect(moveset.some((m) => m === MoveId.REVELATION_DANCE)).toBeTruthy();
 
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].is<MovePhase>(PhaseId.MOVE)).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase");
       expect(movePhases.length).toBe(1);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.REVELATION_DANCE).length).toBe(1); // Revelation Dance used before battle
+      expect(
+        movePhases.filter(
+          (p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.REVELATION_DANCE,
+        ).length,
+      ).toBe(1); // Revelation Dance used before battle
     });
 
     it("should have a Baton in the rewards after battle", async () => {
@@ -159,15 +164,19 @@ describe("Dancing Lessons - Mystery Encounter", () => {
     });
 
     it("Should select a pokemon to learn Revelation Dance", async () => {
-      const phaseSpy = vi.spyOn(scene, "unshiftPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "unshiftPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.DANCING_LESSONS, defaultParty);
       scene.getPlayerParty()[0].moveset = [];
       await runMysteryEncounterToEnd(game, 2, { pokemonNo: 1 });
 
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0] instanceof LearnMovePhase).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "LearnMovePhase");
       expect(movePhases.length).toBe(1);
-      expect(movePhases.filter((p) => (p as LearnMovePhase)["moveId"] === MoveId.REVELATION_DANCE).length).toBe(1); // Revelation Dance taught to pokemon
+      expect(
+        movePhases.filter(
+          (p) => (p[1] as PhaseConstructorParams<typeof LearnMovePhase>)["moveId"] === MoveId.REVELATION_DANCE,
+        ).length,
+      ).toBe(1); // Revelation Dance taught to pokemon
     });
 
     it("should leave encounter without battle", async () => {

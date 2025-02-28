@@ -22,6 +22,7 @@ import { Species } from "#enums/species";
 import { initSceneWithoutEncounterPhase } from "#test/testUtils/gameManagerUtils";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Mystery Encounter Utils", () => {
   let phaserGame: Phaser.Game;
@@ -284,11 +285,11 @@ describe("Mystery Encounter Utils", () => {
       scene.currentBattle.mysteryEncounter = new MysteryEncounter(null);
       scene.currentBattle.mysteryEncounter.setDialogueToken("test", "value");
       const spy = vi.spyOn(game.scene, "queueMessage");
-      const phaseSpy = vi.spyOn(game.scene, "unshiftPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "unshiftPhase");
 
       queueEncounterMessage("mysteryEncounter:unit_test_dialogue");
       expect(spy).toHaveBeenCalledWith("mysteryEncounter:unit_test_dialogue", null, true);
-      expect(phaseSpy).toHaveBeenCalledWith(expect.any(MessagePhase));
+      expect(phaseSpy).toHaveBeenCalledWith(MessagePhase);
     });
   });
 

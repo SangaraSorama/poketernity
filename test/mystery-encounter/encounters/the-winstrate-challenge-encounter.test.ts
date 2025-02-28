@@ -22,8 +22,8 @@ import { TheWinstrateChallengeEncounter } from "#app/data/mystery-encounters/enc
 import { MysteryEncounterRewardsPhase } from "#app/phases/mystery-encounter-phases/rewards-phase";
 import { CommandPhase } from "#app/phases/command-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
-import { PartyHealPhase } from "#app/phases/party-heal-phase";
 import { VictoryPhase } from "#app/phases/victory-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/theWinstrateChallenge";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -324,12 +324,12 @@ describe("The Winstrate Challenge - Mystery Encounter", () => {
     });
 
     it("Should fully heal the party", async () => {
-      const phaseSpy = vi.spyOn(scene, "unshiftPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "unshiftPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.THE_WINSTRATE_CHALLENGE, defaultParty);
       await runMysteryEncounterToEnd(game, 2);
 
-      const partyHealPhases = phaseSpy.mock.calls.filter((p) => p[0] instanceof PartyHealPhase).map((p) => p[0]);
+      const partyHealPhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "PartyHealPhase");
       expect(partyHealPhases.length).toBe(1);
     });
 
@@ -355,8 +355,8 @@ describe("The Winstrate Challenge - Mystery Encounter", () => {
  * @param isFinalBattle
  */
 async function skipBattleToNextBattle(game: GameManager, isFinalBattle: boolean = false) {
-  game.scene.clearPhaseQueue();
-  game.scene.clearPhaseQueueSplice();
+  globalPhaseManager.clearPhaseQueue();
+  globalPhaseManager.clearPhaseQueueSplice();
   const commandUiHandler = game.scene.ui.handlers[UiMode.COMMAND];
   commandUiHandler.clear();
   game.scene.getEnemyParty().forEach((p) => {
@@ -364,7 +364,7 @@ async function skipBattleToNextBattle(game: GameManager, isFinalBattle: boolean 
     game.scene.field.remove(p);
   });
   game.phaseInterceptor["onHold"] = [];
-  game.scene.pushPhase(new VictoryPhase(0));
+  globalPhaseManager.pushPhase(VictoryPhase, 0);
   game.phaseInterceptor.superEndPhase();
   if (isFinalBattle) {
     await game.phaseInterceptor.to(MysteryEncounterRewardsPhase);

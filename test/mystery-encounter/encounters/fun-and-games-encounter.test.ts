@@ -24,6 +24,7 @@ import { FunAndGamesEncounter } from "#app/data/mystery-encounters/encounters/fu
 import { MoveId } from "#enums/move-id";
 import { BattleCommand } from "#enums/battle-command";
 import * as EncounterPhaseUtils from "#app/data/mystery-encounters/utils/encounter-phase-utils";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/funAndGames";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];

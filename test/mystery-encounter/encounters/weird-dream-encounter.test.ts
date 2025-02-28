@@ -20,6 +20,7 @@ import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { CommandPhase } from "#app/phases/command-phase";
 import { ModifierTier } from "#enums/modifier-tier";
 import { Button } from "#enums/buttons";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/weirdDream";
 const defaultParty = [Species.MAGBY, Species.HAUNTER, Species.ABRA];

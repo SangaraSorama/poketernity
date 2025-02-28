@@ -30,7 +30,8 @@ import { CommandPhase } from "#app/phases/command-phase";
 import { type MovePhase } from "#app/phases/move-phase";
 import { SelectModifierPhase } from "#app/phases/select-modifier-phase";
 import { Abilities } from "#enums/abilities";
-import { PhaseId } from "#enums/phase-id";
+import { globalPhaseManager } from "#app/global-phase-manager";
+import type { PhaseConstructorParams } from "#app/@types/PhaseConstructorParams";
 
 const namespace = "mysteryEncounters/theStrongStuff";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
@@ -191,7 +192,7 @@ describe("The Strong Stuff - Mystery Encounter", () => {
     });
 
     it("should start battle against Shuckle", async () => {
-      const phaseSpy = vi.spyOn(scene, "pushPhase");
+      const phaseSpy = vi.spyOn(globalPhaseManager, "pushPhase");
 
       await game.runToMysteryEncounter(MysteryEncounterType.THE_STRONG_STUFF, defaultParty);
       await runMysteryEncounterToEnd(game, 2, undefined, true);
@@ -216,10 +217,18 @@ describe("The Strong Stuff - Mystery Encounter", () => {
       ]);
 
       // Should have used moves pre-battle
-      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].is<MovePhase>(PhaseId.MOVE)).map((p) => p[0]);
+      const movePhases = phaseSpy.mock.calls.filter((p) => p[0].constructor.name === "MovePhase");
       expect(movePhases.length).toBe(2);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.GASTRO_ACID).length).toBe(1);
-      expect(movePhases.filter((p) => (p as MovePhase).move.moveId === MoveId.STEALTH_ROCK).length).toBe(1);
+      expect(
+        movePhases.filter(
+          (p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.GASTRO_ACID,
+        ).length,
+      ).toBe(1);
+      expect(
+        movePhases.filter(
+          (p) => (p[1] as PhaseConstructorParams<typeof MovePhase>)["move"].moveId === MoveId.STEALTH_ROCK,
+        ).length,
+      ).toBe(1);
     });
 
     it("should have Soul Dew in rewards", async () => {

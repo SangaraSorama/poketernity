@@ -12,6 +12,7 @@ import { TurnInitPhase } from "#app/phases/turn-init-phase";
 import type { Challenges } from "#enums/challenges";
 import { copyChallenge } from "data/challenge";
 import { settings } from "#app/system/settings/settings-manager";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * Helper to handle Challenge mode specifics
@@ -45,8 +46,8 @@ export class ChallengeModeHelper extends GameManagerHelper {
     this.game.onNextPrompt("TitlePhase", UiMode.TITLE, () => {
       this.game.scene.gameMode.challenges = this.challenges;
       const starters = generateStarter(this.game.scene, species);
-      const selectStarterPhase = new SelectStarterPhase();
-      this.game.scene.pushPhase(new EncounterPhase(false));
+      const selectStarterPhase = new SelectStarterPhase(globalPhaseManager);
+      globalPhaseManager.pushPhase(EncounterPhase, false);
       selectStarterPhase.initBattle(starters);
     });
 

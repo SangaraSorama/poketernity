@@ -11,6 +11,7 @@ import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import type MessageUiHandler from "#app/ui/message-ui-handler";
 import { MysteryEncounterTier } from "#enums/mystery-encounter-tier";
 import i18next from "i18next";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Mystery Encounter Phases", () => {
   let phaserGame: Phaser.Game;

@@ -10,6 +10,7 @@ import { modifierTypes } from "#app/modifier/modifier-types";
 import { Button } from "#enums/buttons";
 import { pokemonFormChanges } from "#app/data/pokemon-forms";
 import { FormChangePhase } from "#app/phases/form-change-phase";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 describe("Form Change Phase", () => {
   let phaserGame: Phaser.Game;
@@ -108,7 +109,7 @@ describe("Form Change Phase", () => {
     expect(rillaboom.moveset.map((m) => m.moveId)).not.toContain(MoveId.G_MAX_DRUM_SOLO);
 
     // Manually trigger a form change
-    game.scene.unshiftPhase(new FormChangePhase(rillaboom, pokemonFormChanges[Species.RILLABOOM][1], false));
+    globalPhaseManager.unshiftPhase(FormChangePhase, rillaboom, pokemonFormChanges[Species.RILLABOOM][1], false);
 
     game.move.use(MoveId.SPLASH);
     await game.toNextTurn();

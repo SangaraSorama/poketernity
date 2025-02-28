@@ -21,6 +21,7 @@ import {
 import { initSceneWithoutEncounterPhase } from "#test/testUtils/gameManagerUtils";
 import i18next from "i18next";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { globalPhaseManager } from "#app/global-phase-manager";
 
 const namespace = "mysteryEncounters/teleportingHijinks";
 const defaultParty = [Species.LAPRAS, Species.GENGAR, Species.ABRA];
