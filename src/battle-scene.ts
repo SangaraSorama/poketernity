@@ -189,6 +189,7 @@ import { loadMoveAnimAssets } from "./utils/move-anim-utils";
 import { getPokemonSpecies } from "./utils/pokemon-species-utils";
 import { globalPhaseManager } from "./global-phase-manager";
 import type { PhaseConstructorParams } from "./@types/PhaseConstructorParams";
+import { TurnInitPhase } from "#app/phases/turn-init-phase";
 
 //#region Types
 
@@ -372,6 +373,7 @@ export default class BattleScene extends SceneBase {
     this.updateGameInfo();
     this.animations = new Animation(this);
     initGlobalScene(this);
+    globalPhaseManager.init(new TurnInitPhase(globalPhaseManager));
     this.initSettingsEventListeners();
   }
 

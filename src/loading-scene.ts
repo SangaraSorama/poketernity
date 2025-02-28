@@ -31,8 +31,6 @@ import { api } from "#app/plugins/api/api";
 import { initMoves } from "#app/data/init-moves";
 import { initModifierTypes } from "#app/modifier/init-modifier-types";
 import { initModifierPools } from "#app/modifier/init-modifier-pools";
-import { globalPhaseManager } from "#app/global-phase-manager";
-import { TurnInitPhase } from "#app/phases/turn-init-phase";
 
 export class LoadingScene extends SceneBase {
   public static readonly KEY = "loading";
@@ -378,7 +376,6 @@ export class LoadingScene extends SceneBase {
     initAbilities();
     initChallenges();
     initMysteryEncounters();
-    globalPhaseManager.init(new TurnInitPhase(globalPhaseManager));
   }
 
   loadLoadingScreen() {
