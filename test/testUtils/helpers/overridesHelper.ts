@@ -1,6 +1,6 @@
 // tsdoc imports
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { GameManager } from "#test/testUtils/gameManager";
+import type { GameManager } from "#test/testUtils/gameManager";
 
 import type { Variant } from "#app/data/variant";
 import { Abilities } from "#enums/abilities";
