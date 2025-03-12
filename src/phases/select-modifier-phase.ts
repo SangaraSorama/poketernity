@@ -57,12 +57,10 @@ export class SelectModifierPhase extends BattlePhase {
 
   private typeOptions: ModifierTypeOption[];
 
-  constructor(manager: PhaseManager, {
-    rerollCount = 0,
-    modifierTiers,
-    customModifierSettings,
-    isCopy = false,
-  }: SelectModifierPhaseOptions = {}) {
+  constructor(
+    manager: PhaseManager,
+    { rerollCount = 0, modifierTiers, customModifierSettings, isCopy = false }: SelectModifierPhaseOptions = {},
+  ) {
     super(manager);
 
     this.rerollCount = rerollCount;
