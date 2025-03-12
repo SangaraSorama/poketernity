@@ -87,7 +87,7 @@ export class MysteryEncounterBattlePhase extends Phase {
     const encounterMode = mysteryEncounter?.encounterMode;
     if (encounterMode === MysteryEncounterMode.WILD_BATTLE || encounterMode === MysteryEncounterMode.BOSS_BATTLE) {
       if (encounterMode === MysteryEncounterMode.BOSS_BATTLE) {
-        globalScene.playBgm();
+        globalScene.audioManager.playBgm();
       }
       const availablePartyMembers = globalScene.getEnemyParty().filter((p) => !p.isFainted()).length;
       this.manager.unshiftPhase(SummonPhase, 0, false);
@@ -104,7 +104,7 @@ export class MysteryEncounterBattlePhase extends Phase {
       this.showEnemyTrainer();
       const doSummon = (): void => {
         currentBattle.started = true;
-        globalScene.playBgm();
+        globalScene.audioManager.playBgm();
         globalScene.pbTray.showPbTray(globalScene.getPlayerParty());
         globalScene.pbTrayEnemy.showPbTray(globalScene.getEnemyParty());
         const doTrainerSummon = (): void => {

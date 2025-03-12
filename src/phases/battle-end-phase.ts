@@ -1,4 +1,4 @@
-import { applyAbAttrs } from "#app/data/apply-ab-attrs";
+import { applyAbAttrs } from "#app/data/abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import type { LapsingPersistentModifier, LapsingPokemonHeldItemModifier } from "#app/modifier/modifier";
 import type { PhaseManager } from "#app/phase-manager";
@@ -59,6 +59,12 @@ export class BattleEndPhase extends BattlePhase {
     }
 
     globalScene.clearEnemyHeldItemModifiers();
+
+    try {
+      globalScene.getEnemyParty().forEach((p) => p.destroy());
+    } catch {
+      console.warn("Unable to destroy stale pokemon objects in BattleEndPhase.");
+    }
 
     const lapsingModifiers = globalScene.findModifiers(
       (m) => m.isLapsingPersistentModifier() || m.isLapsingPokemonHeldItemModifier(),

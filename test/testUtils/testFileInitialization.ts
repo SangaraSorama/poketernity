@@ -3,11 +3,11 @@ import { SESSION_ID_COOKIE } from "#app/constants";
 import { allMoves } from "#app/data/data-lists";
 import { initBiomes } from "#app/data/balance/biomes";
 import { initEggMoves } from "#app/data/balance/egg-moves";
-import { initPokemonPrevolutions } from "#app/data/balance/pokemon-evolutions";
+import { initPokemonPreEvolutions } from "#app/data/pokemon-pre-evolutions";
 import { initMysteryEncounters } from "#app/data/mystery-encounters/mystery-encounters";
 import { initPokemonForms } from "#app/data/pokemon-forms";
-import { initSpecies } from "#app/data/init-species";
-import { initAchievements } from "#app/system/achv";
+import { initSpecies } from "#app/data/init/init-species";
+import { initAchievements } from "#app/system/achievements";
 import { initStatsKeys } from "#app/ui/game-stats-ui-handler";
 import { setCookie } from "#app/utils";
 import { blobToString } from "#test/testUtils/gameManagerUtils";
@@ -18,8 +18,8 @@ import { MockImage } from "#test/testUtils/mocks/mocksContainer/mockImage";
 import Phaser from "phaser";
 import { manageListeners } from "./listenersManager";
 import { initVouchers } from "#app/system/init-vouchers";
-import { initAbilities } from "#app/data/init-abilities";
-import { initMoves } from "#app/data/init-moves";
+import { initAbilities } from "#app/data/init/init-abilities";
+import { initMoves } from "#app/data/init/init-moves";
 import { initModifierTypes } from "#app/modifier/init-modifier-types";
 import { initModifierPools } from "#app/modifier/init-modifier-pools";
 
@@ -28,14 +28,14 @@ import { initModifierPools } from "#app/modifier/init-modifier-pools";
  */
 export function initDataForTests() {
   // Initialize all of these things if and only if they have not been initialized yet
-  if (Object.values(allMoves).length === 0) {
+  if (allMoves.size === 0) {
     initModifierTypes();
     initModifierPools();
     initMoves();
     initVouchers();
     initAchievements();
     initStatsKeys();
-    initPokemonPrevolutions();
+    initPokemonPreEvolutions();
     initBiomes();
     initEggMoves();
     initPokemonForms();

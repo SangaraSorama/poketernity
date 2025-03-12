@@ -1,15 +1,16 @@
 import { UiMode } from "#enums/ui-mode";
 import { fixedNumber, randItem } from "#app/utils";
-import { addTextObject, getTextStyleOptions } from "#app/ui/text";
+import { addTextObject } from "#app/ui/text";
 import { TextStyle } from "#enums/text-style";
 import { getSplashMessages } from "#app/data/splash-messages";
 import i18next from "i18next";
-import { TimedEventDisplay } from "#app/timed-event-manager";
+import { TimedEventDisplay } from "#app/ui/timed-event-display";
 import { version } from "../../package.json";
 import { api } from "#app/plugins/api/api";
 import { globalScene } from "#app/global-scene";
 import OptionSelectUiHandler from "#app/ui/option-select-ui-handler";
 import { GAME_HEIGHT, GAME_WIDTH } from "#app/ui-constants";
+import { timedEventManager } from "#app/timed-event-manager";
 
 export default class TitleUiHandler extends OptionSelectUiHandler {
   /** If the stats can not be retrieved, use this fallback value */
@@ -19,8 +20,8 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
   private playerCountLabel: Phaser.GameObjects.Text;
   private splashMessage: string;
   private splashMessageText: Phaser.GameObjects.Text;
-  private eventDisplay: TimedEventDisplay;
   private appVersionText: Phaser.GameObjects.Text;
+  private eventDisplay?: TimedEventDisplay;
 
   private titleStatsTimer: NodeJS.Timeout | null;
 
@@ -42,25 +43,16 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
     logo.setOrigin(0.5, 0);
     this.titleContainer.add(logo);
 
-    if (globalScene.eventManager.isEventActive()) {
-      this.eventDisplay = new TimedEventDisplay(0, 0, globalScene.eventManager.activeEvent());
-      this.eventDisplay.setup();
-      this.titleContainer.add(this.eventDisplay);
-    }
-
     this.playerCountLabel = addTextObject(
-      GAME_WIDTH - 2,
-      GAME_HEIGHT - 13 - 576 * getTextStyleOptions(TextStyle.WINDOW).scale,
+      GAME_WIDTH - 5,
+      0,
       `? ${i18next.t("menu:playersOnline")}`,
-      TextStyle.MESSAGE,
-      { fontSize: "54px" },
+      TextStyle.TITLE_SCREEN,
     );
-    this.playerCountLabel.setOrigin(1, 0);
+    this.playerCountLabel.setOrigin(1, 1);
     this.titleContainer.add(this.playerCountLabel);
 
-    this.splashMessageText = addTextObject(logo.x + 64, logo.y + logo.displayHeight - 8, "", TextStyle.MONEY, {
-      fontSize: "54px",
-    });
+    this.splashMessageText = addTextObject(logo.x + 64, logo.y + logo.displayHeight - 8, "", TextStyle.TITLE_SCREEN);
     this.splashMessageText.setOrigin(0.5, 0.5);
     this.splashMessageText.setAngle(-20);
     this.titleContainer.add(this.splashMessageText);
@@ -75,9 +67,7 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
       yoyo: true,
     });
 
-    this.appVersionText = addTextObject(logo.x - 60, logo.y + logo.displayHeight + 4, "", TextStyle.MONEY, {
-      fontSize: "54px",
-    });
+    this.appVersionText = addTextObject(logo.x - 60, logo.y + logo.displayHeight + 4, "", TextStyle.TITLE_SCREEN);
     this.appVersionText.setOrigin(0.5, 0.5);
     this.appVersionText.setAngle(0);
     this.titleContainer.add(this.appVersionText);
@@ -110,10 +100,20 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
 
       const ui = this.getUi();
 
-      if (globalScene.eventManager.isEventActive()) {
-        this.eventDisplay.setWidth(GAME_WIDTH - this.optionSelectBg.width - this.optionSelectBg.x);
+      const activeBannerEvent = timedEventManager.getActiveEvent(true);
+      if (activeBannerEvent) {
+        if (!this.eventDisplay) {
+          const availableBannerWidth = GAME_WIDTH - this.optionSelectBg.width - this.optionSelectBg.x;
+          this.eventDisplay = new TimedEventDisplay(0, 0, availableBannerWidth);
+          this.titleContainer.add(this.eventDisplay);
+        }
+        this.eventDisplay.setEvent(activeBannerEvent);
         this.eventDisplay.show();
+      } else {
+        this.eventDisplay?.hide();
       }
+
+      this.playerCountLabel.y = GAME_HEIGHT - this.optionSelectBg.height - 3;
 
       this.updateTitleStats();
 

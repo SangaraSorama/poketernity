@@ -1,7 +1,14 @@
+// -- start tsdoc imports --
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { type CommandPhase } from "#app/phases/command-phase";
+import { type TurnEndPhase } from "#app/phases/turn-end-phase";
+/* eslint-enable @typescript-eslint/no-unused-vars */
+// -- end tsdoc imports --
+
 import { updateUserInfo } from "#app/account";
 import { BattlerIndex } from "#enums/battler-index";
 import BattleScene from "#app/battle-scene";
-import { getMoveTargets } from "#app/data/move";
+import { getMoveTargets } from "#app/data/moves/move";
 import { settings } from "#app/system/settings/settings-manager";
 import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#app/field/pokemon";
 import Trainer from "#app/field/trainer";
@@ -10,21 +17,13 @@ import { GameModes } from "#enums/game-modes";
 import { ModifierTypeOption } from "#app/modifier/modifier-type";
 import { modifierTypes } from "#app/modifier/modifier-types";
 import overrides from "#app/overrides";
-import { CheckSwitchPhase } from "#app/phases/check-switch-phase";
-import { CommandPhase } from "#app/phases/command-phase";
 import { EncounterPhase } from "#app/phases/encounter-phase";
-import { EnemyCommandPhase } from "#app/phases/enemy-command-phase";
+import type { EnemyCommandPhase } from "#app/phases/enemy-command-phase";
 import { FaintPhase } from "#app/phases/faint-phase";
 import { LoginPhase } from "#app/phases/login-phase";
-import { MovePhase } from "#app/phases/move-phase";
-import { MysteryEncounterPhase } from "#app/phases/mystery-encounter-phases/mystery-encounter-phase";
-import { NewBattlePhase } from "#app/phases/new-battle-phase";
 import { SelectStarterPhase } from "#app/phases/select-starter-phase";
 import { type SelectTargetPhase } from "#app/phases/select-target-phase";
 import { TitlePhase } from "#app/phases/title-phase";
-import { TurnEndPhase } from "#app/phases/turn-end-phase";
-import { TurnInitPhase } from "#app/phases/turn-init-phase";
-import { TurnStartPhase } from "#app/phases/turn-start-phase";
 import type BattleMessageUiHandler from "#app/ui/battle-message-ui-handler";
 import type CommandUiHandler from "#app/ui/command-ui-handler";
 import type ModifierSelectUiHandler from "#app/ui/modifier-select-ui-handler";
@@ -54,6 +53,7 @@ import { FieldHelper } from "#test/testUtils/helpers/fieldHelper";
 import { ReloadHelper } from "#test/testUtils/helpers/reloadHelper";
 import { SettingsHelper } from "#test/testUtils/helpers/settingsHelper";
 import type { InputsHandler } from "#test/testUtils/inputsHandler";
+import type { PhaseInterceptorPhase } from "#test/testUtils/phaseInterceptor";
 import { PhaseInterceptor } from "#test/testUtils/phaseInterceptor";
 import { TextInterceptor } from "#test/testUtils/TextInterceptor";
 import { AES, enc } from "crypto-js";
@@ -67,6 +67,7 @@ import type { Abilities } from "#enums/abilities";
 import { allAbilities, allMoves } from "#app/data/data-lists";
 import { globalPhaseManager } from "#app/global-phase-manager";
 import { PhaseManager } from "#app/phase-manager";
+import { TurnInitPhase } from "#app/phases/turn-init-phase";
 
 /**
  * Class to manage the game state and transitions between phases.
@@ -144,6 +145,9 @@ export class GameManager {
 
     // Disables Mystery Encounters on all tests (can be overridden at test level)
     this.override.mysteryEncounterChance(0);
+
+    // Disables timed events on all tests (can be overriden at test level)
+    this.override.timedEvents([]);
 
     global.fetch = vi.fn(MockFetch) as any;
   }
@@ -239,7 +243,7 @@ export class GameManager {
       this.removeEnemyHeldItems();
     }
 
-    await this.phaseInterceptor.to(EncounterPhase);
+    await this.phaseInterceptor.to("EncounterPhase");
     console.log("===finished run to final boss encounter===");
   }
 
@@ -267,7 +271,7 @@ export class GameManager {
         this.phaseManager.pushPhase(EncounterPhase, false);
         selectStarterPhase.initBattle(starters);
       },
-      () => this.isCurrentPhase(EncounterPhase),
+      () => this.isCurrentPhase("EncounterPhase"),
     );
 
     this.onNextPrompt(
@@ -277,11 +281,11 @@ export class GameManager {
         const handler = this.scene.ui.getHandler() as BattleMessageUiHandler;
         handler.processInput(Button.ACTION);
       },
-      () => this.isCurrentPhase(MysteryEncounterPhase),
+      () => this.isCurrentPhase("MysteryEncounterPhase"),
       true,
     );
 
-    await this.phaseInterceptor.run(EncounterPhase);
+    await this.phaseInterceptor.run("EncounterPhase");
     if (!isNullOrUndefined(encounterType)) {
       expect(this.scene.currentBattle?.mysteryEncounter?.encounterType).toBe(encounterType);
     }
@@ -305,7 +309,7 @@ export class GameManager {
           this.setMode(UiMode.MESSAGE);
           this.endPhase();
         },
-        () => this.isCurrentPhase(CommandPhase) || this.isCurrentPhase(TurnInitPhase),
+        () => this.isCurrentPhase("CommandPhase") || this.isCurrentPhase("TurnInitPhase"),
       );
 
       this.onNextPrompt(
@@ -315,11 +319,11 @@ export class GameManager {
           this.setMode(UiMode.MESSAGE);
           this.endPhase();
         },
-        () => this.isCurrentPhase(CommandPhase) || this.isCurrentPhase(TurnInitPhase),
+        () => this.isCurrentPhase("CommandPhase") || this.isCurrentPhase("TurnInitPhase"),
       );
     }
 
-    await this.phaseInterceptor.to(CommandPhase);
+    await this.phaseInterceptor.to("CommandPhase");
     console.log("==================[New Turn]==================");
   }
 
@@ -348,10 +352,10 @@ export class GameManager {
         handler.processInput(Button.ACTION);
       },
       () =>
-        this.isCurrentPhase(CommandPhase)
-        || this.isCurrentPhase(MovePhase)
-        || this.isCurrentPhase(TurnStartPhase)
-        || this.isCurrentPhase(TurnEndPhase),
+        this.isCurrentPhase("CommandPhase")
+        || this.isCurrentPhase("MovePhase")
+        || this.isCurrentPhase("TurnStartPhase")
+        || this.isCurrentPhase("TurnEndPhase"),
     );
   }
 
@@ -373,9 +377,9 @@ export class GameManager {
         handler.processInput(Button.CANCEL);
       },
       () =>
-        this.isCurrentPhase(CommandPhase)
-        || this.isCurrentPhase(NewBattlePhase)
-        || this.isCurrentPhase(CheckSwitchPhase),
+        this.isCurrentPhase("CommandPhase")
+        || this.isCurrentPhase("NewBattlePhase")
+        || this.isCurrentPhase("CheckSwitchPhase"),
       true,
     );
 
@@ -387,9 +391,9 @@ export class GameManager {
         handler.processInput(Button.ACTION);
       },
       () =>
-        this.isCurrentPhase(CommandPhase)
-        || this.isCurrentPhase(NewBattlePhase)
-        || this.isCurrentPhase(CheckSwitchPhase),
+        this.isCurrentPhase("CommandPhase")
+        || this.isCurrentPhase("NewBattlePhase")
+        || this.isCurrentPhase("CheckSwitchPhase"),
     );
   }
 
@@ -404,18 +408,18 @@ export class GameManager {
    */
   async forceEnemyMove(moveId: MoveId, target?: BattlerIndex) {
     // Wait for the next EnemyCommandPhase to start
-    await this.phaseInterceptor.to(EnemyCommandPhase, false);
+    await this.phaseInterceptor.to("EnemyCommandPhase", false);
     const enemy =
       this.scene.getEnemyField()[(this.phaseManager.getCurrentPhase() as EnemyCommandPhase).getFieldIndex()];
     const legalTargets = getMoveTargets(enemy, moveId);
 
     vi.spyOn(enemy, "getNextMove").mockReturnValueOnce({
-      move: allMoves[moveId],
+      move: allMoves.get(moveId),
       targets:
         target !== undefined && !legalTargets.multiple && legalTargets.targets.includes(target)
           ? [target]
           : enemy.getNextTargets(moveId),
-      type: enemy.getMoveType(allMoves[moveId]),
+      type: enemy.getMoveType(allMoves.get(moveId)),
     });
 
     /**
@@ -423,7 +427,7 @@ export class GameManager {
      * This allows this function to be called consecutively to
      * force a move for each enemy in a double battle.
      */
-    await this.phaseInterceptor.to(EnemyCommandPhase);
+    await this.phaseInterceptor.to("EnemyCommandPhase");
   }
 
   forceEnemyToSwitch() {
@@ -439,13 +443,13 @@ export class GameManager {
 
   /** Transition to the first {@linkcode CommandPhase} of the next turn. */
   async toNextTurn() {
-    await this.phaseInterceptor.to(TurnInitPhase);
-    await this.phaseInterceptor.to(CommandPhase);
+    await this.phaseInterceptor.to("TurnInitPhase");
+    await this.phaseInterceptor.to("CommandPhase");
   }
 
   /** Transition to the {@linkcode TurnEndPhase | end of the current turn}. */
   async toEndOfTurn() {
-    await this.phaseInterceptor.to(TurnEndPhase);
+    await this.phaseInterceptor.to("TurnEndPhase");
   }
 
   /** Emulate selecting a modifier (item) and transition to the next upcoming {@linkcode CommandPhase} */
@@ -459,7 +463,7 @@ export class GameManager {
         this.setMode(UiMode.MESSAGE);
         this.endPhase();
       },
-      () => this.isCurrentPhase(TurnInitPhase) || this.isCurrentPhase(CommandPhase),
+      () => this.isCurrentPhase("TurnInitPhase") || this.isCurrentPhase("CommandPhase"),
     );
 
     await this.toNextTurn();
@@ -478,7 +482,7 @@ export class GameManager {
    * @param phaseTarget - The target phase.
    * @returns True if the current phase matches the target phase, otherwise false.
    */
-  isCurrentPhase(phaseTarget) {
+  isCurrentPhase(phaseTarget: PhaseInterceptorPhase) {
     const targetName = typeof phaseTarget === "string" ? phaseTarget : phaseTarget.name;
     return this.phaseManager.getCurrentPhase()?.constructor.name === targetName;
   }
@@ -528,7 +532,7 @@ export class GameManager {
     return new Promise<void>(async (resolve, reject) => {
       pokemon.hp = 0;
       this.phaseManager.pushPhase(FaintPhase, pokemon.getBattlerIndex(), true);
-      await this.phaseInterceptor.to(FaintPhase).catch((e) => reject(e));
+      await this.phaseInterceptor.to("FaintPhase").catch((e) => reject(e));
       resolve();
     });
   }

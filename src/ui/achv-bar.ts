@@ -1,9 +1,9 @@
 import { globalScene } from "#app/global-scene";
-import { Achv } from "#app/system/achv";
+import { Achievement } from "#app/system/achievements";
 import type { Voucher } from "#app/system/voucher";
 import { addTextObject } from "#app/ui/text";
 import { TextStyle } from "#enums/text-style";
-import { GAME_WIDTH } from "#app/ui-constants";
+import { GAME_WIDTH, TEXT_SCALE } from "#app/ui-constants";
 
 export default class AchvBar extends Phaser.GameObjects.Container {
   private defaultWidth: number;
@@ -15,7 +15,7 @@ export default class AchvBar extends Phaser.GameObjects.Container {
   private scoreText: Phaser.GameObjects.Text;
   private descriptionText: Phaser.GameObjects.Text;
 
-  private queue: (Achv | Voucher)[] = [];
+  private queue: (Achievement | Voucher)[] = [];
 
   public shown: boolean;
 
@@ -47,19 +47,19 @@ export default class AchvBar extends Phaser.GameObjects.Container {
     this.icon.setOrigin(0, 0);
     this.add(this.icon);
 
-    this.titleText = addTextObject(40, 3, "", TextStyle.MESSAGE, { fontSize: "72px" });
+    this.titleText = addTextObject(40, 3, "", TextStyle.NOTIFICATION_BAR_LIGHT);
     this.titleText.setOrigin(0, 0);
     this.add(this.titleText);
 
-    this.scoreText = addTextObject(150, 3, "", TextStyle.MESSAGE, { fontSize: "72px" });
+    this.scoreText = addTextObject(150, 3, "", TextStyle.NOTIFICATION_BAR_LIGHT);
     this.scoreText.setOrigin(1, 0);
     this.add(this.scoreText);
 
-    this.descriptionText = addTextObject(43, 16, "", TextStyle.WINDOW_ALT, { fontSize: "72px" });
+    this.descriptionText = addTextObject(43, 16, "", TextStyle.NOTIFICATION_BAR_DARK);
     this.descriptionText.setOrigin(0, 0);
     this.add(this.descriptionText);
 
-    this.descriptionText.setWordWrapWidth(664);
+    this.descriptionText.setWordWrapWidth(110 * TEXT_SCALE);
     this.descriptionText.setLineSpacing(-5);
 
     this.setScale(0.5);
@@ -67,23 +67,17 @@ export default class AchvBar extends Phaser.GameObjects.Container {
     this.shown = false;
   }
 
-  showAchv(achv: Achv | Voucher): void {
+  showAchv(achv: Achievement | Voucher): void {
     if (this.shown) {
       this.queue.push(achv);
       return;
     }
 
-    const tier = achv.getTier();
-
-    this.bg.setTexture(`achv_bar${tier ? `_${tier + 1}` : ""}`);
+    this.bg.setTexture(`achv_bar`);
     this.icon.setFrame(achv.iconImage);
     this.titleText.setText(achv.name);
-    this.scoreText.setVisible(achv instanceof Achv);
+    this.scoreText.setVisible(achv instanceof Achievement);
     this.descriptionText.setText(achv.description);
-
-    if (achv instanceof Achv) {
-      this.scoreText.setText(`+${achv.score}pt`);
-    }
 
     // Take the width of the default interface or the title if longest
     this.bg.width = Math.max(
@@ -93,7 +87,7 @@ export default class AchvBar extends Phaser.GameObjects.Container {
 
     this.scoreText.x = this.bg.width - 2;
     this.descriptionText.width = this.bg.width - this.icon.displayWidth - 16;
-    this.descriptionText.setWordWrapWidth(this.descriptionText.width * 6);
+    this.descriptionText.setWordWrapWidth(this.descriptionText.width * TEXT_SCALE);
 
     // Take the height of the default interface or the description if longest
     this.bg.height = Math.max(
@@ -102,7 +96,7 @@ export default class AchvBar extends Phaser.GameObjects.Container {
     );
     this.icon.y = this.bg.height / 2 - this.icon.height / 2;
 
-    globalScene.playSound("se/achv");
+    globalScene.audioManager.playSound("se/achv");
 
     globalScene.tweens.add({
       targets: this,

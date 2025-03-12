@@ -69,7 +69,6 @@ export const FightOrFlightEncounter: MysteryEncounter = MysteryEncounterBuilder.
       level,
       0,
       getPartyLuckValue(globalScene.getPlayerParty()),
-      true,
     );
     const bossPokemon = new EnemyPokemon(bossSpecies, level, TrainerSlot.NONE, true);
     encounter.setDialogueToken("enemyPokemon", bossPokemon.getNameToRender());

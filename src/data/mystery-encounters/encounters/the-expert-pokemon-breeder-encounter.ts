@@ -632,7 +632,7 @@ function onGameOver() {
   encounter.misc.encounterFailed = true;
 
   // Revert BGM
-  globalScene.playBgm(globalScene.arena.bgm);
+  globalScene.audioManager.playBgm(globalScene.arena.bgm);
 
   // Clear any leftover battle phases
   globalPhaseManager.clearPhaseQueue();
@@ -641,7 +641,7 @@ function onGameOver() {
   // Return enemy Pokemon
   const pokemon = globalScene.getEnemyPokemon();
   if (pokemon) {
-    globalScene.playSound("se/pb_rel");
+    globalScene.audioManager.playSound("se/pb_rel");
     pokemon.hideInfo();
     pokemon.tint(getPokeballTintColor(pokemon.pokeball), 1, 250, "Sine.easeIn");
     globalScene.tweens.add({
