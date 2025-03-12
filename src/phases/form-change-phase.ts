@@ -19,7 +19,6 @@ import { EndEvolutionPhase } from "./end-evolution-phase";
 import { LearnMovePhase } from "./learn-move-phase";
 import { PhaseId } from "#enums/phase-id";
 import type { PhaseManager } from "#app/phase-manager";
-import { globalPhaseManager } from "#app/global-phase-manager";
 
 /**
  * A phase for handling certain form changes for player Pokemon.
@@ -226,10 +225,10 @@ export class FormChangePhase extends FormChangeBasePhase {
       // then end the form change cutscene via `EndEvolutionPhase`.
       for (const [, learnMoveId] of this.pokemon.getLevelMoves(1, true)) {
         if (this.formChange.movesToLearn.includes(learnMoveId)) {
-          globalScene.unshiftPhase(new LearnMovePhase(globalScene.getPlayerParty().indexOf(this.pokemon), learnMoveId));
+          this.manager.unshiftPhase(LearnMovePhase, globalScene.getPlayerParty().indexOf(this.pokemon), learnMoveId);
         }
       }
-      globalScene.unshiftPhase(new EndEvolutionPhase());
+      this.manager.unshiftPhase(EndEvolutionPhase);
 
       super.end();
     }
